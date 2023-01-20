@@ -13,6 +13,11 @@ public class Player : NetworkBehaviour
     public Vector3 velocity { get; set; }
     bool isRotating { get; set; }
     bool isQueueing { get; set; }
+
+
+
+
+
     // Start is called before the first frame update
     void Start()
     {
@@ -20,19 +25,28 @@ public class Player : NetworkBehaviour
         movementSpeed = 20;
         rotationSpeed = 20;
         velocity = Vector3.zero;
+
         isRotating = false;
         isQueueing = false;
 
+        // If the player is the local player
         if (isLocalPlayer)
         {
+            // Deactivate the player model and parent the main camera
             transform.Find("Rotation/Model").gameObject.SetActive(false);
             Camera.main.transform.SetParent(transform.Find("Rotation"), false);
             Camera.main.transform.position = transform.position;
             Camera.main.transform.rotation = transform.rotation;
 
         }
+
+        // Load the key bindings
         LoadKeyBinding();
     }
+
+
+
+
 
     // Update is called once per frame
     void Update()
@@ -40,19 +54,30 @@ public class Player : NetworkBehaviour
 
     }
 
+
+
+
+
+    // FixedUpdate is called every 0.02s (50 calls per second)
     void FixedUpdate()
     {
         if (isLocalPlayer)
         {
+            // Check if the mouse is hovering a gameObject
             CheckHover();
         }
     }
 
 
+
+
+
+    // LateUpdate is called after all update functions have been called
     private void LateUpdate()
     {
         if(isLocalPlayer)
         {
+            // Rotate and move the player, move the building blueprint
             Rotate();
             Move();
             MoveBlueprint();
@@ -61,52 +86,100 @@ public class Player : NetworkBehaviour
     }
 
 
+
+
+
+    // Association of keybindings and their corresponding methods
     private void LoadKeyBinding()
     {
+        // Initiate the input system and enable the Player action map
         InputSystem inputSystem = new InputSystem();
         inputSystem.Player.Enable();
 
-        inputSystem.Player.Move.performed += CheckVelocity;
+        // Movement keys (WASD, space, ctrl)
+        inputSystem.Player.Move.performed += SetVelocity;
 
+        // Camera rotation keys (Middle mouse)
         inputSystem.Player.Look.started += StartRotate;
         inputSystem.Player.Look.canceled += CancelRotate;
 
+        // Actions keys (Left mouse, right mouse)
         inputSystem.Player.Actions.performed += PerformActions;
 
+        // Alternative actions keys (Left Shift, Left Alt)
         inputSystem.Player.Alts.started += StartAlts;
         inputSystem.Player.Alts.canceled += CancelAlts;
     }
 
+
+
+
+
+    // When the corresponding key is held, the camera starts following the mouse
     private void StartRotate(InputAction.CallbackContext context)
     {
         isRotating = true;
     }
 
+
+
+
+
+    // When the corresponding key is released, the camera stops following the mouse
     private void CancelRotate(InputAction.CallbackContext context)
     {
         isRotating = false;
     }
 
+
+
+
+
     private void Rotate()
     {
+        // If the rotation button is held
         if(isRotating)
         {
-            Vector3 RotationY = Vector3.up * Mouse.current.delta.x.ReadValue();
+            Vector2 Rotation = Mouse.current.delta.ReadValue();
+            // Calculate the rotation around the Y axis and apply it
+            Vector3 RotationY = Vector3.up * Rotation.x;
             transform.Rotate(RotationY * rotationSpeed * Time.deltaTime);
 
-            Vector3 RotationX = Vector3.left * Mouse.current.delta.y.ReadValue();
+            // Calculate the rotation around the X axis and apply it
+            Vector3 RotationX = Vector3.left * Rotation.y;
             transform.Find("Rotation").Rotate(RotationX * rotationSpeed * Time.deltaTime);
         }
     }
 
 
-    private void Move()
-    {
-        Vector3 movement = transform.rotation * velocity;
 
-        controller.Move(movement * movementSpeed * Time.deltaTime);
+
+
+    // 
+    private void SetVelocity(InputAction.CallbackContext context)
+    {
+        velocity = context.ReadValue<Vector3>();
     }
 
+
+
+
+
+    private void Move()
+    {
+        if(velocity != Vector3.zero)
+        {
+            Vector3 movement = transform.rotation * velocity;
+
+            controller.Move(movement * movementSpeed * Time.deltaTime);
+        }
+    }
+
+
+
+
+
+    // To redo entirely to be honest
     private void MoveBlueprint()
     {
         if(Globals.BuildingBlueprint != null)
@@ -135,10 +208,9 @@ public class Player : NetworkBehaviour
         }
     }
 
-    private void CheckVelocity(InputAction.CallbackContext context)
-    {
-        velocity = context.ReadValue<Vector3>();
-    }
+
+
+
 
     private void PerformActions(InputAction.CallbackContext context)
     {
@@ -188,6 +260,10 @@ public class Player : NetworkBehaviour
         }
     }
 
+
+
+
+
     private void StartAlts(InputAction.CallbackContext context)
     {
         if(context.ReadValue<float>() == -1)
@@ -196,6 +272,10 @@ public class Player : NetworkBehaviour
         }
     }
 
+
+
+
+
     private void CancelAlts(InputAction.CallbackContext context)
     {
         if (context.ReadValue<float>() == -1)
@@ -203,6 +283,10 @@ public class Player : NetworkBehaviour
             isQueueing = false;
         }
     }
+
+
+
+
 
     private void CheckHover()
     {
