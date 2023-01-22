@@ -740,9 +740,9 @@
             "id": "df654c41-9dab-4b17-a7cc-2abb07b36b78",
             "actions": [
                 {
-                    "name": "New action",
+                    "name": "Menu",
                     "type": "Button",
-                    "id": "e408533f-d191-4f42-8e2e-959d28a8d8d5",
+                    "id": "7c50104e-2157-4467-a76f-d32d2c29504a",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
@@ -752,12 +752,12 @@
             "bindings": [
                 {
                     "name": "",
-                    "id": "e8642e89-6f46-4a01-9d30-a04877239aef",
-                    "path": "",
+                    "id": "e15e37c7-551b-4962-9f60-c67f67d86d33",
+                    "path": "<Keyboard>/escape",
                     "interactions": "",
                     "processors": "",
-                    "groups": "",
-                    "action": "New action",
+                    "groups": "Keyboard&Mouse",
+                    "action": "Menu",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

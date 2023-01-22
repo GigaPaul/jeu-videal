@@ -21,6 +21,22 @@ public class Player : NetworkBehaviour
 
 
 
+    private void Awake()
+    {
+        // A bouger sûrement, récupère quelle touche est affectée à quelle action dans le menu de réassignation
+        inputSystem = new();
+
+        // Load the key bindings
+        LoadPlayerKeyBinding();
+        LoadUIKeyBinding();
+        InitKeyBindingMenu();
+        //
+    }
+
+
+
+
+
     // Start is called before the first frame update
     void Start()
     {
@@ -32,8 +48,6 @@ public class Player : NetworkBehaviour
         isRotating = false;
         isQueueing = false;
 
-        inputSystem = new();
-
         // If the player is the local player
         if (isLocalPlayer)
         {
@@ -44,10 +58,6 @@ public class Player : NetworkBehaviour
             Camera.main.transform.rotation = transform.rotation;
 
         }
-
-        // Load the key bindings
-        LoadPlayerKeyBinding();
-        LoadUIKeyBinding();
     }
 
 
@@ -117,13 +127,7 @@ public class Player : NetworkBehaviour
 
         inputSystem.Player.Menu.performed += OpenMenu;
 
-        GameObject Menu = GameObject.Find("Menu");
-
-        Transform KBForward = Menu.transform.GetComponentsInChildren<Transform>().FirstOrDefault(i => i.name == "KeybindForward");
-        TextMeshProUGUI KBForwardBTN = KBForward.GetComponentsInChildren<TextMeshProUGUI>().FirstOrDefault(i => i.name == "TextButton");
-        string forwardKeyPath = inputSystem.Player.Move.bindings[5].path;
-        string forwardKeyString = InputControlPath.ToHumanReadableString(forwardKeyPath, InputControlPath.HumanReadableStringOptions.OmitDevice);
-        KBForwardBTN.text = forwardKeyString;
+        inputSystem.UI.Menu.performed += CloseMenu;
     }
 
 
@@ -139,11 +143,37 @@ public class Player : NetworkBehaviour
 
 
 
+    private void InitKeyBindingMenu()
+    {
+        Globals.PauseMenu = GameObject.Find("Menu");
+        Transform KBForward = Globals.PauseMenu.transform.GetComponentsInChildren<Transform>().FirstOrDefault(i => i.name == "KeybindForward");
+        TextMeshProUGUI KBForwardBTN = KBForward.GetComponentsInChildren<TextMeshProUGUI>().FirstOrDefault(i => i.name == "TextButton");
+        string forwardKeyPath = inputSystem.Player.Move.bindings[5].path;
+        string forwardKeyString = InputControlPath.ToHumanReadableString(forwardKeyPath, InputControlPath.HumanReadableStringOptions.OmitDevice);
+        KBForwardBTN.text = forwardKeyString;
+
+        Globals.PauseMenu.SetActive(false);
+    }
+
+
+
+
+
     private void OpenMenu(InputAction.CallbackContext context)
     {
         inputSystem.Player.Disable();
         inputSystem.UI.Enable();
-        Debug.Log("ping");
+        Globals.PauseMenu.SetActive(true);
+    }
+
+
+
+
+    private void CloseMenu(InputAction.CallbackContext context)
+    {
+        inputSystem.Player.Enable();
+        inputSystem.UI.Disable();
+        Globals.PauseMenu.SetActive(false);
     }
 
 

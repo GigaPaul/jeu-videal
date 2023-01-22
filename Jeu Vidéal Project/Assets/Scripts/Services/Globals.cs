@@ -9,4 +9,5 @@ public class Globals
     public static int FocusableMask { get; set; } = LayerMask.GetMask("Focusable");
     public static int InteractiveMask { get; set; } = LayerMask.GetMask("Interactive");
     public static int GroundMask { get; set; } = LayerMask.GetMask("Ground");
+    public static GameObject PauseMenu { get; set; }
 }
