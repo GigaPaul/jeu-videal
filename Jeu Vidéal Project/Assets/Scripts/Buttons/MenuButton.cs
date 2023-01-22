@@ -5,11 +5,11 @@ using UnityEngine.SceneManagement;
 
 public class MenuButton : MonoBehaviour
 {
-    NetworkManagerCommune manager { get; set; }
+    NetworkManagerVideal manager { get; set; }
 
     public void Start()
     {
-        manager = FindObjectOfType<NetworkManagerCommune>();
+        manager = FindObjectOfType<NetworkManagerVideal>();
     }
 
 

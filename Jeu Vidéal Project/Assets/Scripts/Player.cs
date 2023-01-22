@@ -96,7 +96,6 @@ public class Player : NetworkBehaviour
             // Rotate and move the player, move the building blueprint
             Rotate();
             Move();
-            MoveBlueprint();
         }
 
     }
@@ -246,39 +245,6 @@ public class Player : NetworkBehaviour
 
 
 
-    // To redo entirely to be honest
-    private void MoveBlueprint()
-    {
-        if(Globals.BuildingBlueprint != null)
-        {
-            RaycastHit hit;
-            Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
-
-            if (Physics.Raycast(ray, out hit, Mathf.Infinity, Globals.GroundMask))
-            {
-                //// Temp
-                //if (Globals.BuildingBlueprint == null)
-                //{
-                //    GameObject shopPrefab = Resources.Load("Prefabs/SM_Bld_Shop_Corner_01") as GameObject;
-                //    GameObject shopGo = Instantiate(shopPrefab, hit.point, Quaternion.identity);
-                //    Building shop = shopGo.GetComponent<Building>();
-                //    shop.ToBlueprint();
-                //}
-                ////
-
-                Vector3 pos = new Vector3(
-                    hit.point.x - Globals.BuildingBlueprint.rb.centerOfMass.x,
-                    hit.point.y,
-                    hit.point.z - Globals.BuildingBlueprint.rb.centerOfMass.z);
-                Globals.BuildingBlueprint.transform.position = pos;
-            }
-        }
-    }
-
-
-
-
-
     private void PerformActions(InputAction.CallbackContext context)
     {
         // Left click
@@ -296,12 +262,6 @@ public class Player : NetworkBehaviour
                 else
                 {
                     Globals.FocusedNeighbour = null;
-
-                    if (Globals.BuildingBlueprint != null)
-                    {
-                        Building newBuilding = Instantiate(Globals.BuildingBlueprint, Vector3.zero, Quaternion.identity);
-                        newBuilding.Place(Globals.BuildingBlueprint.transform);
-                    }
                 }
             }
         }
