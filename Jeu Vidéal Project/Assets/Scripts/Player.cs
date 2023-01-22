@@ -1,6 +1,8 @@
 using Mirror;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -13,6 +15,7 @@ public class Player : NetworkBehaviour
     public Vector3 velocity { get; set; }
     bool isRotating { get; set; }
     bool isQueueing { get; set; }
+    private InputSystem inputSystem { get; set; }
 
 
 
@@ -29,6 +32,8 @@ public class Player : NetworkBehaviour
         isRotating = false;
         isQueueing = false;
 
+        inputSystem = new();
+
         // If the player is the local player
         if (isLocalPlayer)
         {
@@ -41,7 +46,8 @@ public class Player : NetworkBehaviour
         }
 
         // Load the key bindings
-        LoadKeyBinding();
+        LoadPlayerKeyBinding();
+        LoadUIKeyBinding();
     }
 
 
@@ -90,10 +96,9 @@ public class Player : NetworkBehaviour
 
 
     // Association of keybindings and their corresponding methods
-    private void LoadKeyBinding()
+    private void LoadPlayerKeyBinding()
     {
         // Initiate the input system and enable the Player action map
-        InputSystem inputSystem = new InputSystem();
         inputSystem.Player.Enable();
 
         // Movement keys (WASD, space, ctrl)
@@ -109,7 +114,39 @@ public class Player : NetworkBehaviour
         // Alternative actions keys (Left Shift, Left Alt)
         inputSystem.Player.Alts.started += StartAlts;
         inputSystem.Player.Alts.canceled += CancelAlts;
+
+        inputSystem.Player.Menu.performed += OpenMenu;
+
+        GameObject Menu = GameObject.Find("Menu");
+
+        Transform KBForward = Menu.transform.GetComponentsInChildren<Transform>().FirstOrDefault(i => i.name == "KeybindForward");
+        TextMeshProUGUI KBForwardBTN = KBForward.GetComponentsInChildren<TextMeshProUGUI>().FirstOrDefault(i => i.name == "TextButton");
+        string forwardKeyPath = inputSystem.Player.Move.bindings[5].path;
+        string forwardKeyString = InputControlPath.ToHumanReadableString(forwardKeyPath, InputControlPath.HumanReadableStringOptions.OmitDevice);
+        KBForwardBTN.text = forwardKeyString;
     }
+
+
+
+
+
+    private void LoadUIKeyBinding()
+    {
+
+    }
+
+
+
+
+
+    private void OpenMenu(InputAction.CallbackContext context)
+    {
+        inputSystem.Player.Disable();
+        inputSystem.UI.Enable();
+        Debug.Log("ping");
+    }
+
+
 
 
 
