@@ -250,38 +250,41 @@ public class Player : NetworkBehaviour
         // Left click
         if(context.ReadValue<float>() == 1)
         {
-            if (!EventSystem.current.IsPointerOverGameObject())
-            {
+            //if (!EventSystem.current.IsPointerOverGameObject())
+            //{
                 RaycastHit hit;
                 Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
                 if (Physics.Raycast(ray, out hit, Mathf.Infinity, Globals.FocusableMask))
                 {
-                    Neighbour HittedNeighbour = hit.transform.GetComponentInParent<Neighbour>();
-                    Globals.FocusedNeighbour = HittedNeighbour;
+                    Pawn hitPawn = hit.transform.GetComponentInParent<Pawn>();
+                    Globals.FocusedPawn = hitPawn;
                 }
                 else
                 {
-                    Globals.FocusedNeighbour = null;
+                    Globals.FocusedPawn = null;
                 }
-            }
+            //}
         }
         // Right click
         else
         {
-            if (Globals.FocusedNeighbour != null)
+            if (Globals.FocusedPawn != null && Globals.FocusedPawn.IsPlayable())
             {
                 RaycastHit hit;
                 Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
                 if (Physics.Raycast(ray, out hit, Mathf.Infinity, Globals.GroundMask))
                 {
-                    // If the player isn't queueing waypoints, empty the patrol
-                    if (!isQueueing)
-                    {
-                        Globals.FocusedNeighbour.EmptyPatrol();
-                    }
-
-                    // Add waypoint to patrol
-                    Globals.FocusedNeighbour.AddToPatrol(hit.point);
+                    // If the player is queueing waypoints
+                    Globals.FocusedPawn.GoTo(hit.point, isQueueing);
+                    //if (isQueueing)
+                    //{
+                    //    Globals.FocusedPawn.patrol.Add(hit.point);
+                    //}
+                    //else
+                    //{
+                    //    Globals.FocusedPawn.patrol.Clear();
+                    //    Globals.FocusedPawn.GoTo(hit.point);
+                    //}
                 }
             }
         }
@@ -293,7 +296,7 @@ public class Player : NetworkBehaviour
 
     private void StartAlts(InputAction.CallbackContext context)
     {
-        if(context.ReadValue<float>() == -1)
+        if (context.ReadValue<float>() == -1)
         {
             isQueueing = true;
         }
@@ -305,10 +308,10 @@ public class Player : NetworkBehaviour
 
     private void CancelAlts(InputAction.CallbackContext context)
     {
-        if (context.ReadValue<float>() == -1)
-        {
-            isQueueing = false;
-        }
+        isQueueing = false;
+        //if (context.ReadValue<float>() == -1)
+        //{
+        //}
     }
 
 
@@ -321,13 +324,12 @@ public class Player : NetworkBehaviour
         Ray rayHover = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
         if (Physics.Raycast(rayHover, out hover, Mathf.Infinity, Globals.FocusableMask))
         {
-            Globals.HoveredNeighbour = hover.transform.GetComponentInParent<Neighbour>();
-            //Globals.HoveredInteractive = hover.transform.GetComponentInParent<InteractiveObject>();
-            //GameObject.Find("Neighbour").GetComponent<Neighbour>().AddToPatrol(hit.point);
+            Pawn hoveredPawn = hover.transform.GetComponentInParent<Pawn>();
+            Globals.HoveredPawn = hoveredPawn;
         }
         else
         {
-            Globals.HoveredNeighbour = null;
+            Globals.HoveredPawn = null;
             //Globals.HoveredInteractive = null;
         }
     }
