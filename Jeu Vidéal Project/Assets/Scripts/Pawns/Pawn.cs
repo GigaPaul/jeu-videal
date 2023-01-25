@@ -10,7 +10,10 @@ public class Pawn : NetworkBehaviour
     public Settlement Settlement;
     public List<Settlement> TraderVisitedSettlements = new();
     public CharacterController controller { get; set; }
-    public Patrol patrol { get; set; }
+    //public Patrol patrol { get; set; }
+    public ActionQueue ActionQueue { get; set; }
+    public Action ActionToStart { get; set; }
+    public Action OngoingAction { get; set; }
     Vector3? positionTarget { get; set; }
     Vector3 rotationTarget { get; set; }
     //public float horizontalDirection { get; set; }
@@ -50,7 +53,8 @@ public class Pawn : NetworkBehaviour
         maxSpeed = 3;
         rotationSpeed = 10;
         controller = GetComponent<CharacterController>();
-        patrol = new();
+        //patrol = new();
+        ActionQueue = new();
         AnimatorController = GetComponent<Animator>();
         SpawnPoint = transform.position;
 
@@ -59,12 +63,16 @@ public class Pawn : NetworkBehaviour
         GameObject stateRings = Instantiate(stateRingsPrefab, transform.position + Vector3.up * 0.15f, Quaternion.identity, transform);
         hoverRing = stateRings.transform.Find("HoverRing").gameObject;
         focusRing = stateRings.transform.Find("FocusRing").gameObject;
+
     }
 
     // Update is called once per frame
     void Update()
     {
-
+        if (ActionToStart != null)
+        {
+            StartCoroutine(StartAction());
+        }
     }
 
     private void LateUpdate()
@@ -115,11 +123,6 @@ public class Pawn : NetworkBehaviour
     {
         if(IsIdle())
         {
-            if(AnimatorController.GetBool("IsWalking"))
-            {
-                AnimatorController.SetBool("IsWalking", false);
-            }
-
             if (!IsPlayable())
             {
                 Routine();
@@ -129,91 +132,78 @@ public class Pawn : NetworkBehaviour
         else
         {
             // Go to the current waypoint
-            if(positionTarget == null || positionTarget != patrol.Waypoints.First())
+            if (positionTarget == null || positionTarget != ActionQueue.Actions.First().Target)
             {
-                positionTarget = patrol.Waypoints.First();
+                positionTarget = ActionQueue.Actions.First().Target;
             }
 
-            // Begin to walk
-            //if (verticalDirection != 1)
-            //{
-            //    verticalDirection = 1;
-            //    AnimatorController.SetBool("IsWalking", true);
-            //}
-            if (!AnimatorController.GetBool("IsWalking"))
+            bool IsNotAtDestination = ((Vector3)positionTarget - transform.position).sqrMagnitude >= 0.1;
+
+            if (IsNotAtDestination)
             {
-                AnimatorController.SetBool("IsWalking", true);
+
+                // Begin to walk
+                //if (verticalDirection != 1)
+                //{
+                //    verticalDirection = 1;
+                //    AnimatorController.SetBool("IsWalking", true);
+                //}
+                if (!AnimatorController.GetBool("IsWalking"))
+                {
+                    AnimatorController.SetBool("IsWalking", true);
+                }
+
+
+
+
+
+
+
+
+                // Face the target
+                Face((Vector3)positionTarget);
+
+                // Move towards the target
+                Vector3 RelativePos = (Vector3)positionTarget - transform.position;
+                Quaternion TargetedRotation = Quaternion.LookRotation(RelativePos);
+                Vector3 RotationOffset = TargetedRotation.eulerAngles - transform.rotation.eulerAngles;
+                //Vector3 Direction = controller.transform.forward * verticalDirection + controller.transform.right * horizontalDirection;
+                Vector3 Direction = controller.transform.forward;
+                Vector3 Movement = Quaternion.Euler(0, RotationOffset.y, 0) * Direction;
+                controller.Move(maxSpeed * Time.deltaTime * Movement);
+
+                // Keep the character on ground level (Maybe need to be redone)
+                float newY = Terrain.activeTerrain.SampleHeight(transform.position);
+                transform.position = new Vector3(transform.position.x, newY, transform.position.z);
+                //
             }
-
-            // Face the target
-            Face((Vector3)positionTarget);
-
-            // Move towards the target
-            Vector3 RelativePos = (Vector3)positionTarget - transform.position;
-            Quaternion TargetedRotation = Quaternion.LookRotation(RelativePos);
-            Vector3 RotationOffset = TargetedRotation.eulerAngles - transform.rotation.eulerAngles;
-            //Vector3 Direction = controller.transform.forward * verticalDirection + controller.transform.right * horizontalDirection;
-            Vector3 Direction = controller.transform.forward;
-            Vector3 Movement = Quaternion.Euler(0, RotationOffset.y, 0) * Direction;
-            controller.Move(maxSpeed * Time.deltaTime * Movement);
-
-            // Keep the character on ground level (Maybe need to be redone)
-            float newY = Terrain.activeTerrain.SampleHeight(transform.position);
-            transform.position = new Vector3(transform.position.x, newY, transform.position.z);
-            //
-
             // Pawn has arrived at destination
-            if (((Vector3)positionTarget - transform.position).sqrMagnitude < 0.1)
+            else
             {
-                // Go to next waypoint
-                patrol.Next();
-                //if(patrol.IsEmpty())
-                //{ 
-                //    positionTarget = null;
-                //}
+                if(OngoingAction == null && ActionToStart == null)
+                {
+                    //// Go to next waypoint
+                    //patrol.Next();
+                    if (AnimatorController.GetBool("IsWalking"))
+                    {
+                        AnimatorController.SetBool("IsWalking", false);
+                    }
 
 
-
-                //// If this waypoint was the last one of the patrol
-                //if(positionTarget == patrol.Waypoints.Last())
-                //{
-                //    // If the patrol is a loop
-                //    if(patrol.IsLoop)
-                //    {
-                //        GoTo(patrol.Waypoints.First());
-                //    }
-                //    // If the patrol isn't a loop
-                //    else
-                //    {
-                //        if (verticalDirection != 0)
-                //        {
-                //            verticalDirection = 0;
-                //            positionTarget = null;
-                //            AnimatorController.SetBool("IsWalking", false);
-                //            patrol.Clear();
-                //        }
-                //    }
-                //}
-                //// If the waypoint wasn't the last waypoint of the patrol
-                //else
-                //{
-                //    int waypointId = patrol.Waypoints.IndexOf((Vector3)positionTarget);
-                //    GoTo(patrol.Waypoints[waypointId + 1]);
-                //}
-
-
-                //patrol.RemoveAt(0);
-                //if (patrol.Count > 0)
-                //{
-                //    GoTo(patrol[0]);
-                //}
-                //// Pawn is finally idle
-                //else
-                //{
-                //    positionTarget = null;
-                //}
+                    //ActionQueue.Perform();
+                    ActionToStart = ActionQueue.Actions.First();
+                }
             }
         }
+    }
+
+    private IEnumerator StartAction()
+    {
+        OngoingAction = ActionToStart;
+        ActionToStart = null;
+        yield return new WaitForSeconds(OngoingAction.CastingTime);
+        ActionQueue.Next();
+        OngoingAction = null;
     }
 
 
@@ -239,21 +229,29 @@ public class Pawn : NetworkBehaviour
 
     public bool IsIdle()
     {
-        return patrol.IsEmpty();
+        //return patrol.IsEmpty();
+        return ActionQueue.IsEmpty();
     }
 
 
 
     public void GoTo(Vector3 target, bool isQueueing = false)
     {
-        // Si la patrouille est vide ou qu'on ne veut pas rajouter à la file
-        if(!isQueueing)
-        {
-            patrol.Clear();
-        }
+        //// Si la patrouille est vide ou qu'on ne veut pas rajouter à la file
+        //if(!isQueueing)
+        //{
+        //    patrol.Clear();
+        //}
 
-        patrol.Add(target);
-        //positionTarget = target;
+        //patrol.Add(target);
+
+        Action goAction = new()
+        {
+            Label = "Moving...",
+            Target = target
+        };
+
+        Do(goAction);
     }
 
 
@@ -262,6 +260,20 @@ public class Pawn : NetworkBehaviour
     {
         Vector3 relativeTarget = (position - transform.position).normalized;
         rotationTarget = relativeTarget;
+    }
+
+
+
+    public void Do(Action action, bool isQueueing = false)
+    {
+        action.Actor = this;
+
+        if (!isQueueing)
+        {
+            ActionQueue.Clear();
+        }
+
+        ActionQueue.Add(action);
     }
 
 
@@ -286,7 +298,8 @@ public class Pawn : NetworkBehaviour
 
     public void TraderRoutine()
     {
-        patrol.IsLoop = true;
+        //patrol.IsLoop = true
+        ActionQueue.IsLoop = true;
 
         Vector3 abourgPosition = Globals.Settlements.FirstOrDefault(i => i.Label == "Abourg").transform.position;
         Vector3 bescheimPosition = Globals.Settlements.FirstOrDefault(i => i.Label == "Bescheim").transform.position;
@@ -348,5 +361,10 @@ public class Pawn : NetworkBehaviour
 
         Vector3 wanderPoint = new(x, 0, z);
         GoTo(wanderPoint);
+
+        //Action newAction = new();
+        //newAction.Label = "Fait un truc";
+        //newAction.Target = wanderPoint;
+        //Do(newAction);
     }
 }

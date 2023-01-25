@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 1468532837860305611}
   - component: {fileID: 1468532837860305608}
   - component: {fileID: 1468532837860305613}
-  - component: {fileID: 1468532837860305612}
+  - component: {fileID: 6454769160123706000}
   m_Layer: 6
   m_Name: Pawn
   m_TagString: Untagged
@@ -50,7 +50,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   syncMode: 0
   syncInterval: 0.1
-  StartsPlayable: 0
+  Faction: {fileID: 0}
+  Settlement: {fileID: 0}
+  TraderVisitedSettlements: []
+  Occupations: []
+  IsBeingDebugged: 0
 --- !u!143 &1468532837860305608
 CharacterController:
   m_ObjectHideFlags: 0
@@ -86,7 +90,7 @@ MonoBehaviour:
   visible: 0
   m_AssetId: 83b07df143bbef246a9fd92eaf69ffd5
   hasSpawned: 0
---- !u!95 &1468532837860305612
+--- !u!95 &6454769160123706000
 Animator:
   serializedVersion: 5
   m_ObjectHideFlags: 0
@@ -99,7 +103,7 @@ Animator:
   m_Controller: {fileID: 9100000, guid: 9958c3901d5db6f41b9c50b2e419fea3, type: 2}
   m_CullingMode: 1
   m_UpdateMode: 0
-  m_ApplyRootMotion: 1
+  m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
   m_WarningMessage: 

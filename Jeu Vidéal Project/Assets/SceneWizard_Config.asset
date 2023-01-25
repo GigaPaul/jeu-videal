@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e351e006534f8c547bd5ae4df35bf142, type: 3}
   m_Name: SceneWizard_Config
   m_EditorClassIdentifier: 
-  folderPath: C:/Users/paulv/unity_projects/The Hand Shackler/Assets/Scenes
+  folderPath: "C:/Users/paulv/unity_projects/Jeu Vid\xE9al/Jeu Vid\xE9al Project/Assets/Scenes"
   allowSubfolders: 0
   scenes:
   - name: Menu
