@@ -2,6 +2,8 @@ using Mirror;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using TMPro;
 using UnityEngine;
 
 public class Pawn : NetworkBehaviour
@@ -201,7 +203,10 @@ public class Pawn : NetworkBehaviour
     {
         OngoingAction = ActionToStart;
         ActionToStart = null;
-        yield return new WaitForSeconds(OngoingAction.CastingTime);
+
+        Task task = OngoingAction.Perform();
+        yield return new WaitUntil(() => task.IsCompleted);
+
         ActionQueue.Next();
         OngoingAction = null;
     }
@@ -245,10 +250,15 @@ public class Pawn : NetworkBehaviour
 
         //patrol.Add(target);
 
+        float castingTime = 3;
+
         Action goAction = new()
         {
             Label = "Moving...",
-            Target = target
+            Target = target,
+            Result = async () => {
+                await Task.Delay((int)(castingTime * 1000));
+            }
         };
 
         Do(goAction);
@@ -298,73 +308,77 @@ public class Pawn : NetworkBehaviour
 
     public void TraderRoutine()
     {
-        //patrol.IsLoop = true
-        ActionQueue.IsLoop = true;
-
-        Vector3 abourgPosition = Globals.Settlements.FirstOrDefault(i => i.Label == "Abourg").transform.position;
-        Vector3 bescheimPosition = Globals.Settlements.FirstOrDefault(i => i.Label == "Bescheim").transform.position;
-        Vector3 cevillePosition = Globals.Settlements.FirstOrDefault(i => i.Label == "Ceville").transform.position;
-
-        GoTo(abourgPosition);
-        GoTo(bescheimPosition, true);
-        GoTo(cevillePosition, true);
-        //        if(TraderVisitedSettlements.Count == Globals.Settlements.Count)
-        //        {
-        //            Settlement lastVisitedSettlement = TraderVisitedSettlements.Last();
-        //            TraderVisitedSettlements.Clear();
-        //            TraderVisitedSettlements.Add(lastVisitedSettlement);
-        //        }
+        if(TraderVisitedSettlements.Count == Globals.Settlements.Count)
+        {
+            Settlement lastVisitedSettlement = TraderVisitedSettlements.Last();
+            TraderVisitedSettlements.Clear();
+            TraderVisitedSettlements.Add(lastVisitedSettlement);
+        }
 
 
-        //        List<Settlement> unvisitedSettlements = Globals.Settlements.Where(i => !TraderVisitedSettlements.Contains(i)).ToList();
-        //        #nullable enable
-        //        float nextWaypointDist = Mathf.Infinity;
-        //        Transform waypoint = transform;
-        //#nullable disable
+        List<Settlement> unvisitedSettlements = Globals.Settlements.Where(i => !TraderVisitedSettlements.Contains(i)).ToList();
+        #nullable enable
+        float nextWaypointDist = Mathf.Infinity;
+        Settlement? nearestSettlement = null;
+        #nullable disable
 
-        //        foreach(Settlement unvisSetlmt in unvisitedSettlements)
-        //        {
-        //            foreach(Settlement setlmt in unvisitedSettlements)
-        //            {
-        //                float thisDist = Vector3.Distance(setlmt.transform.position, waypoint.position);
-        //                if(thisDist < nextWaypointDist)
-        //                {
-        //                    nextWaypointDist = thisDist;
-        //                    waypoint = setlmt.transform;
-        //                }
-        //            }
+        foreach(Settlement settlement in unvisitedSettlements)
+        {
+            float thisDist = Vector3.Distance(settlement.transform.position, transform.position);
 
-        //            Settlement NearestSettlement = waypoint.GetComponent<Settlement>();
-        //            unvisitedSettlements.Remove(NearestSettlement);
-        //            TraderVisitedSettlements.Add(NearestSettlement);
-        //            AddToPatrol(waypoint.position);
-        //        }
-        //foreach (Settlement setlmt in unvisitedSettlements)
-        //{
-        //    float thisDist = Vector3.Distance(setlmt.transform.position, transform.position);
+            if(nearestSettlement == null || thisDist < nextWaypointDist)
+            {
+                nextWaypointDist = thisDist;
+                nearestSettlement = settlement;
+            }
+        }
 
-        //    if(thisDist < nearestSettlementDist)
-        //    {
-        //        nearestSettlementDist = thisDist;
-        //        nearestSettlement = setlmt;
-        //    }
-        //}
+        TraderVisitedSettlements.Add(nearestSettlement);
 
-        //AddToPatrol(nearestSettlement.transform.position);
+
+        //GoTo(nearestSettlement.transform.position);
+        float tradingTime = 5;
+
+        Action traderAction = new()
+        {
+            Label = "Trading",
+            Target = nearestSettlement.transform.position,
+            Result = async () =>
+            {
+                Say($"Salut {nearestSettlement.Label}!");
+                await Task.Delay((int)(tradingTime * 1000));
+            }
+        };
+
+        Do(traderAction);
     }
 
     public void VillagerRoutine()
     {
-        float radius = 10;
-        float x = Random.Range(Settlement.transform.position.x - radius, Settlement.transform.position.x + radius);
-        float z = Random.Range(Settlement.transform.position.z - radius, Settlement.transform.position.z + radius);
+        float maxRadius = Settlement.Size;
 
-        Vector3 wanderPoint = new(x, 0, z);
+        // Get a random position in the settlement's range
+        float angle = Random.Range(0, Mathf.PI * 2);
+        float radius = Mathf.Sqrt(Random.Range(0f, 1)) * maxRadius;
+        Vector3 randomPlace = new Vector3(Mathf.Cos(angle) * radius, 0, Mathf.Sin(angle) * radius);
+        Vector3 wanderPoint = Settlement.transform.position + randomPlace;
+
+        // Go to this random position
         GoTo(wanderPoint);
+    }
 
-        //Action newAction = new();
-        //newAction.Label = "Fait un truc";
-        //newAction.Target = wanderPoint;
-        //Do(newAction);
+    public void Say(string text)
+    {
+        Object ChatBubbleResource = Resources.Load("Prefabs/ChatBubble");
+
+        GameObject Parent = GameObject.Find("Chat").gameObject;
+        Transform ChatPosition = transform.Find("ChatBox").transform;
+
+        GameObject ChatBubbleGameObject = Instantiate(ChatBubbleResource) as GameObject;
+        ChatBubble ChatBubble = ChatBubbleGameObject.GetComponent<ChatBubble>();
+
+        ChatBubble.transform.SetParent(Parent.transform, false);
+        ChatBubble.Origin = ChatPosition;
+        ChatBubble.GetComponentInChildren<TextMeshProUGUI>().text = text;
     }
 }
