@@ -16,7 +16,11 @@ public class Pawn : NetworkBehaviour
     public ActionQueue ActionQueue { get; set; }
     public Action ActionToStart { get; set; }
     public Action OngoingAction { get; set; }
-    Vector3? positionTarget { get; set; }
+    private Coroutine OngoingCoroutine { get; set; }
+    #nullable enable
+    Transform? Target { get; set; }
+    #nullable disable
+    //Vector3? positionTarget { get; set; }
     Vector3 rotationTarget { get; set; }
     //public float horizontalDirection { get; set; }
     //public float verticalDirection { get; set; }
@@ -73,7 +77,7 @@ public class Pawn : NetworkBehaviour
     {
         if (ActionToStart != null)
         {
-            StartCoroutine(StartAction());
+            OngoingCoroutine = StartCoroutine(StartAction());
         }
     }
 
@@ -134,12 +138,19 @@ public class Pawn : NetworkBehaviour
         else
         {
             // Go to the current waypoint
-            if (positionTarget == null || positionTarget != ActionQueue.Actions.First().Target)
+            if (Target == null || Target != ActionQueue.Actions.First().Target)
             {
-                positionTarget = ActionQueue.Actions.First().Target;
+                Target = ActionQueue.Actions.First().Target;
             }
 
-            bool IsNotAtDestination = ((Vector3)positionTarget - transform.position).sqrMagnitude >= 0.1;
+            float magnitude = 0.1f;
+            if(Target.GetComponent<CharacterController>())
+            {
+                float padding = 1;
+                magnitude = Target.GetComponent<CharacterController>().radius + padding;
+            }
+
+            bool IsNotAtDestination = (Target.position - transform.position).sqrMagnitude >= magnitude;
 
             if (IsNotAtDestination)
             {
@@ -163,10 +174,10 @@ public class Pawn : NetworkBehaviour
 
 
                 // Face the target
-                Face((Vector3)positionTarget);
+                Face(Target.position);
 
                 // Move towards the target
-                Vector3 RelativePos = (Vector3)positionTarget - transform.position;
+                Vector3 RelativePos = Target.position - transform.position;
                 Quaternion TargetedRotation = Quaternion.LookRotation(RelativePos);
                 Vector3 RotationOffset = TargetedRotation.eulerAngles - transform.rotation.eulerAngles;
                 //Vector3 Direction = controller.transform.forward * verticalDirection + controller.transform.right * horizontalDirection;
@@ -211,6 +222,11 @@ public class Pawn : NetworkBehaviour
         OngoingAction = null;
     }
 
+    public void StopAction()
+    {
+
+    }
+
 
 
     public bool IsFocused()
@@ -240,28 +256,36 @@ public class Pawn : NetworkBehaviour
 
 
 
-    public void GoTo(Vector3 target, bool isQueueing = false)
+    public void GoTo(Vector3 targetPosition, bool isQueueing = false)
     {
-        //// Si la patrouille est vide ou qu'on ne veut pas rajouter à la file
-        //if(!isQueueing)
-        //{
-        //    patrol.Clear();
-        //}
+        GameObject targetGameObject = new();
+        Transform target = targetGameObject.transform;
+        target.position = targetPosition;
 
-        //patrol.Add(target);
+        CreateMovementAction(target, isQueueing);
+    }
 
-        float castingTime = 3;
+    public void GoTo(Transform target, bool isQueueing = false)
+    {
+        CreateMovementAction(target, isQueueing);
+    }
+
+
+    private void CreateMovementAction(Transform target, bool isQueueing)
+    {
+        //float castingTime = 3;
 
         Action goAction = new()
         {
             Label = "Moving...",
             Target = target,
             Result = async () => {
-                await Task.Delay((int)(castingTime * 1000));
+                //await Task.Delay((int)(castingTime * 1000));
+                await Task.Delay(0);
             }
         };
 
-        Do(goAction);
+        Do(goAction, isQueueing);
     }
 
 
@@ -281,6 +305,14 @@ public class Pawn : NetworkBehaviour
         if (!isQueueing)
         {
             ActionQueue.Clear();
+
+            OngoingAction = null;
+            ActionToStart = null;
+
+            if(OngoingCoroutine != null)
+            {
+                StopCoroutine(OngoingCoroutine);
+            }
         }
 
         ActionQueue.Add(action);
@@ -342,10 +374,31 @@ public class Pawn : NetworkBehaviour
         Action traderAction = new()
         {
             Label = "Trading",
-            Target = nearestSettlement.transform.position,
+            Target = nearestSettlement.transform,
             Result = async () =>
             {
-                Say($"Salut {nearestSettlement.Label}!");
+                Say($"Hello {nearestSettlement.Label}!");
+
+                List<Pawn> LocalVillagers = FindObjectsOfType<Pawn>().Where(i => i.Settlement == nearestSettlement && !i.Occupations.Any()).ToList();
+
+                foreach(Pawn villager in LocalVillagers)
+                {
+                    
+
+                    Action buyFromTrader = new()
+                    {
+                        Label = "Buying",
+                        Target = transform,
+                        Result = async () =>
+                        {
+                            villager.Say("Hello trader!");
+                            await Task.Delay(0);
+                        }
+                    };
+
+                    villager.Do(buyFromTrader);
+                }
+
                 await Task.Delay((int)(tradingTime * 1000));
             }
         };
@@ -361,10 +414,29 @@ public class Pawn : NetworkBehaviour
         float angle = Random.Range(0, Mathf.PI * 2);
         float radius = Mathf.Sqrt(Random.Range(0f, 1)) * maxRadius;
         Vector3 randomPlace = new Vector3(Mathf.Cos(angle) * radius, 0, Mathf.Sin(angle) * radius);
-        Vector3 wanderPoint = Settlement.transform.position + randomPlace;
+        //Transform wanderPoint = Settlement.transform;
+
+        //GameObject wanderGameObject = new();
+        Transform wanderPoint = new GameObject().transform;
+        wanderPoint.position = Settlement.transform.position + randomPlace;
+        //Vector3 wanderPoint = Settlement.transform.position + randomPlace;
 
         // Go to this random position
-        GoTo(wanderPoint);
+        //GoTo(wanderPoint);
+
+        float waitingTime = 3;
+
+        Action wander = new()
+        {
+            Label = "Wandering",
+            Target = wanderPoint,
+            Result = async () =>
+            {
+                await Task.Delay((int)(waitingTime * 1000));
+            }
+        };
+
+        Do(wander);
     }
 
     public void Say(string text)

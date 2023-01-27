@@ -9,9 +9,11 @@ public class Action
     public string Label { get; set; }
     public float CastingTime { get; set; } = 3;
     public Pawn Actor { get; set; }
-    public Vector3? Target { get; set; }
+    #nullable enable
+    public Transform? Target { get; set; }
 
     public Func<Task>? Result { get; set; }
+    #nullable disable
 
     public async Task Perform()
     {
