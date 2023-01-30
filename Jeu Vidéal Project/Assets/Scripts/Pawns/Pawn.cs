@@ -5,22 +5,19 @@ using System.Linq;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Animations.Rigging;
 
-public class Pawn : NetworkBehaviour
+public class Pawn : MonoBehaviour
 {
     public Faction Faction;
     public Settlement Settlement;
     public List<Settlement> TraderVisitedSettlements = new();
     public CharacterController controller { get; set; }
-    //public Patrol patrol { get; set; }
-    public ActionQueue ActionQueue { get; set; }
-    public Action ActionToStart { get; set; }
     public Action OngoingAction { get; set; }
     private Coroutine OngoingCoroutine { get; set; }
     #nullable enable
     Transform? Target { get; set; }
     #nullable disable
-    //Vector3? positionTarget { get; set; }
     Vector3 rotationTarget { get; set; }
     //public float horizontalDirection { get; set; }
     //public float verticalDirection { get; set; }
@@ -31,10 +28,19 @@ public class Pawn : NetworkBehaviour
     public Animator AnimatorController { get; set; }
     public Vector3 SpawnPoint { get; set; }
     public List<string> Occupations = new();
+    private ActionManager ActionManager { get; set; }
 
     //Debug
     public bool IsBeingDebugged = false;
     //
+    public int EncounteredVillagers = 0;
+    private MultiAimConstraint HeadAim;
+    private RigBuilder RigBuilder;
+    public Transform RigTarget;
+    public Transform FocusElement;
+    public Transform? StareTarget { get; set; }
+    public int FieldOfView = 120;
+    public int ViewRange = 5;
 
 
 
@@ -46,6 +52,17 @@ public class Pawn : NetworkBehaviour
         {
             Faction = Globals.Factions.FirstOrDefault(i => i.Label == "Wanderers");
         }
+
+        ActionManager = GetComponent<ActionManager>();
+        HeadAim = GetComponentInChildren<MultiAimConstraint>();
+        RigBuilder = GetComponentInChildren<RigBuilder>();
+
+        Vector2 fov = HeadAim.data.limits;
+        fov.y = FieldOfView / 2;
+        fov.x = -(FieldOfView / 2);
+        HeadAim.data.limits = fov;
+
+        RigBuilder.Build();
     }
 
 
@@ -60,8 +77,8 @@ public class Pawn : NetworkBehaviour
         rotationSpeed = 10;
         controller = GetComponent<CharacterController>();
         //patrol = new();
-        ActionQueue = new();
-        AnimatorController = GetComponent<Animator>();
+        //ActionQueue = new();
+        AnimatorController = GetComponentInChildren<Animator>();
         SpawnPoint = transform.position;
 
 
@@ -70,15 +87,18 @@ public class Pawn : NetworkBehaviour
         hoverRing = stateRings.transform.Find("HoverRing").gameObject;
         focusRing = stateRings.transform.Find("FocusRing").gameObject;
 
+        if(IsBeingDebugged)
+        {
+            Settlement abourg = Globals.Settlements.FirstOrDefault(i => i.Label == "Abourg");
+            Pawn pawnTarget = FindObjectsOfType<Pawn>().FirstOrDefault(i => i.Settlement == abourg);
+            LookAt(pawnTarget.FocusElement);
+        }
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (ActionToStart != null)
-        {
-            OngoingCoroutine = StartCoroutine(StartAction());
-        }
+
     }
 
     private void LateUpdate()
@@ -90,6 +110,16 @@ public class Pawn : NetworkBehaviour
     void FixedUpdate()
     {
         ManageRings();
+
+        //WeightedTransformArray data = HeadAim.data.sourceObjects;
+        //if(data.GetWeight(0) < 1)
+        //{
+        //    float weight = data.GetWeight(0);
+        //    data.SetWeight(0, weight + 0.1f);
+        //    HeadAim.data.sourceObjects = data;
+
+        //    RigBuilder.Build();
+        //}
     }
 
     private void Rotate()
@@ -138,9 +168,9 @@ public class Pawn : NetworkBehaviour
         else
         {
             // Go to the current waypoint
-            if (Target == null || Target != ActionQueue.Actions.First().Target)
+            if (Target == null || Target != ActionManager.GetCurrentTarget())
             {
-                Target = ActionQueue.Actions.First().Target;
+                Target = ActionManager.Queue.First().Target;
             }
 
             float magnitude = 0.1f;
@@ -193,38 +223,18 @@ public class Pawn : NetworkBehaviour
             // Pawn has arrived at destination
             else
             {
-                if(OngoingAction == null && ActionToStart == null)
+                if(ActionManager.GetCurrentAction().IsUnloaded())
                 {
                     //// Go to next waypoint
-                    //patrol.Next();
                     if (AnimatorController.GetBool("IsWalking"))
                     {
                         AnimatorController.SetBool("IsWalking", false);
                     }
 
-
-                    //ActionQueue.Perform();
-                    ActionToStart = ActionQueue.Actions.First();
+                    ActionManager.GetCurrentAction().Load();
                 }
             }
         }
-    }
-
-    private IEnumerator StartAction()
-    {
-        OngoingAction = ActionToStart;
-        ActionToStart = null;
-
-        Task task = OngoingAction.Perform();
-        yield return new WaitUntil(() => task.IsCompleted);
-
-        ActionQueue.Next();
-        OngoingAction = null;
-    }
-
-    public void StopAction()
-    {
-
     }
 
 
@@ -250,20 +260,21 @@ public class Pawn : NetworkBehaviour
 
     public bool IsIdle()
     {
-        //return patrol.IsEmpty();
-        return ActionQueue.IsEmpty();
+        return ActionManager.QueueIsEmpty();
     }
+
+
 
 
 
     public void GoTo(Vector3 targetPosition, bool isQueueing = false)
     {
-        GameObject targetGameObject = new();
-        Transform target = targetGameObject.transform;
+        Transform target = new GameObject().transform;
         target.position = targetPosition;
 
         CreateMovementAction(target, isQueueing);
     }
+
 
     public void GoTo(Transform target, bool isQueueing = false)
     {
@@ -271,22 +282,21 @@ public class Pawn : NetworkBehaviour
     }
 
 
+
+
+
     private void CreateMovementAction(Transform target, bool isQueueing)
     {
-        //float castingTime = 3;
-
         Action goAction = new()
         {
             Label = "Moving...",
-            Target = target,
-            Result = async () => {
-                //await Task.Delay((int)(castingTime * 1000));
-                await Task.Delay(0);
-            }
+            Target = target
         };
 
         Do(goAction, isQueueing);
     }
+
+
 
 
 
@@ -298,24 +308,29 @@ public class Pawn : NetworkBehaviour
 
 
 
+
+    #nullable enable
+    public void LookAt(Transform? target)
+    {
+        StareTarget = target;
+
+    }
+    #nullable disable
+
+
+
+
+
     public void Do(Action action, bool isQueueing = false)
     {
         action.Actor = this;
 
         if (!isQueueing)
         {
-            ActionQueue.Clear();
-
-            OngoingAction = null;
-            ActionToStart = null;
-
-            if(OngoingCoroutine != null)
-            {
-                StopCoroutine(OngoingCoroutine);
-            }
+            ActionManager.ClearActionQueue();
         }
 
-        ActionQueue.Add(action);
+        ActionManager.Queue.Add(action);
     }
 
 
@@ -330,9 +345,9 @@ public class Pawn : NetworkBehaviour
         }
         else if(Occupations.Contains("warrior"))
         {
-
+            WarriorRoutine();
         }
-        else
+        else if(!Occupations.Any())
         {
             VillagerRoutine();
         }
@@ -368,18 +383,16 @@ public class Pawn : NetworkBehaviour
         TraderVisitedSettlements.Add(nearestSettlement);
 
 
-        //GoTo(nearestSettlement.transform.position);
-        float tradingTime = 5;
+        List<Pawn> LocalVillagers = FindObjectsOfType<Pawn>().Where(i => i.Settlement == nearestSettlement && !i.Occupations.Any()).ToList();
+
 
         Action traderAction = new()
         {
             Label = "Trading",
             Target = nearestSettlement.transform,
-            Result = async () =>
+            StartingScript = async () =>
             {
                 Say($"Hello {nearestSettlement.Label}!");
-
-                List<Pawn> LocalVillagers = FindObjectsOfType<Pawn>().Where(i => i.Settlement == nearestSettlement && !i.Occupations.Any()).ToList();
 
                 foreach(Pawn villager in LocalVillagers)
                 {
@@ -389,22 +402,56 @@ public class Pawn : NetworkBehaviour
                     {
                         Label = "Buying",
                         Target = transform,
-                        Result = async () =>
+                        StartingScript = () =>
                         {
                             villager.Say("Hello trader!");
-                            await Task.Delay(0);
+                            EncounteredVillagers++;
+                            return Task.FromResult(0);
                         }
                     };
 
                     villager.Do(buyFromTrader);
                 }
 
-                await Task.Delay((int)(tradingTime * 1000));
+                await Task.Delay(0);
+            },
+
+            SuccessCondition = () =>
+            {
+                return EncounteredVillagers == LocalVillagers.Count;
+            },
+
+            SuccessScript = () =>
+            {
+                EncounteredVillagers = 0;
+                Say("I've seen everyone in this village, bye!");
+                return Task.FromResult(0);
             }
         };
 
         Do(traderAction);
     }
+
+
+
+    public void WarriorRoutine()
+    {
+        ActionManager.IsLoop = true;
+
+        Vector3 Patrol1 = new(Settlement.transform.position.x - Settlement.Size, 0, Settlement.transform.position.z - Settlement.Size);
+        Vector3 Patrol2 = new(Settlement.transform.position.x - Settlement.Size, 0, Settlement.transform.position.z + Settlement.Size);
+        Vector3 Patrol3 = new(Settlement.transform.position.x + Settlement.Size, 0, Settlement.transform.position.z + Settlement.Size);
+        Vector3 Patrol4 = new(Settlement.transform.position.x + Settlement.Size, 0, Settlement.transform.position.z - Settlement.Size);
+
+        GoTo(Patrol1, true);
+        GoTo(Patrol2, true);
+        GoTo(Patrol3, true);
+        GoTo(Patrol4, true);
+        //Do(warriorAction);
+    }
+
+
+
 
     public void VillagerRoutine()
     {
@@ -414,15 +461,9 @@ public class Pawn : NetworkBehaviour
         float angle = Random.Range(0, Mathf.PI * 2);
         float radius = Mathf.Sqrt(Random.Range(0f, 1)) * maxRadius;
         Vector3 randomPlace = new Vector3(Mathf.Cos(angle) * radius, 0, Mathf.Sin(angle) * radius);
-        //Transform wanderPoint = Settlement.transform;
 
-        //GameObject wanderGameObject = new();
         Transform wanderPoint = new GameObject().transform;
         wanderPoint.position = Settlement.transform.position + randomPlace;
-        //Vector3 wanderPoint = Settlement.transform.position + randomPlace;
-
-        // Go to this random position
-        //GoTo(wanderPoint);
 
         float waitingTime = 3;
 
@@ -430,7 +471,7 @@ public class Pawn : NetworkBehaviour
         {
             Label = "Wandering",
             Target = wanderPoint,
-            Result = async () =>
+            StartingScript = async () =>
             {
                 await Task.Delay((int)(waitingTime * 1000));
             }
@@ -452,5 +493,18 @@ public class Pawn : NetworkBehaviour
         ChatBubble.transform.SetParent(Parent.transform, false);
         ChatBubble.Origin = ChatPosition;
         ChatBubble.GetComponentInChildren<TextMeshProUGUI>().text = text;
+    }
+
+    public bool HasInSights(Transform target)
+    {
+        Vector3 RelativeTarget = (target.position - transform.position).normalized;
+
+        float yAngle = Vector3.Angle(transform.forward, RelativeTarget);
+        float xAngle = Vector3.Angle(transform.up, RelativeTarget);
+
+        bool yTargetSightable = yAngle <= FieldOfView / 2;
+        bool xTargetSightable = 90 - FieldOfView / 2 <= xAngle && xAngle <= 90 + FieldOfView / 2;
+
+        return yTargetSightable && xTargetSightable;
     }
 }

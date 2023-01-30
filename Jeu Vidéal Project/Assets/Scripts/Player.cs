@@ -9,13 +9,13 @@ using UnityEngine.InputSystem;
 
 public class Player : NetworkBehaviour
 {
-    public CharacterController controller { get; set; }
-    public float movementSpeed { get; set; }
-    public float rotationSpeed { get; set; }
-    public Vector3 velocity { get; set; }
-    bool isRotating { get; set; }
-    bool isQueueing { get; set; }
-    private InputSystem inputSystem { get; set; }
+    public CharacterController Controller { get; set; }
+    public float MovementSpeed { get; set; }
+    public float RotationSpeed { get; set; }
+    public Vector3 Velocity { get; set; }
+    bool IsRotating { get; set; }
+    bool IsQueueing { get; set; }
+    private InputSystem InputSystem { get; set; }
 
 
 
@@ -24,7 +24,7 @@ public class Player : NetworkBehaviour
     private void Awake()
     {
         // A bouger sûrement, récupère quelle touche est affectée à quelle action dans le menu de réassignation
-        inputSystem = new();
+        InputSystem = new();
 
         // Load the key bindings
         LoadPlayerKeyBinding();
@@ -40,13 +40,13 @@ public class Player : NetworkBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        controller = GetComponent<CharacterController>();
-        movementSpeed = 20;
-        rotationSpeed = 20;
-        velocity = Vector3.zero;
+        Controller = GetComponent<CharacterController>();
+        MovementSpeed = 20;
+        RotationSpeed = 20;
+        Velocity = Vector3.zero;
 
-        isRotating = false;
-        isQueueing = false;
+        IsRotating = false;
+        IsQueueing = false;
 
         // If the player is the local player
         if (isLocalPlayer)
@@ -54,8 +54,7 @@ public class Player : NetworkBehaviour
             // Deactivate the player model and parent the main camera
             transform.Find("Rotation/Model").gameObject.SetActive(false);
             Camera.main.transform.SetParent(transform.Find("Rotation"), false);
-            Camera.main.transform.position = transform.position;
-            Camera.main.transform.rotation = transform.rotation;
+            Camera.main.transform.SetPositionAndRotation(transform.position, transform.rotation);
 
         }
     }
@@ -108,25 +107,25 @@ public class Player : NetworkBehaviour
     private void LoadPlayerKeyBinding()
     {
         // Initiate the input system and enable the Player action map
-        inputSystem.Player.Enable();
+        InputSystem.Player.Enable();
 
         // Movement keys (WASD, space, ctrl)
-        inputSystem.Player.Move.performed += SetVelocity;
+        InputSystem.Player.Move.performed += SetVelocity;
 
         // Camera rotation keys (Middle mouse)
-        inputSystem.Player.Look.started += StartRotate;
-        inputSystem.Player.Look.canceled += CancelRotate;
+        InputSystem.Player.Look.started += StartRotate;
+        InputSystem.Player.Look.canceled += CancelRotate;
 
         // Actions keys (Left mouse, right mouse)
-        inputSystem.Player.Actions.performed += PerformActions;
+        InputSystem.Player.Actions.performed += PerformActions;
 
         // Alternative actions keys (Left Shift, Left Alt)
-        inputSystem.Player.Alts.started += StartAlts;
-        inputSystem.Player.Alts.canceled += CancelAlts;
+        InputSystem.Player.Alts.started += StartAlts;
+        InputSystem.Player.Alts.canceled += CancelAlts;
 
-        inputSystem.Player.Menu.performed += OpenMenu;
+        InputSystem.Player.Menu.performed += OpenMenu;
 
-        inputSystem.UI.Menu.performed += CloseMenu;
+        InputSystem.UI.Menu.performed += CloseMenu;
     }
 
 
@@ -147,7 +146,7 @@ public class Player : NetworkBehaviour
         Globals.PauseMenu = GameObject.Find("Menu");
         Transform KBForward = Globals.PauseMenu.transform.GetComponentsInChildren<Transform>().FirstOrDefault(i => i.name == "KeybindForward");
         TextMeshProUGUI KBForwardBTN = KBForward.GetComponentsInChildren<TextMeshProUGUI>().FirstOrDefault(i => i.name == "TextButton");
-        string forwardKeyPath = inputSystem.Player.Move.bindings[5].path;
+        string forwardKeyPath = InputSystem.Player.Move.bindings[5].path;
         string forwardKeyString = InputControlPath.ToHumanReadableString(forwardKeyPath, InputControlPath.HumanReadableStringOptions.OmitDevice);
         KBForwardBTN.text = forwardKeyString;
 
@@ -160,8 +159,8 @@ public class Player : NetworkBehaviour
 
     private void OpenMenu(InputAction.CallbackContext context)
     {
-        inputSystem.Player.Disable();
-        inputSystem.UI.Enable();
+        InputSystem.Player.Disable();
+        InputSystem.UI.Enable();
         Globals.PauseMenu.SetActive(true);
     }
 
@@ -170,8 +169,8 @@ public class Player : NetworkBehaviour
 
     private void CloseMenu(InputAction.CallbackContext context)
     {
-        inputSystem.Player.Enable();
-        inputSystem.UI.Disable();
+        InputSystem.Player.Enable();
+        InputSystem.UI.Disable();
         Globals.PauseMenu.SetActive(false);
     }
 
@@ -184,7 +183,7 @@ public class Player : NetworkBehaviour
     // When the corresponding key is held, the camera starts following the mouse
     private void StartRotate(InputAction.CallbackContext context)
     {
-        isRotating = true;
+        IsRotating = true;
     }
 
 
@@ -194,7 +193,7 @@ public class Player : NetworkBehaviour
     // When the corresponding key is released, the camera stops following the mouse
     private void CancelRotate(InputAction.CallbackContext context)
     {
-        isRotating = false;
+        IsRotating = false;
     }
 
 
@@ -204,16 +203,16 @@ public class Player : NetworkBehaviour
     private void Rotate()
     {
         // If the rotation button is held
-        if(isRotating)
+        if(IsRotating)
         {
             Vector2 Rotation = Mouse.current.delta.ReadValue();
             // Calculate the rotation around the Y axis and apply it
             Vector3 RotationY = Vector3.up * Rotation.x;
-            transform.Rotate(RotationY * rotationSpeed * Time.deltaTime);
+            transform.Rotate(RotationSpeed * Time.deltaTime * RotationY);
 
             // Calculate the rotation around the X axis and apply it
             Vector3 RotationX = Vector3.left * Rotation.y;
-            transform.Find("Rotation").Rotate(RotationX * rotationSpeed * Time.deltaTime);
+            transform.Find("Rotation").Rotate(RotationSpeed * Time.deltaTime * RotationX);
         }
     }
 
@@ -224,7 +223,7 @@ public class Player : NetworkBehaviour
     // 
     private void SetVelocity(InputAction.CallbackContext context)
     {
-        velocity = context.ReadValue<Vector3>();
+        Velocity = context.ReadValue<Vector3>();
     }
 
 
@@ -233,11 +232,11 @@ public class Player : NetworkBehaviour
 
     private void Move()
     {
-        if(velocity != Vector3.zero)
+        if(Velocity != Vector3.zero)
         {
-            Vector3 movement = transform.rotation * velocity;
+            Vector3 movement = transform.rotation * Velocity;
 
-            controller.Move(movement * movementSpeed * Time.deltaTime);
+            Controller.Move(MovementSpeed * Time.deltaTime * movement);
         }
     }
 
@@ -250,20 +249,16 @@ public class Player : NetworkBehaviour
         // Left click
         if(context.ReadValue<float>() == 1)
         {
-            //if (!EventSystem.current.IsPointerOverGameObject())
-            //{
-                RaycastHit hit;
-                Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
-                if (Physics.Raycast(ray, out hit, Mathf.Infinity, Globals.FocusableMask))
-                {
-                    Pawn hitPawn = hit.transform.GetComponentInParent<Pawn>();
-                    Globals.FocusedPawn = hitPawn;
-                }
-                else
-                {
-                    Globals.FocusedPawn = null;
-                }
-            //}
+            Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
+            if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, Globals.FocusableMask))
+            {
+                Pawn hitPawn = hit.transform.GetComponentInParent<Pawn>();
+                Globals.FocusedPawn = hitPawn;
+            }
+            else
+            {
+                Globals.FocusedPawn = null;
+            }
         }
         // Right click
         else
@@ -274,17 +269,7 @@ public class Player : NetworkBehaviour
                 Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
                 if (Physics.Raycast(ray, out hit, Mathf.Infinity, Globals.GroundMask))
                 {
-                    // If the player is queueing waypoints
-                    Globals.FocusedPawn.GoTo(hit.point, isQueueing);
-                    //if (isQueueing)
-                    //{
-                    //    Globals.FocusedPawn.patrol.Add(hit.point);
-                    //}
-                    //else
-                    //{
-                    //    Globals.FocusedPawn.patrol.Clear();
-                    //    Globals.FocusedPawn.GoTo(hit.point);
-                    //}
+                    Globals.FocusedPawn.GoTo(hit.point, IsQueueing);
                 }
             }
         }
@@ -298,7 +283,7 @@ public class Player : NetworkBehaviour
     {
         if (context.ReadValue<float>() == -1)
         {
-            isQueueing = true;
+            IsQueueing = true;
         }
     }
 
@@ -308,7 +293,7 @@ public class Player : NetworkBehaviour
 
     private void CancelAlts(InputAction.CallbackContext context)
     {
-        isQueueing = false;
+        IsQueueing = false;
         //if (context.ReadValue<float>() == -1)
         //{
         //}
