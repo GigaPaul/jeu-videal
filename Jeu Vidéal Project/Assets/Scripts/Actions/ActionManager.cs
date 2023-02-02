@@ -114,7 +114,7 @@ public class ActionManager : MonoBehaviour
         Action currentAction = GetCurrentAction();
         Queue.Remove(currentAction);
 
-        if (IsLoop)
+        if (IsLoop && !currentAction.IsOneShot)
         {
             currentAction.Unload();
             Queue.Insert(Queue.Count(), currentAction);

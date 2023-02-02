@@ -11,20 +11,9 @@ public class StareTarget : MonoBehaviour
 
     private void Awake()
     {
-        DefaultPosition.position = transform.position;
         Pawn = GetComponentInParent<Pawn>();
-    }
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        DefaultPosition.position = Pawn.FocusElement.position + Vector3.forward;
+        transform.position = DefaultPosition.position;
     }
 
     private void LateUpdate()

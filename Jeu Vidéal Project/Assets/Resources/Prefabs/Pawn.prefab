@@ -117,12 +117,12 @@ MonoBehaviour:
   Settlement: {fileID: 0}
   TraderVisitedSettlements: []
   Occupations: []
-  IsBeingDebugged: 0
   EncounteredVillagers: 0
   RigTarget: {fileID: 6626649457308793271}
   FocusElement: {fileID: 7878716994477375766}
   FieldOfView: 100
   ViewRange: 5
+  IsBeingDebugged: 0
 --- !u!114 &1837366921252666521
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -206,8 +206,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3242699497262580973}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: -0.000000076293944, z: 0.000000076293944}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -326,7 +326,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5906425920955071098}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: -0.000000076293944, z: 0.000000047683713}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:

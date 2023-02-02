@@ -9,6 +9,7 @@ public class Action
     public string Label { get; set; }
     public float CastingTime { get; set; } = 3;
     public Pawn Actor { get; set; }
+    public bool IsOneShot { get; set; } = false;
     #nullable enable
     public Transform? Target { get; set; }
 
