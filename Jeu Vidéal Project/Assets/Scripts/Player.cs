@@ -250,14 +250,22 @@ public class Player : NetworkBehaviour
         if(context.ReadValue<float>() == 1)
         {
             Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
+
+
+            TargetInfoManager infoManager = FindObjectOfType<TargetInfoManager>();
+
             if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, Globals.FocusableMask))
             {
                 Pawn hitPawn = hit.transform.GetComponentInParent<Pawn>();
                 Globals.FocusedPawn = hitPawn;
+
+                //infoManager.Load(Globals.FocusedPawn);
             }
             else
             {
                 Globals.FocusedPawn = null;
+
+                //infoManager.Clear();
             }
         }
         // Right click

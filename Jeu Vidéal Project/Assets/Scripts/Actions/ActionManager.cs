@@ -134,10 +134,12 @@ public class ActionManager : MonoBehaviour
 
 
 
-    public Action GetCurrentAction()
+    #nullable enable
+    public Action? GetCurrentAction()
     {
-        return Queue.First();
+        return Queue.FirstOrDefault();
     }
+    #nullable disable
 
 
 

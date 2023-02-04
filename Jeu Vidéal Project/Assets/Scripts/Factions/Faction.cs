@@ -7,6 +7,7 @@ public class Faction : MonoBehaviour
 {
     public int Id { get; set; }
     public string Label;
+    public Material Material;
 
     private void Awake()
     {
@@ -14,14 +15,22 @@ public class Faction : MonoBehaviour
         Globals.Factions.Add(this);
     }
 
-    private void Start()
+    private void FixedUpdate()
     {
-        
-    }
+        if(Material != null)
+        {
+            List<Pawn> members = FindObjectsOfType<Pawn>().Where(i => i.Faction == this).ToList();
 
-    private void Update()
-    {
+            foreach(Pawn pawn in members)
+            {
+                List<Renderer> renderers = pawn.Model.GetComponentsInChildren<Renderer>().Where(i => i.material != Material).ToList();
 
+                foreach (Renderer renderer in renderers)
+                {
+                    renderer.material = Material;
+                }
+            }
+        }
     }
 
     public bool IsPlayable()

@@ -16,12 +16,12 @@ public class Pawn : MonoBehaviour
     Vector3 RotationTarget { get; set; }
     public float MaxSpeed { get; set; }
     public float RotationSpeed { get; set; }
-    public GameObject HoverRing { get; set; }
-    public GameObject FocusRing { get; set; }
+    public GameObject HoverRing;
+    public GameObject FocusRing;
     public Animator AnimatorController { get; set; }
     public Vector3 SpawnPoint { get; set; }
     public List<string> Occupations = new();
-    private ActionManager ActionManager { get; set; }
+    public ActionManager ActionManager { get; set; }
     public int EncounteredVillagers = 0;
     private MultiAimConstraint HeadAim;
     private RigBuilder RigBuilder;
@@ -29,6 +29,7 @@ public class Pawn : MonoBehaviour
     public Transform FocusElement;
     public int FieldOfView = 120;
     public int ViewRange = 5;
+    public Transform Model;
 
 #nullable enable
     Transform? Target { get; set; }
@@ -77,10 +78,10 @@ public class Pawn : MonoBehaviour
         SpawnPoint = transform.position;
 
 
-        GameObject stateRingsPrefab = Resources.Load("Prefabs/Rings") as GameObject;
-        GameObject stateRings = Instantiate(stateRingsPrefab, transform.position + Vector3.up * 0.15f, Quaternion.identity, transform);
-        HoverRing = stateRings.transform.Find("HoverRing").gameObject;
-        FocusRing = stateRings.transform.Find("FocusRing").gameObject;
+        //GameObject stateRingsPrefab = Resources.Load("Prefabs/Rings") as GameObject;
+        //GameObject stateRings = Instantiate(stateRingsPrefab, transform.position + Vector3.up * 0.15f, Quaternion.identity, transform);
+        //HoverRing = stateRings.transform.Find("HoverRing").gameObject;
+        //FocusRing = stateRings.transform.Find("FocusRing").gameObject;
     }
 
     // Update is called once per frame
@@ -368,15 +369,45 @@ public class Pawn : MonoBehaviour
     {
         if(Occupations.Contains("trader"))
         {
-            TraderRoutine();
+            if(Faction.Label == "Wanderers")
+            {
+                TraderRoutine();
+            }
+            else
+            {
+                if (Settlement != null)
+                {
+                    UnemployedRoutine();
+                }
+            }
         }
-        else if(Occupations.Contains("warrior") && IsBeingDebugged)
+        else if(Occupations.Contains("warrior"))
         {
-            WarriorRoutine();
+            if(Settlement != null)
+            {
+                WarriorRoutine();
+            }
+        }
+        else if(Occupations.Contains("worker"))
+        {
+            if (Settlement != null)
+            {
+                WorkerRoutine();
+            }
+        }
+        else if (Occupations.Contains("innkeeper"))
+        {
+            if (Settlement != null)
+            {
+                InnkeeperRoutine();
+            }
         }
         else if(!Occupations.Any())
         {
-            VillagerRoutine();
+            if (Settlement != null)
+            {
+                UnemployedRoutine();
+            }
         }
     }
 
@@ -410,8 +441,7 @@ public class Pawn : MonoBehaviour
         TraderVisitedSettlements.Add(nearestSettlement);
 
 
-        List<Pawn> LocalVillagers = FindObjectsOfType<Pawn>().Where(i => i.Settlement == nearestSettlement && !i.Occupations.Any()).ToList();
-
+        List<Pawn> LocalVillagers = new();
 
         Action traderAction = new()
         {
@@ -421,7 +451,9 @@ public class Pawn : MonoBehaviour
             {
                 Say($"Hello {nearestSettlement.Label}!");
 
-                foreach(Pawn villager in LocalVillagers)
+                LocalVillagers = FindObjectsOfType<Pawn>().Where(i => i.Settlement == nearestSettlement && i.Occupations.Contains("trader")).ToList();
+
+                foreach (Pawn villager in LocalVillagers)
                 {
                     
 
@@ -465,21 +497,84 @@ public class Pawn : MonoBehaviour
     {
         ActionManager.IsLoop = true;
 
-        Vector3 Patrol1 = new(Settlement.transform.position.x - Settlement.Size, 0, Settlement.transform.position.z - Settlement.Size);
-        Vector3 Patrol2 = new(Settlement.transform.position.x - Settlement.Size, 0, Settlement.transform.position.z + Settlement.Size);
-        Vector3 Patrol3 = new(Settlement.transform.position.x + Settlement.Size, 0, Settlement.transform.position.z + Settlement.Size);
-        Vector3 Patrol4 = new(Settlement.transform.position.x + Settlement.Size, 0, Settlement.transform.position.z - Settlement.Size);
+        foreach(Transform waypoint in Settlement.Patrol)
+        {
+            GoTo(waypoint.position, true);
+        }
 
-        GoTo(Patrol1, true);
-        GoTo(Patrol2, true);
-        GoTo(Patrol3, true);
-        GoTo(Patrol4, true);
+        //Vector3 Patrol1 = new(Settlement.transform.position.x - Settlement.Size, 0, Settlement.transform.position.z - Settlement.Size);
+        //Vector3 Patrol2 = new(Settlement.transform.position.x - Settlement.Size, 0, Settlement.transform.position.z + Settlement.Size);
+        //Vector3 Patrol3 = new(Settlement.transform.position.x + Settlement.Size, 0, Settlement.transform.position.z + Settlement.Size);
+        //Vector3 Patrol4 = new(Settlement.transform.position.x + Settlement.Size, 0, Settlement.transform.position.z - Settlement.Size);
+
+        //GoTo(Patrol1, true);
+        //GoTo(Patrol2, true);
+        //GoTo(Patrol3, true);
+        //GoTo(Patrol4, true);
     }
 
 
 
 
-    public void VillagerRoutine()
+
+    public void WorkerRoutine()
+    {
+        Transform randomWorkingStation = Settlement.WorkingStations[Random.Range(0, Settlement.WorkingStations.Count)];
+        float waitingTime = 4.833f;
+        ActionManager.IsLoop = true;
+
+        Action working = new()
+        {
+            Label = "Working",
+            Target = randomWorkingStation,
+            StartingScript = async () =>
+            {
+                AnimatorController.SetBool("IsWorking", true);
+                await Task.Delay((int)(waitingTime * 1000));
+                AnimatorController.SetBool("IsWorking", false);
+            }
+        };
+
+        Action returnResources = new()
+        {
+            Label = "Returning resources",
+            Target = Settlement.transform
+        };
+
+        Do(working);
+        Do(returnResources, false, true);
+    }
+
+
+
+
+
+    public void InnkeeperRoutine()
+    {
+        Action bartending = new()
+        {
+            Label = "Bartending",
+            Target = Settlement.Inn,
+            StartingScript = () =>
+            {
+                Face(Settlement.transform.position);
+                AnimatorController.SetBool("IsBartending", true);
+                return Task.FromResult(0);
+            },
+            SuccessCondition = () =>
+            {
+                return false;
+            }
+        };
+
+        Do(bartending);
+    }
+
+
+
+
+
+    public void UnemployedRoutine()
     {
         float maxRadius = Settlement.Size;
 
@@ -519,6 +614,13 @@ public class Pawn : MonoBehaviour
         ChatBubble.transform.SetParent(Parent.transform, false);
         ChatBubble.Origin = ChatPosition;
         ChatBubble.GetComponentInChildren<TextMeshProUGUI>().text = text;
+    }
+
+    public void AssignTo(string occupation)
+    {
+        Occupations.Clear();
+        Occupations.Add(occupation);
+        ActionManager.ClearActionQueue();
     }
 
     public bool HasInSights(Transform target)
