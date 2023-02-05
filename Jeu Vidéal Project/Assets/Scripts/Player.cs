@@ -251,21 +251,18 @@ public class Player : NetworkBehaviour
         {
             Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
 
+            //Globals.FocusableMask
 
-            TargetInfoManager infoManager = FindObjectOfType<TargetInfoManager>();
-
-            if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, Globals.FocusableMask))
+            if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity))
             {
+                Collider collider = hit.transform.GetComponentInParent<Collider>();
+
                 Pawn hitPawn = hit.transform.GetComponentInParent<Pawn>();
                 Globals.FocusedPawn = hitPawn;
-
-                //infoManager.Load(Globals.FocusedPawn);
             }
             else
             {
                 Globals.FocusedPawn = null;
-
-                //infoManager.Clear();
             }
         }
         // Right click

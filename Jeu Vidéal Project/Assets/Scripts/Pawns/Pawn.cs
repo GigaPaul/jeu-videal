@@ -32,7 +32,7 @@ public class Pawn : MonoBehaviour
     public Transform Model;
 
 #nullable enable
-    Transform? Target { get; set; }
+    public Transform? Target;
     public Transform? StareTarget { get; set; }
 #nullable disable
 
@@ -136,43 +136,35 @@ public class Pawn : MonoBehaviour
 
     private void Move()
     {
+        // If the pawn's action queue is empty
         if(IsIdle())
         {
             if (!IsPlayable())
             {
+                // Start AI routine
                 Routine();
             }
         }
-        // The patrol isn't empty
         else
         {
-            // Go to the current waypoint
-            if (Target == null || Target != ActionManager.GetCurrentTarget())
+            // If the current action hasn't been loaded yet (Pawn needs to travel there first)
+            if(ActionManager.GetCurrentAction().IsUnloaded())
             {
-                Target = ActionManager.Queue.First().Target;
-            }
-
-            float magnitude = 0.1f;
-
-            if(Target.GetComponent<CharacterController>())
-            {
-                float padding = 1;
-                magnitude = Target.GetComponent<CharacterController>().radius + padding;
-            }
-
-            bool IsNotAtDestination = (Target.position - transform.position).sqrMagnitude >= magnitude;
-
-            if (IsNotAtDestination)
-            {
-
-                // Begin to walk
-                if (!AnimatorController.GetBool("IsWalking"))
+                // Check if the target is the correct one
+                if (Target == null || Target != ActionManager.GetCurrentTarget())
                 {
-                    AnimatorController.SetBool("IsWalking", true);
+                    Target = ActionManager.GetCurrentTarget();
                 }
 
 
 
+
+
+                // Start walking animation
+                if (!AnimatorController.GetBool("IsWalking"))
+                {
+                    AnimatorController.SetBool("IsWalking", true);
+                }
 
 
 
@@ -185,7 +177,6 @@ public class Pawn : MonoBehaviour
                 Vector3 RelativePos = Target.position - transform.position;
                 Quaternion TargetedRotation = Quaternion.LookRotation(RelativePos);
                 Vector3 RotationOffset = TargetedRotation.eulerAngles - transform.rotation.eulerAngles;
-                //Vector3 Direction = controller.transform.forward * verticalDirection + controller.transform.right * horizontalDirection;
                 Vector3 Direction = Controller.transform.forward;
                 Vector3 Movement = Quaternion.Euler(0, RotationOffset.y, 0) * Direction;
                 Controller.Move(MaxSpeed * Time.deltaTime * Movement);
@@ -193,19 +184,27 @@ public class Pawn : MonoBehaviour
                 // Keep the character on ground level (Maybe need to be redone)
                 float newY = Terrain.activeTerrain.SampleHeight(transform.position);
                 transform.position = new Vector3(transform.position.x, newY, transform.position.z);
-                //
             }
-            // Pawn has arrived at destination
-            else
+        }
+    }
+
+    private void OnControllerColliderHit(ControllerColliderHit hit)
+    {
+        if(hit.transform.GetComponent<Terrain>() == null)
+        {
+            // If the pawn is colliding whith his target
+            if (hit.transform == Target)
             {
-                if(ActionManager.GetCurrentAction().IsUnloaded())
+                // If the current action is unloaded (Pawn just reached his target)
+                if (ActionManager.GetCurrentAction().IsUnloaded())
                 {
-                    //// Go to next waypoint
+                    // Stop the walking animation
                     if (AnimatorController.GetBool("IsWalking"))
                     {
                         AnimatorController.SetBool("IsWalking", false);
                     }
 
+                    // Load the current action
                     ActionManager.GetCurrentAction().Load();
                 }
             }
@@ -351,6 +350,12 @@ public class Pawn : MonoBehaviour
             action.Target = transform;
         }
 
+        if(action.Target.GetComponent<Collider>() == null)
+        {
+            SphereCollider collider = action.Target.gameObject.AddComponent<SphereCollider>();
+            collider.radius = 0.1f;
+        }
+
         if(isImmediate)
         {
             ActionManager.Queue.Insert(0, action);
@@ -443,10 +448,13 @@ public class Pawn : MonoBehaviour
 
         List<Pawn> LocalVillagers = new();
 
+        Transform waypoint = new GameObject().transform;
+        waypoint.position = nearestSettlement.GetRandomPoint(0.5f);
+
         Action traderAction = new()
         {
             Label = "Trading",
-            Target = nearestSettlement.transform,
+            Target = waypoint,
             StartingScript = async () =>
             {
                 Say($"Hello {nearestSettlement.Label}!");
@@ -484,6 +492,7 @@ public class Pawn : MonoBehaviour
             {
                 EncounteredVillagers = 0;
                 Say("I've seen everyone in this village, bye!");
+                Destroy(waypoint.gameObject);
                 return Task.FromResult(0);
             }
         };
@@ -499,7 +508,7 @@ public class Pawn : MonoBehaviour
 
         foreach(Transform waypoint in Settlement.Patrol)
         {
-            GoTo(waypoint.position, true);
+            GoTo(waypoint, true);
         }
 
         //Vector3 Patrol1 = new(Settlement.transform.position.x - Settlement.Size, 0, Settlement.transform.position.z - Settlement.Size);
@@ -538,7 +547,12 @@ public class Pawn : MonoBehaviour
         Action returnResources = new()
         {
             Label = "Returning resources",
-            Target = Settlement.transform
+            Target = Settlement.Storage,
+            StartingScript = () =>
+            {
+                Settlement.ResourceStock += 10;
+                return Task.FromResult(0);
+            }
         };
 
         Do(working);
@@ -576,15 +590,9 @@ public class Pawn : MonoBehaviour
 
     public void UnemployedRoutine()
     {
-        float maxRadius = Settlement.Size;
-
-        // Get a random position in the settlement's range
-        float angle = Random.Range(0, Mathf.PI * 2);
-        float radius = Mathf.Sqrt(Random.Range(0f, 1)) * maxRadius;
-        Vector3 randomPlace = new Vector3(Mathf.Cos(angle) * radius, 0, Mathf.Sin(angle) * radius);
 
         Transform wanderPoint = new GameObject().transform;
-        wanderPoint.position = Settlement.transform.position + randomPlace;
+        wanderPoint.position = Settlement.GetRandomPoint();
 
         float waitingTime = 3;
 
@@ -595,6 +603,7 @@ public class Pawn : MonoBehaviour
             StartingScript = async () =>
             {
                 await Task.Delay((int)(waitingTime * 1000));
+                Destroy(wanderPoint.gameObject);
             }
         };
 
