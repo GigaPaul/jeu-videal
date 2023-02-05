@@ -15,7 +15,6 @@ public class MenuButton : MonoBehaviour
 
     public void Create()
     {
-        //SceneManager.LoadScene("Town");
         manager.StartHost();
     }
 
@@ -32,7 +31,6 @@ public class MenuButton : MonoBehaviour
 
     public void Quit()
     {
-        Debug.Log("Quitting game");
         Application.Quit();
     }
 }
