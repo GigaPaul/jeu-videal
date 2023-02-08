@@ -1,10 +1,9 @@
-using Mirror;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.Animations.Rigging;
 
 public class Pawn : MonoBehaviour
@@ -12,19 +11,20 @@ public class Pawn : MonoBehaviour
     public Faction Faction;
     public Settlement Settlement;
     public List<Settlement> TraderVisitedSettlements = new();
-    public CharacterController Controller { get; set; }
-    Vector3 RotationTarget { get; set; }
-    public float MaxSpeed { get; set; }
-    public float RotationSpeed { get; set; }
+    public float RotationSpeed;
     public GameObject HoverRing;
     public GameObject FocusRing;
-    public Animator AnimatorController { get; set; }
     public Vector3 SpawnPoint { get; set; }
     public List<string> Occupations = new();
-    public ActionManager ActionManager { get; set; }
+
+    public CharacterController CharacterController;
+    public Animator Animator;
+    public ActionManager ActionManager;
+    public NavMeshAgent NavMeshAgent;
+    public MultiAimConstraint HeadAim;
+    public RigBuilder RigBuilder;
+
     public int EncounteredVillagers = 0;
-    private MultiAimConstraint HeadAim;
-    private RigBuilder RigBuilder;
     public Transform RigTarget;
     public Transform FocusElement;
     public int FieldOfView = 120;
@@ -51,9 +51,6 @@ public class Pawn : MonoBehaviour
             Faction = Globals.Factions.FirstOrDefault(i => i.Label == "Wanderers");
         }
 
-        ActionManager = GetComponent<ActionManager>();
-        HeadAim = GetComponentInChildren<MultiAimConstraint>();
-        RigBuilder = GetComponentInChildren<RigBuilder>();
 
         Vector2 fov = HeadAim.data.limits;
         fov.y = FieldOfView / 2;
@@ -71,43 +68,111 @@ public class Pawn : MonoBehaviour
 
         //horizontalDirection = 0f;
         //verticalDirection = 0f;
-        MaxSpeed = 3;
-        RotationSpeed = 10;
-        Controller = GetComponent<CharacterController>();
-        AnimatorController = GetComponentInChildren<Animator>();
+        //MaxSpeed = 3;
         SpawnPoint = transform.position;
-
-
-        //GameObject stateRingsPrefab = Resources.Load("Prefabs/Rings") as GameObject;
-        //GameObject stateRings = Instantiate(stateRingsPrefab, transform.position + Vector3.up * 0.15f, Quaternion.identity, transform);
-        //HoverRing = stateRings.transform.Find("HoverRing").gameObject;
-        //FocusRing = stateRings.transform.Find("FocusRing").gameObject;
     }
 
-    // Update is called once per frame
-    void Update()
-    {
+    //// Update is called once per frame
+    //void Update()
+    //{
 
-    }
+    //}
 
     private void LateUpdate()
     {
-        Rotate();
-        Move();
+        //Rotate();
+        //Move();
     }
 
     void FixedUpdate()
     {
         ManageRings();
+
+        float speed = NavMeshAgent.velocity.magnitude / NavMeshAgent.speed;
+        Animator.SetLayerWeight(1, speed);
+
+        // Forward
+        Vector3 localVelocity = transform.InverseTransformDirection(NavMeshAgent.velocity) / NavMeshAgent.speed;
+
+        Animator.SetFloat("Z Velocity", localVelocity.z);
+        Animator.SetFloat("X Velocity", localVelocity.x);
+
+        // If the pawn is not moving
+        if(!IsMoving())
+        {
+            // If the pawn has nothing to do
+            if(ActionManager.QueueIsEmpty())
+            {
+                // If the spawn isn't playable
+                if(!IsPlayable())
+                {
+                    // Start AI routine
+                    Routine();
+                }
+            }
+        }
+
+        // If the current action is unloaded (Pawn just reached his target)
+        if (!ActionManager.QueueIsEmpty() && ActionManager.GetCurrentAction().IsUnloaded())
+        {
+            if (!HasReachedDestination())
+            {
+                Vector3 destination = ActionManager.GetCurrentDestination();
+
+
+                //
+                //NavMeshPath path = new();
+                //bool canBeReached = NavMeshAgent.CalculatePath(destination, path);
+
+
+                //if (!canBeReached)
+                //{
+
+                //    if (IsBeingDebugged)
+                //        Debug.Log($"Can't be reached");
+                //    if(NavMesh.SamplePosition(destination, out NavMeshHit navHit, 10f, NavMesh.AllAreas))
+                //    //if(NavMesh.FindClosestEdge(destination, out NavMeshHit navHit, NavMesh.AllAreas))
+                //    //if (NavMesh.Raycast(destination, transform.position, out NavMeshHit navHit, NavMesh.AllAreas))
+                //    {
+                //        Debug.Log("Position found");
+
+                //        Vector3 pawnDirection = transform.position - navHit.position;
+                //        destination = navHit.position + pawnDirection.normalized;
+                //        Debug.Log(destination);
+                //    }
+                //}
+                //
+
+
+
+                NavMeshAgent.SetDestination(destination);
+            }
+            else
+            {
+                // Load the current action
+                ActionManager.GetCurrentAction().Load();
+            }
+        }
     }
 
     private void Rotate()
     {
-        if (RotationTarget != Vector3.zero)
+        if (!ActionManager.QueueIsEmpty() && !ActionManager.GetCurrentAction().IsInactive())
         {
-            Quaternion AbsoluteRotation = Quaternion.LookRotation(RotationTarget);
-            Quaternion NewRotation = Quaternion.Euler(0, AbsoluteRotation.eulerAngles.y, 0);
-            transform.rotation = Quaternion.Slerp(transform.rotation, NewRotation, Time.deltaTime * RotationSpeed);
+            Vector3? rotationTarget = ActionManager.GetCurrentTargetPosition();
+
+            if (rotationTarget != null && rotationTarget != Vector3.zero)
+            {
+                Vector3 lookPosition = (Vector3)ActionManager.GetCurrentTargetPosition() - transform.position;
+                lookPosition.y = 0;
+
+                if(lookPosition != Vector3.zero)
+                {
+                    Quaternion rotation = Quaternion.LookRotation(lookPosition);
+                    transform.rotation = Quaternion.Slerp(transform.rotation, rotation, Time.deltaTime * RotationSpeed);
+                }
+
+            }
         }
     }
 
@@ -134,82 +199,82 @@ public class Pawn : MonoBehaviour
         }
     }
 
-    private void Move()
-    {
-        // If the pawn's action queue is empty
-        if(IsIdle())
-        {
-            if (!IsPlayable())
-            {
-                // Start AI routine
-                Routine();
-            }
-        }
-        else
-        {
-            // If the current action hasn't been loaded yet (Pawn needs to travel there first)
-            if(ActionManager.GetCurrentAction().IsUnloaded())
-            {
-                // Check if the target is the correct one
-                if (Target == null || Target != ActionManager.GetCurrentTarget())
-                {
-                    Target = ActionManager.GetCurrentTarget();
-                }
+    //private void Move()
+    //{
+    //    // If the pawn's action queue is empty
+    //    if(IsIdle())
+    //    {
+    //        if (!IsPlayable())
+    //        {
+    //            // Start AI routine
+    //            Routine();
+    //        }
+    //    }
+    //    else
+    //    {
+    //        // If the current action hasn't been loaded yet (Pawn needs to travel there first)
+    //        if(ActionManager.GetCurrentAction().IsUnloaded())
+    //        {
+    //            // Check if the target is the correct one
+    //            if (Target == null || Target != ActionManager.GetCurrentTarget())
+    //            {
+    //                Target = ActionManager.GetCurrentTarget();
+    //            }
 
 
 
 
 
-                // Start walking animation
-                if (!AnimatorController.GetBool("IsWalking"))
-                {
-                    AnimatorController.SetBool("IsWalking", true);
-                }
+    //            // Start walking animation
+    //            if (!Animator.GetBool("IsWalking"))
+    //            {
+    //                Animator.SetBool("IsWalking", true);
+    //            }
 
 
 
 
 
-                // Face the target
-                Face(Target.position);
+    //            // Face the target
+    //            Face(Target.position);
 
-                // Move towards the target
-                Vector3 RelativePos = Target.position - transform.position;
-                Quaternion TargetedRotation = Quaternion.LookRotation(RelativePos);
-                Vector3 RotationOffset = TargetedRotation.eulerAngles - transform.rotation.eulerAngles;
-                Vector3 Direction = Controller.transform.forward;
-                Vector3 Movement = Quaternion.Euler(0, RotationOffset.y, 0) * Direction;
-                Controller.Move(MaxSpeed * Time.deltaTime * Movement);
+    //            // Move towards the target
+    //            Vector3 RelativePos = Target.position - transform.position;
+    //            Quaternion TargetedRotation = Quaternion.LookRotation(RelativePos);
+    //            Vector3 RotationOffset = TargetedRotation.eulerAngles - transform.rotation.eulerAngles;
+    //            Vector3 Direction = CharacterController.transform.forward;
+    //            Vector3 Movement = Quaternion.Euler(0, RotationOffset.y, 0) * Direction;
+    //            CharacterController.Move(MaxSpeed * Time.deltaTime * Movement);
 
-                // Keep the character on ground level (Maybe need to be redone)
-                float newY = Terrain.activeTerrain.SampleHeight(transform.position);
-                transform.position = new Vector3(transform.position.x, newY, transform.position.z);
-            }
-        }
-    }
+    //            // Keep the character on ground level (Maybe need to be redone)
+    //            float newY = Terrain.activeTerrain.SampleHeight(transform.position);
+    //            transform.position = new Vector3(transform.position.x, newY, transform.position.z);
+    //        }
+    //    }
+    //}
 
-    private void OnControllerColliderHit(ControllerColliderHit hit)
-    {
-        if(hit.transform.GetComponent<Terrain>() == null)
-        {
-            // If the pawn is colliding whith his target
-            if (hit.transform == Target)
-            {
-                // If the current action is unloaded (Pawn just reached his target)
-                if (ActionManager.GetCurrentAction().IsUnloaded())
-                {
-                    // Stop the walking animation
-                    if (AnimatorController.GetBool("IsWalking"))
-                    {
-                        AnimatorController.SetBool("IsWalking", false);
-                    }
+    //private void OnControllerColliderHit(ControllerColliderHit hit)
+    //{
+    //    if(hit.transform.GetComponent<Terrain>() == null)
+    //    {
+    //        // If the pawn is colliding whith his target
+    //        if (hit.transform == Target)
+    //        {
+    //            // If the current action is unloaded (Pawn just reached his target)
+    //            if (ActionManager.GetCurrentAction().IsUnloaded())
+    //            {
+    //                // Stop the walking animation
+    //                if (Animator.GetBool("IsWalking"))
+    //                {
+    //                    Animator.SetBool("IsWalking", false);
+    //                }
 
-                    // Load the current action
-                    ActionManager.GetCurrentAction().Load();
-                }
-            }
-        }
-    }
+    //                // Load the current action
+    //                ActionManager.GetCurrentAction().Load();
+    //            }
+    //        }
+    //    }
+    //}
 
 
 
@@ -232,9 +297,30 @@ public class Pawn : MonoBehaviour
 
 
 
-    public bool IsIdle()
+    //public bool IsIdle()
+    //{
+    //    return !IsMoving() && ActionManager.QueueIsEmpty();
+    //}
+
+    public bool IsEnemyWith(Pawn pawn)
     {
-        return ActionManager.QueueIsEmpty();
+        return Faction.IsAtWarWith(pawn.Faction);
+    }
+
+    public bool HasReachedDestination()
+    {
+        float distance = Vector3.Distance(transform.position, ActionManager.GetCurrentDestination());
+        float flooredDistance = Mathf.Floor(distance);
+        return flooredDistance <= NavMeshAgent.stoppingDistance;
+    }
+
+    public bool IsMoving()
+    {
+        bool IsCalculatingPath = NavMeshAgent.pathPending;
+        bool HasNotReachedDestination = Mathf.Floor(NavMeshAgent.remainingDistance) > NavMeshAgent.stoppingDistance;
+        bool IsTraveling = NavMeshAgent.hasPath && NavMeshAgent.velocity.sqrMagnitude > 0f;
+
+        return IsCalculatingPath || HasNotReachedDestination || IsTraveling;
     }
 
 
@@ -243,42 +329,55 @@ public class Pawn : MonoBehaviour
 
     public void GoTo(Vector3 targetPosition, bool isQueueing = false)
     {
-        Transform target = new GameObject().transform;
-        target.position = targetPosition;
+        //Transform target = new GameObject().transform;
+        //target.position = targetPosition;
 
-        CreateMovementAction(target, isQueueing);
-    }
-
-
-    public void GoTo(Transform target, bool isQueueing = false)
-    {
-        CreateMovementAction(target, isQueueing);
-    }
-
-
-
-
-
-    private void CreateMovementAction(Transform target, bool isQueueing)
-    {
+        //CreateMovementAction(target, isQueueing);
         Action goAction = new()
         {
             Label = "Moving...",
-            Target = target
+            TargetPosition = targetPosition
         };
 
         Do(goAction, false, isQueueing);
     }
 
 
+    //public void GoTo(Transform target, bool isQueueing = false)
+    //{
+    //    CreateMovementAction(target, isQueueing);
+    //}
 
 
 
-    public void Face(Vector3 position)
-    {
-        Vector3 relativeTarget = (position - transform.position).normalized;
-        RotationTarget = relativeTarget;
-    }
+
+
+    //private void CreateMovementAction(Transform target, bool isQueueing)
+    //{
+
+    //    Action goAction = new()
+    //    {
+    //        Label = "Moving...",
+    //        Destination = target
+    //    };
+
+    //    Do(goAction, false, isQueueing);
+    //}
+
+
+
+
+
+    //public void Face(Vector3 position)
+    //{
+    //    Vector3 relativeTarget = (position - transform.position).normalized;
+    //    RotationTarget = relativeTarget;
+    //}
+
+    //public void StopFacing()
+    //{
+    //    RotationTarget = null;
+    //}
 
 
 
@@ -317,9 +416,9 @@ public class Pawn : MonoBehaviour
                             Label = "Insulting",
                             StartingScript = async () =>
                             {
-                                Face(pawn.transform.position);
+                                //Face(pawn.transform.position);
                                 Say("Stay away from my village.");
-                                pawn.Face(transform.position);
+                                //pawn.Face(transform.position);
                                 await Task.Delay(1000);
                             },
                             IsOneShot = true
@@ -345,18 +444,55 @@ public class Pawn : MonoBehaviour
             ActionManager.ClearActionQueue();
         }
 
-        if(action.Target == null)
+
+        if(action.TargetPosition == null)
         {
-            action.Target = transform;
+            action.TargetPosition = transform.position;
         }
 
-        if(action.Target.GetComponent<Collider>() == null)
+        float x = action.TargetPosition.x;
+        float y = Terrain.activeTerrain.SampleHeight(transform.position);
+        float z = action.TargetPosition.z;
+        action.Destination = new Vector3(x, y, z);
+
+        //if(action.Destination.GetComponent<Collider>() == null)
+        //{
+        //    SphereCollider collider = action.Destination.gameObject.AddComponent<SphereCollider>();
+        //    collider.radius = 0.1f;
+        //}
+
+
+        NavMeshPath path = new();
+        bool canBeReached = NavMeshAgent.CalculatePath(action.Destination, path);
+
+
+        if (!canBeReached)
         {
-            SphereCollider collider = action.Target.gameObject.AddComponent<SphereCollider>();
-            collider.radius = 0.1f;
+            //if (IsBeingDebugged)
+            //    Debug.Log($"Can't be reached");
+
+            Vector3 pawnDirection = action.Destination + (transform.position - action.Destination).normalized;
+
+            if (NavMesh.SamplePosition(pawnDirection, out NavMeshHit navHit, 10f, NavMesh.AllAreas))
+            //if(NavMesh.FindClosestEdge(destination, out NavMeshHit navHit, NavMesh.AllAreas))
+            //if (NavMesh.Raycast((Vector3)action.Destination, transform.position, out NavMeshHit navHit, NavMesh.AllAreas))
+            {
+                //Vector3 pawnDirection = transform.position - navHit.position;
+                //action.Destination = navHit.position + pawnDirection.normalized;
+                //TestSphere.position = ;
+                action.Destination = navHit.position;
+
+                //if (IsBeingDebugged)
+                //    Debug.Log(action.Destination);
+            }
         }
 
-        if(isImmediate)
+
+        //if (IsBeingDebugged)
+        //    Debug.Log($"{action.Destination} -> {transform.position}");
+
+
+        if (isImmediate)
         {
             ActionManager.Queue.Insert(0, action);
         }
@@ -448,13 +584,13 @@ public class Pawn : MonoBehaviour
 
         List<Pawn> LocalVillagers = new();
 
-        Transform waypoint = new GameObject().transform;
-        waypoint.position = nearestSettlement.GetRandomPoint(0.5f);
+        //Transform waypoint = new GameObject().transform;
+        Vector3 waypoint = nearestSettlement.GetRandomPoint(0.5f);
 
         Action traderAction = new()
         {
             Label = "Trading",
-            Target = waypoint,
+            TargetPosition = waypoint,
             StartingScript = async () =>
             {
                 Say($"Hello {nearestSettlement.Label}!");
@@ -468,7 +604,7 @@ public class Pawn : MonoBehaviour
                     Action buyFromTrader = new()
                     {
                         Label = "Buying",
-                        Target = transform,
+                        TargetPosition = transform.position,
                         StartingScript = () =>
                         {
                             villager.Say("Hello trader!");
@@ -492,7 +628,7 @@ public class Pawn : MonoBehaviour
             {
                 EncounteredVillagers = 0;
                 Say("I've seen everyone in this village, bye!");
-                Destroy(waypoint.gameObject);
+                //Destroy(waypoint.gameObject);
                 return Task.FromResult(0);
             }
         };
@@ -508,7 +644,7 @@ public class Pawn : MonoBehaviour
 
         foreach(Transform waypoint in Settlement.Patrol)
         {
-            GoTo(waypoint, true);
+            GoTo(waypoint.position, true);
         }
 
         //Vector3 Patrol1 = new(Settlement.transform.position.x - Settlement.Size, 0, Settlement.transform.position.z - Settlement.Size);
@@ -535,19 +671,19 @@ public class Pawn : MonoBehaviour
         Action working = new()
         {
             Label = "Working",
-            Target = randomWorkingStation,
+            TargetPosition = randomWorkingStation.position,
             StartingScript = async () =>
             {
-                AnimatorController.SetBool("IsWorking", true);
+                Animator.SetBool("IsWorking", true);
                 await Task.Delay((int)(waitingTime * 1000));
-                AnimatorController.SetBool("IsWorking", false);
+                Animator.SetBool("IsWorking", false);
             }
         };
 
         Action returnResources = new()
         {
             Label = "Returning resources",
-            Target = Settlement.Storage,
+            TargetPosition = Settlement.Storage.position,
             StartingScript = () =>
             {
                 Settlement.ResourceStock += 10;
@@ -568,11 +704,10 @@ public class Pawn : MonoBehaviour
         Action bartending = new()
         {
             Label = "Bartending",
-            Target = Settlement.Inn,
+            TargetPosition = Settlement.Inn.position,
             StartingScript = () =>
             {
-                Face(Settlement.transform.position);
-                AnimatorController.SetBool("IsBartending", true);
+                Animator.SetBool("IsBartending", true);
                 return Task.FromResult(0);
             },
             SuccessCondition = () =>
@@ -591,19 +726,19 @@ public class Pawn : MonoBehaviour
     public void UnemployedRoutine()
     {
 
-        Transform wanderPoint = new GameObject().transform;
-        wanderPoint.position = Settlement.GetRandomPoint();
+        //Transform wanderPoint = new GameObject().transform;
+        Vector3 wanderPoint = Settlement.GetRandomPoint();
 
         float waitingTime = 3;
 
         Action wander = new()
         {
             Label = "Wandering",
-            Target = wanderPoint,
+            TargetPosition = wanderPoint,
             StartingScript = async () =>
             {
                 await Task.Delay((int)(waitingTime * 1000));
-                Destroy(wanderPoint.gameObject);
+                //Destroy(wanderPoint.gameObject);
             }
         };
 

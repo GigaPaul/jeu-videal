@@ -458,6 +458,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Station (4)
       objectReference: {fileID: 0}
+    - target: {fileID: 1023917202629980, guid: 49b9066be53e5314798b57987364d700, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 8
+      objectReference: {fileID: 0}
     - target: {fileID: 4789724816070758, guid: 49b9066be53e5314798b57987364d700, type: 3}
       propertyPath: m_RootOrder
       value: 3
@@ -539,6 +543,10 @@ PrefabInstance:
     - target: {fileID: 1023917202629980, guid: 49b9066be53e5314798b57987364d700, type: 3}
       propertyPath: m_Name
       value: Station (2)
+      objectReference: {fileID: 0}
+    - target: {fileID: 1023917202629980, guid: 49b9066be53e5314798b57987364d700, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 4789724816070758, guid: 49b9066be53e5314798b57987364d700, type: 3}
       propertyPath: m_RootOrder
@@ -622,6 +630,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Station (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 1023917202629980, guid: 49b9066be53e5314798b57987364d700, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 8
+      objectReference: {fileID: 0}
     - target: {fileID: 4789724816070758, guid: 49b9066be53e5314798b57987364d700, type: 3}
       propertyPath: m_RootOrder
       value: 0
@@ -704,6 +716,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Storage
       objectReference: {fileID: 0}
+    - target: {fileID: 1547116696582102, guid: f750d5f061e724f4c827ab6b376e2550, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 8
+      objectReference: {fileID: 0}
     - target: {fileID: 4483658618797090, guid: f750d5f061e724f4c827ab6b376e2550, type: 3}
       propertyPath: m_RootOrder
       value: 0
@@ -765,6 +781,10 @@ PrefabInstance:
     - target: {fileID: 1023917202629980, guid: 49b9066be53e5314798b57987364d700, type: 3}
       propertyPath: m_Name
       value: Station (3)
+      objectReference: {fileID: 0}
+    - target: {fileID: 1023917202629980, guid: 49b9066be53e5314798b57987364d700, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 4789724816070758, guid: 49b9066be53e5314798b57987364d700, type: 3}
       propertyPath: m_RootOrder

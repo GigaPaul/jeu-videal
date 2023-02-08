@@ -18,6 +18,9 @@ MonoBehaviour:
   - name: Menu
     path: Assets/Scenes\Menu.unity
     parentFolder: Scenes
+  - name: TestNavMesh
+    path: Assets/Scenes\TestNavMesh.unity
+    parentFolder: Scenes
   - name: Town
     path: Assets/Scenes\Town.unity
     parentFolder: Scenes

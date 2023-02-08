@@ -28,26 +28,6 @@ public class ActionManager : MonoBehaviour
 
 
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-
-
-
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
-
-
-
-
     private void FixedUpdate()
     {
         if(!QueueIsEmpty() && !GetCurrentAction().IsInactive())
@@ -125,16 +105,25 @@ public class ActionManager : MonoBehaviour
 
 
 
-    public Transform GetCurrentTarget()
+    public Vector3 GetCurrentDestination()
     {
-        return GetCurrentAction().Target;
+        return GetCurrentAction().Destination;
     }
 
 
 
 
 
-    #nullable enable
+    public Vector3? GetCurrentTargetPosition()
+    {
+        return GetCurrentAction().TargetPosition;
+    }
+
+
+
+
+
+#nullable enable
     public Action? GetCurrentAction()
     {
         return Queue.FirstOrDefault();
@@ -176,5 +165,10 @@ public class ActionManager : MonoBehaviour
     public bool QueueIsEmpty()
     {
         return !Queue.Any();
+    }
+
+    public bool CurrentActionIsPlaying()
+    {
+        return !QueueIsEmpty() && !GetCurrentAction().IsUnloaded();
     }
 }

@@ -255,8 +255,6 @@ public class Player : NetworkBehaviour
 
             if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity))
             {
-                Collider collider = hit.transform.GetComponentInParent<Collider>();
-
                 Pawn hitPawn = hit.transform.GetComponentInParent<Pawn>();
                 Globals.FocusedPawn = hitPawn;
             }
@@ -270,9 +268,9 @@ public class Player : NetworkBehaviour
         {
             if (Globals.FocusedPawn != null && Globals.FocusedPawn.IsPlayable())
             {
-                RaycastHit hit;
                 Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
-                if (Physics.Raycast(ray, out hit, Mathf.Infinity, Globals.GroundMask))
+
+                if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, Globals.GroundMask))
                 {
                     Globals.FocusedPawn.GoTo(hit.point, IsQueueing);
                 }

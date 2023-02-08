@@ -1,7 +1,7 @@
 ﻿using Mirror;
 using UnityEngine;
 
-internal class NetworkManagerVideal : NetworkManager
+public class NetworkManagerVideal : NetworkManager
 {
     public override void OnServerAddPlayer(NetworkConnectionToClient conn)
     {

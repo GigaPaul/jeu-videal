@@ -10,7 +10,8 @@ public class Action
     public Pawn Actor { get; set; }
     public bool IsOneShot { get; set; } = false;
     #nullable enable
-    public Transform? Target { get; set; }
+    public Vector3 TargetPosition { get; set; }
+    public Vector3 Destination { get; set; }
 
 
     public Func<Task>? StartingScript { get; set; }
@@ -102,6 +103,7 @@ public class Action
 
     public void Stop()
     {
+        //Actor.RotationTarget = null;
         Status = 5;
     }
 
