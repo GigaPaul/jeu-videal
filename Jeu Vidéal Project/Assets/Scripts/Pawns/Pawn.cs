@@ -48,7 +48,7 @@ public class Pawn : MonoBehaviour
         //Faction = StartsPlayable ? Globals.Factions.FirstOrDefault(i => i.Label == "Player") : Globals.Factions.FirstOrDefault(i => i.Label == "Wanderers");
         if (Faction == null)
         {
-            Faction = Globals.Factions.FirstOrDefault(i => i.Label == "Wanderers");
+            Faction = FindObjectsOfType<Faction>().FirstOrDefault(i => i.Label == "Wanderers");
         }
 
 
@@ -65,11 +65,10 @@ public class Pawn : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-
-        //horizontalDirection = 0f;
-        //verticalDirection = 0f;
-        //MaxSpeed = 3;
         SpawnPoint = transform.position;
+
+        InvokeRepeating(nameof(AIRoutine), 0, 1);
+        InvokeRepeating(nameof(ManageActions), 0, 0.25f);
     }
 
     //// Update is called once per frame
@@ -80,7 +79,7 @@ public class Pawn : MonoBehaviour
 
     private void LateUpdate()
     {
-        //Rotate();
+        Rotate();
         //Move();
     }
 
@@ -96,55 +95,35 @@ public class Pawn : MonoBehaviour
 
         Animator.SetFloat("Z Velocity", localVelocity.z);
         Animator.SetFloat("X Velocity", localVelocity.x);
+    }
 
+
+    private void AIRoutine()
+    {
         // If the pawn is not moving
-        if(!IsMoving())
+        if (!IsMoving())
         {
             // If the pawn has nothing to do
-            if(ActionManager.QueueIsEmpty())
+            if (ActionManager.QueueIsEmpty())
             {
                 // If the spawn isn't playable
-                if(!IsPlayable())
+                if (!IsPlayable())
                 {
                     // Start AI routine
                     Routine();
                 }
             }
         }
+    }
 
+    private void ManageActions()
+    {
         // If the current action is unloaded (Pawn just reached his target)
         if (!ActionManager.QueueIsEmpty() && ActionManager.GetCurrentAction().IsUnloaded())
         {
             if (!HasReachedDestination())
             {
                 Vector3 destination = ActionManager.GetCurrentDestination();
-
-
-                //
-                //NavMeshPath path = new();
-                //bool canBeReached = NavMeshAgent.CalculatePath(destination, path);
-
-
-                //if (!canBeReached)
-                //{
-
-                //    if (IsBeingDebugged)
-                //        Debug.Log($"Can't be reached");
-                //    if(NavMesh.SamplePosition(destination, out NavMeshHit navHit, 10f, NavMesh.AllAreas))
-                //    //if(NavMesh.FindClosestEdge(destination, out NavMeshHit navHit, NavMesh.AllAreas))
-                //    //if (NavMesh.Raycast(destination, transform.position, out NavMeshHit navHit, NavMesh.AllAreas))
-                //    {
-                //        Debug.Log("Position found");
-
-                //        Vector3 pawnDirection = transform.position - navHit.position;
-                //        destination = navHit.position + pawnDirection.normalized;
-                //        Debug.Log(destination);
-                //    }
-                //}
-                //
-
-
-
                 NavMeshAgent.SetDestination(destination);
             }
             else
@@ -155,23 +134,25 @@ public class Pawn : MonoBehaviour
         }
     }
 
+
     private void Rotate()
     {
         if (!ActionManager.QueueIsEmpty() && !ActionManager.GetCurrentAction().IsInactive())
         {
-            Vector3? rotationTarget = ActionManager.GetCurrentTargetPosition();
+            Vector3 lookPosition = NavMeshAgent.velocity;
 
-            if (rotationTarget != null && rotationTarget != Vector3.zero)
+            if (ActionManager.GetCurrentTargetPosition() != null && ActionManager.GetCurrentTargetPosition() != Vector3.zero)
             {
-                Vector3 lookPosition = (Vector3)ActionManager.GetCurrentTargetPosition() - transform.position;
-                lookPosition.y = 0;
+                lookPosition = (Vector3)ActionManager.GetCurrentTargetPosition() - transform.position;
 
-                if(lookPosition != Vector3.zero)
-                {
-                    Quaternion rotation = Quaternion.LookRotation(lookPosition);
-                    transform.rotation = Quaternion.Slerp(transform.rotation, rotation, Time.deltaTime * RotationSpeed);
-                }
+            }
+            
+            lookPosition.y = 0;
 
+            if(lookPosition != Vector3.zero)
+            {
+                Quaternion rotation = Quaternion.LookRotation(lookPosition);
+                transform.rotation = Quaternion.Slerp(transform.rotation, rotation, Time.deltaTime * RotationSpeed);
             }
         }
     }
@@ -292,7 +273,7 @@ public class Pawn : MonoBehaviour
 
     public bool IsPlayable()
     {
-        return Faction.IsPlayable();
+        return Faction != null && Faction.IsPlayable();
     }
 
 
@@ -402,30 +383,26 @@ public class Pawn : MonoBehaviour
         // If the pawn is a warrior
         if (Occupations.Contains("warrior"))
         {
-            // If the target is from another faction
-            if (pawn.Faction != Faction)
+            // If the target is from a rival faction
+            if (pawn.Faction != Faction && IsEnemyWith(pawn))
             {
                 // If the target is a warrior from another faction
                 if (pawn.Occupations.Contains("warrior"))
                 {
-                    bool isInsideVillage = Vector3.Distance(transform.position, Settlement.transform.position) <= Settlement.Size;
-                    if(isInsideVillage)
-                    {
-                        Action insult = new()
-                        {
-                            Label = "Insulting",
-                            StartingScript = async () =>
-                            {
-                                //Face(pawn.transform.position);
-                                Say("Stay away from my village.");
-                                //pawn.Face(transform.position);
-                                await Task.Delay(1000);
-                            },
-                            IsOneShot = true
-                        };
+                    //Action insult = new()
+                    //{
+                    //    Label = "Insulting",
+                    //    StartingScript = async () =>
+                    //    {
+                    //        //Face(pawn.transform.position);
+                    //        Say("Stay away from my village.");
+                    //        //pawn.Face(transform.position);
+                    //        await Task.Delay(1000);
+                    //    },
+                    //    IsOneShot = true
+                    //};
 
-                        Do(insult, true, true);
-                    }
+                    //Do(insult, true, true);
                 }
             }
         }
@@ -444,15 +421,16 @@ public class Pawn : MonoBehaviour
             ActionManager.ClearActionQueue();
         }
 
-
         if(action.TargetPosition == null)
         {
             action.TargetPosition = transform.position;
         }
 
-        float x = action.TargetPosition.x;
+        Vector3 targetPosition = (Vector3)action.TargetPosition;
+
+        float x = targetPosition.x;
         float y = Terrain.activeTerrain.SampleHeight(transform.position);
-        float z = action.TargetPosition.z;
+        float z = targetPosition.z;
         action.Destination = new Vector3(x, y, z);
 
         //if(action.Destination.GetComponent<Collider>() == null)
@@ -508,6 +486,7 @@ public class Pawn : MonoBehaviour
 
     public void Routine()
     {
+        //Debug.Log(transform.gameObject.name);
         if(Occupations.Contains("trader"))
         {
             if(Faction.Label == "Wanderers")
@@ -593,6 +572,7 @@ public class Pawn : MonoBehaviour
             TargetPosition = waypoint,
             StartingScript = async () =>
             {
+                EncounteredVillagers = 0;
                 Say($"Hello {nearestSettlement.Label}!");
 
                 LocalVillagers = FindObjectsOfType<Pawn>().Where(i => i.Settlement == nearestSettlement && i.Occupations.Contains("trader")).ToList();
@@ -626,7 +606,6 @@ public class Pawn : MonoBehaviour
 
             SuccessScript = () =>
             {
-                EncounteredVillagers = 0;
                 Say("I've seen everyone in this village, bye!");
                 //Destroy(waypoint.gameObject);
                 return Task.FromResult(0);
@@ -640,22 +619,12 @@ public class Pawn : MonoBehaviour
 
     public void WarriorRoutine()
     {
-        ActionManager.IsLoop = true;
+        //ActionManager.IsLoop = true;
 
-        foreach(Transform waypoint in Settlement.Patrol)
-        {
-            GoTo(waypoint.position, true);
-        }
-
-        //Vector3 Patrol1 = new(Settlement.transform.position.x - Settlement.Size, 0, Settlement.transform.position.z - Settlement.Size);
-        //Vector3 Patrol2 = new(Settlement.transform.position.x - Settlement.Size, 0, Settlement.transform.position.z + Settlement.Size);
-        //Vector3 Patrol3 = new(Settlement.transform.position.x + Settlement.Size, 0, Settlement.transform.position.z + Settlement.Size);
-        //Vector3 Patrol4 = new(Settlement.transform.position.x + Settlement.Size, 0, Settlement.transform.position.z - Settlement.Size);
-
-        //GoTo(Patrol1, true);
-        //GoTo(Patrol2, true);
-        //GoTo(Patrol3, true);
-        //GoTo(Patrol4, true);
+        //foreach(Transform waypoint in Settlement.Patrol)
+        //{
+        //    GoTo(waypoint.position, true);
+        //}
     }
 
 

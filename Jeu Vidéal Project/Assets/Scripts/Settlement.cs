@@ -25,15 +25,15 @@ public class Settlement : MonoBehaviour
         Globals.Settlements.Add(this);
         ResourceStock = 0;
         VillagerCost = 50;
-
-        InvokeRepeating(nameof(BalanceJobs), 0, 1);
-        InvokeRepeating(nameof(CheckResources), 0, 1);
     }
 
     // Start is called before the first frame update
     void Start()
     {
         DrawRadius();
+
+        //InvokeRepeating(nameof(BalanceJobs), 0, 1);
+        //InvokeRepeating(nameof(CheckResources), 0, 1);
     }
 
     public void BalanceJobs()
@@ -94,7 +94,7 @@ public class Settlement : MonoBehaviour
 
     private void CheckResources()
     {
-        if(ResourceStock >= VillagerCost)
+        if(ResourceStock >= VillagerCost && GetVillagers().Count <= 20)
         {
             Debug.Log($"Spawning new villager in {Label}");
             ResourceStock -= VillagerCost;

@@ -150,6 +150,7 @@ public class ActionManager : MonoBehaviour
         {
             StopCoroutine(OngoingCoroutine);
         }
+        Pawn.NavMeshAgent.ResetPath();
     }
 
 

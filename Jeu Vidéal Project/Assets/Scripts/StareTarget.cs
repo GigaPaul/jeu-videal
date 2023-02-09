@@ -12,7 +12,7 @@ public class StareTarget : MonoBehaviour
     private void Awake()
     {
         Pawn = GetComponentInParent<Pawn>();
-        DefaultPosition.position = Pawn.FocusElement.position + Vector3.forward;
+        DefaultPosition.position = Pawn.FocusElement.position + Pawn.NavMeshAgent.transform.forward;
         transform.position = DefaultPosition.position;
     }
 

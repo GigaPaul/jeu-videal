@@ -10,7 +10,7 @@ public class Action
     public Pawn Actor { get; set; }
     public bool IsOneShot { get; set; } = false;
     #nullable enable
-    public Vector3 TargetPosition { get; set; }
+    public Vector3? TargetPosition { get; set; }
     public Vector3 Destination { get; set; }
 
 

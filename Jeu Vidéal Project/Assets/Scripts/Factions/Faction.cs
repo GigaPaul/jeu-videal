@@ -5,10 +5,10 @@ using UnityEngine;
 
 public class Faction : MonoBehaviour
 {
-    public int Id { get; set; }
     public string Label;
     public Material Material;
     public List<FactionRelation> Relationships = new();
+    public bool IsBeingDebugged;
 
 
 
@@ -16,9 +16,6 @@ public class Faction : MonoBehaviour
 
     private void Awake()
     {
-        Id = Globals.Factions.Count;
-        Globals.Factions.Add(this);
-
         List<Faction> factions = FindObjectsOfType<Faction>().Where(i => i != this).ToList();
 
         foreach(Faction faction in factions)
@@ -28,6 +25,11 @@ public class Faction : MonoBehaviour
                 Faction = faction
             };
 
+            if(Label == "Abourg" && faction.Label == "Bescheim" || Label == "Bescheim" && faction.Label == "Abourg")
+            {
+                relationship.Opinion = -100;
+            }
+
             Relationships.Add(relationship);
         }
     }
@@ -36,19 +38,85 @@ public class Faction : MonoBehaviour
 
 
 
-    private void FixedUpdate()
+    private void Start()
     {
-        if(Material != null)
+        InvokeRepeating(nameof(CheckMaterials), 0, 0.5f);
+        //InvokeRepeating(nameof(ManageDiplomacy), 0, 5);
+    }
+
+
+
+
+    private void CheckMaterials()
+    {
+        if (Material != null)
         {
             List<Pawn> members = FindObjectsOfType<Pawn>().Where(i => i.Faction == this).ToList();
 
-            foreach(Pawn pawn in members)
+            foreach (Pawn pawn in members)
             {
                 List<Renderer> renderers = pawn.Model.GetComponentsInChildren<Renderer>().Where(i => i.material != Material).ToList();
 
                 foreach (Renderer renderer in renderers)
                 {
                     renderer.material = Material;
+                }
+            }
+        }
+    }
+
+
+
+
+
+    private void ManageDiplomacy()
+    {
+        List<Faction> factions = FindObjectsOfType<Faction>().Where(i => i != this).ToList();
+        float aggravatingOdds = 1f / 3f;
+        float improvingOdds = 1f / 3f;
+        float warOdds = 1f / 5f;
+        float peaceOdds = 1f / 5f;
+
+        foreach (Faction faction in factions)
+        {
+            FactionRelation relation = Relationships.FirstOrDefault(i => i.Faction == faction);
+
+            float relationChangement = Random.Range(0f, 1);
+
+            if(0 <= relationChangement && relationChangement <= aggravatingOdds)
+            {
+                if (relation.Opinion > - 100)
+                {
+                    relation.Opinion -= 10;
+                    //Debug.Log($"Les relations entre {Label} et {faction.Label} ont descendu de 10 points : {relation.Opinion}");
+                }
+            }
+            else if (aggravatingOdds < relationChangement && relationChangement <= aggravatingOdds + improvingOdds)
+            {
+                if (relation.Opinion < 100)
+                {
+                    relation.Opinion += 10;
+                    //Debug.Log($"Les relations entre {Label} et {faction.Label} ont augmenté de 10 points : {relation.Opinion}");
+                }
+            }
+
+
+
+            float statusChangement = Random.Range(0f, 1);
+            if (!IsAtWarWith(faction) && relation.Opinion <= -20)
+            {
+                if(0 <= statusChangement && statusChangement <= warOdds)
+                {
+                    DeclareWarTo(faction);
+                    //Debug.Log($"{Label} a déclaré la guerre à {faction.Label}!");
+                }
+            }
+            else if(IsAtWarWith(faction) && relation.Opinion >= 20)
+            {
+                if (0 <= statusChangement && statusChangement <= peaceOdds)
+                {
+                    MakePeaceWith(faction);
+                    //Debug.Log($"{Label} a fait la paix avec {faction.Label}!");
                 }
             }
         }
@@ -71,6 +139,7 @@ public class Faction : MonoBehaviour
     public void DeclareWarTo(Faction faction)
     {
         Relationships.FirstOrDefault(i => i.Faction == faction).Opinion = -100;
+        faction.Relationships.FirstOrDefault(i => i.Faction == this).Opinion = -100;
     }
 
     public void MakePeaceWith(Faction faction)
@@ -78,6 +147,7 @@ public class Faction : MonoBehaviour
         if(IsAtWarWith(faction))
         {
             Relationships.FirstOrDefault(i => i.Faction == faction).Opinion = 0;
+            faction.Relationships.FirstOrDefault(i => i.Faction == this).Opinion = 0;
         }
     }
 
@@ -87,7 +157,7 @@ public class Faction : MonoBehaviour
 
     public bool IsPlayable()
     {
-        return Globals.Factions.FirstOrDefault(i => i.Label == "Player") == this;
+        return FindObjectsOfType<Faction>().FirstOrDefault(i => i.Label == "Player") == this;
     }
 
     public bool IsAtWarWith(Faction faction)
