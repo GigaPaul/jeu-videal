@@ -21,34 +21,16 @@ public class SignalManager : MonoBehaviour
         StartCoroutine(TargetCoroutine());
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
-    private void FixedUpdate()
-    {
-
-    }
-
 
 
 
 
     IEnumerator TargetCoroutine()
     {
-        while (true)
+        while (Pawn.IsAlive)
         {
-            //if (!MustStare)
-            //{
-                Task task = WatchForTarget();
-                yield return new WaitUntil(() => task.IsCompleted);
-            //}
-            //else
-            //{
-            //    yield return new WaitForSeconds(0.2f);
-            //}
+            Task task = WatchForTarget();
+            yield return new WaitUntil(() => task.IsCompleted);
         }
     }
 

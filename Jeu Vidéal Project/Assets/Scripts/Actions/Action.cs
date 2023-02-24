@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -10,12 +11,13 @@ public class Action
     public Pawn Actor { get; set; }
     public bool IsOneShot { get; set; } = false;
     #nullable enable
-    public Vector3? TargetPosition { get; set; }
+    public Transform? Target { get; set; }
     public Vector3 Destination { get; set; }
 
 
     public Func<Task>? StartingScript { get; set; }
     public Func<Task>? SuccessScript { get; set; }
+    public CancellationTokenSource TokenSource = new();
 
 
 
@@ -36,7 +38,18 @@ public class Action
     {
         if(StartingScript != null)
         {
-            await StartingScript.Invoke();
+            try
+            {
+                await StartingScript.Invoke();
+            }
+            catch(OperationCanceledException)
+            {
+                Debug.Log("The action has been canceled.");
+            }
+            finally
+            {
+                TokenSource.Dispose();
+            }
         }
     }
 
@@ -52,12 +65,31 @@ public class Action
         }
     }
 
+    public static async Task WaitFor(int milliseconds, CancellationToken token)
+    {
+        int currentWaiting = 0;
+        while (!token.IsCancellationRequested && currentWaiting <= milliseconds)
+        {
+            try
+            {
+                await Task.Delay(10);
+            }
+            catch (OperationCanceledException)
+            {
+                Debug.Log("The action has been canceled.");
+            }
+            currentWaiting += 10;
+            //Debug.Log($"{currentWaiting} / {milliseconds}");
+        }
+    }
+
 
 
 
 
     public void Unload()
     {
+        //TokenSource.Cancel();
         Status = 0;
     }
 
@@ -67,6 +99,11 @@ public class Action
 
     public void Load()
     {
+        //if(Target != null)
+        //{
+        //    Destination = null;
+        //}
+
         Status = 1;
     }
 
@@ -103,7 +140,6 @@ public class Action
 
     public void Stop()
     {
-        //Actor.RotationTarget = null;
         Status = 5;
     }
 

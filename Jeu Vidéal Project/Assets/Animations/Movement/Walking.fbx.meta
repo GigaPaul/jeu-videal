@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 82b17fffa3bd7274596654fd9f5f1381
+guid: ca4972bece40dd64bbaa4198019ac8c8
 ModelImporter:
   serializedVersion: 21300
   internalIDToNameTable: []
@@ -33,7 +33,7 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: Idle
+      name: Walking
       takeName: mixamo.com
       internalID: -203655887218126122
       firstFrame: 0
@@ -722,7 +722,7 @@ ModelImporter:
     hasTranslationDoF: 0
     hasExtraRoot: 1
     skeletonHasParents: 1
-  lastHumanDescriptionAvatarSource: {fileID: 9000000, guid: b5f71c859f9f9bf41badda8a4650082c, type: 3}
+  lastHumanDescriptionAvatarSource: {fileID: 9000000, guid: 15cdc9d89609a4b47a9fdba7665b0f2f, type: 3}
   autoGenerateAvatarMappingIfUnspecified: 1
   animationType: 3
   humanoidOversampling: 1

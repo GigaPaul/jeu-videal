@@ -71,6 +71,15 @@ public partial class @InputSystem : IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Mouse"",
+                    ""type"": ""Button"",
+                    ""id"": ""177344a8-d217-42e3-b68d-5d5eb55da692"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -166,7 +175,7 @@ public partial class @InputSystem : IInputActionCollection2, IDisposable
                     ""name"": ""Mouse"",
                     ""id"": ""64622ef0-fd91-4bb9-98db-bfe7aec51355"",
                     ""path"": ""1DAxis"",
-                    ""interactions"": """",
+                    ""interactions"": ""Hold(duration=0.01)"",
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""Actions"",
@@ -236,6 +245,28 @@ public partial class @InputSystem : IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": ""Keyboard&Mouse"",
                     ""action"": ""Menu"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""79deee52-9b6f-411f-a8ac-e8beafbdf720"",
+                    ""path"": ""<Mouse>/leftButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""Mouse"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""e3d13c55-c573-4fd2-9800-4e3a59ef0be2"",
+                    ""path"": ""<Mouse>/rightButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""Mouse"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -856,6 +887,7 @@ public partial class @InputSystem : IInputActionCollection2, IDisposable
         m_Player_Actions = m_Player.FindAction("Actions", throwIfNotFound: true);
         m_Player_Alts = m_Player.FindAction("Alts", throwIfNotFound: true);
         m_Player_Menu = m_Player.FindAction("Menu", throwIfNotFound: true);
+        m_Player_Mouse = m_Player.FindAction("Mouse", throwIfNotFound: true);
         // UI_old
         m_UI_old = asset.FindActionMap("UI_old", throwIfNotFound: true);
         m_UI_old_Navigate = m_UI_old.FindAction("Navigate", throwIfNotFound: true);
@@ -935,6 +967,7 @@ public partial class @InputSystem : IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Actions;
     private readonly InputAction m_Player_Alts;
     private readonly InputAction m_Player_Menu;
+    private readonly InputAction m_Player_Mouse;
     public struct PlayerActions
     {
         private @InputSystem m_Wrapper;
@@ -944,6 +977,7 @@ public partial class @InputSystem : IInputActionCollection2, IDisposable
         public InputAction @Actions => m_Wrapper.m_Player_Actions;
         public InputAction @Alts => m_Wrapper.m_Player_Alts;
         public InputAction @Menu => m_Wrapper.m_Player_Menu;
+        public InputAction @Mouse => m_Wrapper.m_Player_Mouse;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -968,6 +1002,9 @@ public partial class @InputSystem : IInputActionCollection2, IDisposable
                 @Menu.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnMenu;
                 @Menu.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnMenu;
                 @Menu.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnMenu;
+                @Mouse.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnMouse;
+                @Mouse.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnMouse;
+                @Mouse.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnMouse;
             }
             m_Wrapper.m_PlayerActionsCallbackInterface = instance;
             if (instance != null)
@@ -987,6 +1024,9 @@ public partial class @InputSystem : IInputActionCollection2, IDisposable
                 @Menu.started += instance.OnMenu;
                 @Menu.performed += instance.OnMenu;
                 @Menu.canceled += instance.OnMenu;
+                @Mouse.started += instance.OnMouse;
+                @Mouse.performed += instance.OnMouse;
+                @Mouse.canceled += instance.OnMouse;
             }
         }
     }
@@ -1181,6 +1221,7 @@ public partial class @InputSystem : IInputActionCollection2, IDisposable
         void OnActions(InputAction.CallbackContext context);
         void OnAlts(InputAction.CallbackContext context);
         void OnMenu(InputAction.CallbackContext context);
+        void OnMouse(InputAction.CallbackContext context);
     }
     public interface IUI_oldActions
     {

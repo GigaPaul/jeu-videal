@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 0260b980d358b9d47ab61a93e42fd40b
+guid: 630a056913a3f744b80d2eb544994b91
 ModelImporter:
   serializedVersion: 21300
   internalIDToNameTable: []
@@ -33,13 +33,13 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: mixamo.com
+      name: Digging
       takeName: mixamo.com
       internalID: -203655887218126122
       firstFrame: 0
-      lastFrame: 32
+      lastFrame: 145
       wrapMode: 0
-      orientationOffsetY: -60
+      orientationOffsetY: 0
       level: 0
       cycleOffset: 0
       loop: 0
@@ -722,7 +722,7 @@ ModelImporter:
     hasTranslationDoF: 0
     hasExtraRoot: 1
     skeletonHasParents: 1
-  lastHumanDescriptionAvatarSource: {fileID: 9000000, guid: b5f71c859f9f9bf41badda8a4650082c, type: 3}
+  lastHumanDescriptionAvatarSource: {fileID: 9000000, guid: 15cdc9d89609a4b47a9fdba7665b0f2f, type: 3}
   autoGenerateAvatarMappingIfUnspecified: 1
   animationType: 3
   humanoidOversampling: 1

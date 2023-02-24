@@ -464,6 +464,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   syncMode: 0
   syncInterval: 0.1
+  Controller: {fileID: -3762002916809423927}
+  Model: {fileID: 1863063781390658705}
+  RotationAxis: {fileID: 2160918451398899508}
 --- !u!114 &1484080143374474877
 MonoBehaviour:
   m_ObjectHideFlags: 0

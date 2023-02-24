@@ -32,8 +32,27 @@ public class Settlement : MonoBehaviour
     {
         DrawRadius();
 
-        //InvokeRepeating(nameof(BalanceJobs), 0, 1);
+        InvokeRepeating(nameof(BalanceJobs), 0, 1);
         //InvokeRepeating(nameof(CheckResources), 0, 1);
+
+        Invoke(nameof(FormFlock), 1.5f);
+    }
+
+    public void FormFlock()
+    {
+        if (IsDeserted())
+            return;
+
+        List<Pawn> warriors = GetVillagersWithJob("warrior");
+
+        if (!warriors.Any())
+            return;
+
+        GameObject flockGO = new();
+        FlockManager flock = flockGO.AddComponent<FlockManager>();
+
+        flock.AddMember(warriors);
+        flock.Commander = flock.Members.First();
     }
 
     public void BalanceJobs()
@@ -176,7 +195,8 @@ public class Settlement : MonoBehaviour
 
     public int GetMinWarriors()
     {
-        return Mathf.CeilToInt( (GetVillagers().Count - GetMinInnkeepers()) / 3f);
+        return Mathf.CeilToInt( (GetVillagers().Count - GetMinInnkeepers()) / 1f);
+        //return Mathf.CeilToInt( (GetVillagers().Count - GetMinInnkeepers()) / 3f);
     }
 
     public int GetMinTraders()
