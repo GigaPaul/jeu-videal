@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.InputSystem;
 
 public class InputManager : MonoBehaviour
@@ -154,11 +155,11 @@ public class InputManager : MonoBehaviour
                 {
                     Globals.FocusedPawn.GoTo(hit.point, Player.IsQueueing);
                 }
-                else if (Globals.FocusedPawn == null)
-                {
-                    FlockManager flock = FindObjectOfType<FlockManager>();
-                    flock.MarchOn(hit.point);
-                }
+                //else if (Globals.FocusedPawn == null)
+                //{
+                //    FlockManager flock = FindObjectOfType<FlockManager>();
+                //    flock.MarchOn(hit.point);
+                //}
             }
 
             RightClickIsHeld = false;

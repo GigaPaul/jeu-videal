@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.AI;
 
+[RequireComponent(typeof(Pawn))]
 public class PawnMovement : MonoBehaviour
 {
     public Pawn _Pawn;
@@ -11,11 +12,13 @@ public class PawnMovement : MonoBehaviour
     [Range(0f, 10f)]
     public float MaxSpeed;
     public float WalkingSpeed { get; private set; }
+    public float SpeedQuotient { get; private set; }
     [Range(0f, 10f)]
     public float RotationSpeed;
-    public float SpeedQuotient { get; private set; } = 0f;
-    public Vector3 Velocity = Vector3.zero;
+    public Transform RotationTarget;
+    //public Vector3 Velocity = Vector3.zero;
 
+    public Vector3 VelocityDirection = Vector3.zero;
 
 
 
@@ -23,6 +26,7 @@ public class PawnMovement : MonoBehaviour
     // Start is called before the first frame update
     void Awake()
     {
+        SpeedQuotient = 1;
         WalkingSpeed = MaxSpeed / 2;
         _NavMeshAgent.speed = WalkingSpeed;
     }
@@ -42,7 +46,7 @@ public class PawnMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        ManageSpeed();
+        CalculateSpeedQuotient();
     }
 
 
@@ -62,21 +66,24 @@ public class PawnMovement : MonoBehaviour
     private void Rotate()
     {
         Vector3 target = Vector3.zero;
-        float finalRotationSpeed = RotationSpeed;
 
         // If the pawn must be turned towards a target
-        //if (RotationTarget != null)
-        //if (false)
-        //{
-        //    target = RotationTarget.position;
-        //}
-        // If the pawn is part of a flock
-        if (_Pawn.IsFlocking())
+        if (RotationTarget != null)
         {
-            if (_FlockAgent.RotationTarget != null)
+            target = RotationTarget.position;
+        }
+        // If the pawn is part of a flock
+        else if (_Pawn.IsFlocking())
+        {
+            // If the pawn is still
+            if (_FlockAgent.HasReachedPosition())
             {
-                target = _FlockAgent.RotationTarget;
-                finalRotationSpeed *= 2;
+                Vector3 flockForward = _Pawn.Flock.transform.forward;
+                target = transform.position + flockForward;
+            }
+            else
+            {
+                target = _FlockAgent.PositionTarget;
             }
         }
         else
@@ -106,8 +113,13 @@ public class PawnMovement : MonoBehaviour
         target -= transform.position;
         target.y = 0;
 
+        //_FlockAgent.TestSphere.position = transform.position + target;
+
+        if (target == Vector3.zero)
+            return;
+
         Quaternion rotation = Quaternion.LookRotation(target);
-        transform.rotation = Quaternion.Slerp(transform.rotation, rotation, Time.deltaTime * finalRotationSpeed);
+        transform.rotation = Quaternion.Slerp(transform.rotation, rotation, Time.deltaTime * RotationSpeed);
     }
 
 
@@ -126,17 +138,86 @@ public class PawnMovement : MonoBehaviour
     }
 
 
-
-
-
     private void GoForward()
     {
-        if (_FlockAgent.HasReachedPosition())
+        // If the flock has no target, return
+        if (_FlockAgent.PositionTarget == Vector3.zero)
+        {
             return;
+        }
 
-        _NavMeshAgent.velocity = MaxSpeed * SpeedQuotient * transform.forward;
-        //transform.position += Time.deltaTime * speed * transform.forward;
+        // If pawn has reached his target, reset and return
+        if (_FlockAgent.HasReachedPosition())
+        {
+            _FlockAgent.PositionTarget = Vector3.zero;
+            return;
+        }
+
+
+
+        // Normalized vector pointing to the target's position
+        Vector3 direction = _FlockAgent.PositionTarget - transform.position;
+
+        float distToTarget = _FlockAgent.GetDistanceFromTarget();
+
+        // If the target is far away
+        if (distToTarget > 1)
+        {
+            // Normalize the direction
+            direction = direction.normalized;
+
+            float distVelocityToTarget = Vector3.Distance(VelocityDirection, direction);
+
+            // Max value of distance is 1 so the character doesn't go too fast if the direction is opposed to the velocity
+            // Ex : velocity = (0, 0, 1) and direction = (0, 0, -1), distance would be 2
+            if (distVelocityToTarget > 1)
+            {
+                distVelocityToTarget = 1;
+            }
+
+            // Normalized vector poiting to the direction starting from the current velocity
+            Vector3 velocityDir = (direction - VelocityDirection).normalized;
+
+            Vector3 velocityMovement = distVelocityToTarget * Time.deltaTime * _NavMeshAgent.speed * velocityDir;
+            VelocityDirection += velocityMovement;
+
+
+            float distToVelocity = Vector3.Distance(Vector3.zero, VelocityDirection);
+
+            // If the velocity is too high, normalize it
+            if (distToVelocity > 1)
+            {
+                VelocityDirection = VelocityDirection.normalized;
+            }
+        }
+        // Else if the target is very close
+        else
+        {
+            VelocityDirection = direction;
+        }
+
+
+
+        _NavMeshAgent.velocity = _NavMeshAgent.speed * SpeedQuotient * VelocityDirection;
     }
+
+
+
+
+
+    //private void GoForward()
+    //{
+    //    if (_FlockAgent.HasReachedPosition())
+    //    {
+    //        if (_NavMeshAgent.velocity != Vector3.zero)
+    //            _NavMeshAgent.velocity = Vector3.zero;
+
+    //        return;
+    //    }
+
+    //    _NavMeshAgent.velocity = MaxSpeed * SpeedQuotient * transform.forward;
+    //    //transform.position += Time.deltaTime * speed * transform.forward;
+    //}
 
 
 
@@ -192,61 +273,34 @@ public class PawnMovement : MonoBehaviour
 
 
 
-    private void ManageSpeed()
+    private void CalculateSpeedQuotient()
     {
-        if(_Pawn.IsFlocking())
+        if (!_Pawn.IsFlocking())
         {
-            if(_FlockAgent.HasReachedPosition())
-            {
-                SpeedQuotient = 0;
-                return;
-            }
-
-
-            float distance = _FlockAgent.GetDistanceFromTarget();
-            float minDistance = 0.1f;
-            float maxDistance = 0.2f;
-
-            float quotient = 1;
-
-            if(0 < distance && distance < minDistance)
-            {
-                quotient = distance / minDistance / 2;
-            }
-            else if(minDistance <= distance && distance < maxDistance)
-            {
-                quotient /= 2;
-            }
-            else if(maxDistance <= distance)
-            {
-                quotient = distance / maxDistance / 2;
-
-            }
-
-            if (quotient > 1)
-            {
-                quotient = 1;
-            }
-
-
-            //if (distance < maxDistance)
-            //{
-            //    quotient = distance / maxDistance;
-            //}
-
-
-            SpeedQuotient = quotient;
-        }
-        else
-        {
-            float quotient = _NavMeshAgent.velocity.magnitude / MaxSpeed;
-
-            if (quotient > 1)
-                quotient = 1;
-
-            SpeedQuotient = quotient;
+            return;
         }
 
-        Velocity = transform.InverseTransformDirection(_NavMeshAgent.velocity) / MaxSpeed;
+
+        float distance = _FlockAgent.GetDistanceFromTarget();
+        float maxDistance = 0.1f;
+        float defaultValue = 1;
+        float maxValue = 2;
+
+        // If the target is twice as far from the pawn than it is allowed
+        if(distance > maxDistance * maxValue)
+        {
+            SpeedQuotient = maxValue;
+            return;
+        }
+
+        // If the pawn is too far from the target
+        if(distance >= maxDistance)
+        {
+            SpeedQuotient = distance / maxDistance;
+            return;
+        }
+
+        // By default, quotient value is 1
+        SpeedQuotient = defaultValue;
     }
 }

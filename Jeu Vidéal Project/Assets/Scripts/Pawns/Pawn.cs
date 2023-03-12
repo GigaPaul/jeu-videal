@@ -27,10 +27,11 @@ public class Pawn : MonoBehaviour
     // Status
     public bool IsAlive => HitPoints > 0;
 
-    public List<string> Occupations = new();
+    //public List<string> Occupations = new();
+    public string Occupation;
 
     public PawnMovement _PawnMovement;
-    public Transform RotationTarget;
+    //public Transform RotationTarget;
     public FlockAgent FlockAgent;
     public Animator Animator;
     public ActionManager ActionManager;
@@ -43,6 +44,8 @@ public class Pawn : MonoBehaviour
     public Transform Model;
     public GameObject HoverRing;
     public GameObject FocusRing;
+    [SerializeField]
+    LineRenderer PathRenderer;
 
     #nullable enable
     public Transform? Target;
@@ -80,54 +83,17 @@ public class Pawn : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        PathRenderer.startWidth = 0.1f;
+        PathRenderer.endWidth = 0.1f;
+        PathRenderer.positionCount = 0;
+
         InvokeRepeating(nameof(AIRoutine), 0, 1);
         InvokeRepeating(nameof(ManageActions), 0, 0.25f);
-    }
-
-
-
-
-
-    private void LateUpdate()
-    {
-        //if(IsAlive)
-        //{
-        //    Rotate();
-
-        //    //if (IsFlocking())
-        //    //{
-        //    //    GoForward();
-        //    //}
-        //}
     }
 
     void FixedUpdate()
     {
         ManageRings();
-
-        //if(HitPoints == 0 && !Animator.GetBool("Death"))
-        //{
-        //    Animator.SetTrigger("Death");
-        //}
-
-        //if(IsAlive) 
-        //{
-        //    float speed = IsFlocking() && !FlockAgent.HasReachedPosition() ? 
-        //        NavMeshAgent.speed : 
-        //        NavMeshAgent.velocity.magnitude / NavMeshAgent.speed;
-
-        //    //Animator.SetLayerWeight(1, speed);
-
-        //    // Forward
-        //    Vector3 localVelocity = IsFlocking() && !FlockAgent.HasReachedPosition() ? 
-        //        new(0, 0, 1) : 
-        //        transform.InverseTransformDirection(NavMeshAgent.velocity) / NavMeshAgent.speed;
-
-
-
-        //    //Animator.SetFloat("Z Velocity", localVelocity.z);
-        //    //Animator.SetFloat("X Velocity", localVelocity.x);
-        //}
     }
 
 
@@ -179,145 +145,6 @@ public class Pawn : MonoBehaviour
 
 
 
-    //private void Pathfind()
-    //{
-    //    bool cannotPathfind = !(!IsFlocking() && !ActionManager.QueueIsEmpty() && !HasReachedDestination());
-
-    //    if (cannotPathfind)
-    //        return;
-        
-        
-    //    if(!ActionManager.GetCurrentAction().IsUnloaded())
-    //    {
-    //        ActionManager.ResetCurrentAction();
-    //    }
-
-
-    //    if (ActionManager.GetCurrentTarget() == null)
-    //    {
-    //        if(ActionManager.GetCurrentDestination() == null)
-    //        {
-    //            ActionManager.GetCurrentAction().Destination = transform.position;
-    //        }
-    //    }
-    //    else
-    //    {
-    //        Vector3 subPos = (ActionManager.GetCurrentTarget().position - transform.position).normalized * Radius;
-
-    //        Vector3 targetPosition = ActionManager.GetCurrentTarget().position - subPos;
-    //        targetPosition.y = Terrain.activeTerrain.SampleHeight(targetPosition);
-    //        ActionManager.GetCurrentAction().Destination = targetPosition;
-    //    }
-
-
-    //    NavMeshPath path = new();
-    //    bool canBeReached = NavMeshAgent.CalculatePath(ActionManager.GetCurrentDestination(), path);
-
-
-    //    if (!canBeReached)
-    //    {
-    //        Vector3 pawnDirection = ActionManager.GetCurrentDestination() + (transform.position - ActionManager.GetCurrentDestination()).normalized;
-
-    //        if (NavMesh.SamplePosition(pawnDirection, out NavMeshHit navHit, 10f, NavMesh.AllAreas))
-    //        {
-    //            ActionManager.GetCurrentAction().Destination = navHit.position;
-    //        }
-    //    }
-
-    //    NavMeshAgent.SetDestination(ActionManager.GetCurrentDestination());
-    //}
-
-
-
-
-
-    //private void GoForward()
-    //{
-    //    if (FlockAgent.HasReachedPosition())
-    //        return;
-
-    //    float speed = NavMeshAgent.speed;
-
-    //    float distance = FlockAgent.GetDistanceFromTarget();
-    //    float maxDistance = 5;
-
-    //    float quotient = 1;
-
-    //    if(distance < maxDistance)
-    //    {
-    //        quotient = distance / maxDistance;
-    //    }
-
-    //    speed += speed * quotient;
-
-    //    if(IsBeingDebugged)
-    //        Debug.Log(quotient);
-
-    //    transform.position += Time.deltaTime * speed * transform.forward;
-    //}
-
-
-
-
-
-    //private void Rotate()
-    //{
-    //    Vector3 target = Vector3.zero;
-    //    float finalRotationSpeed = RotationSpeed;
-
-    //    // If the pawn must be turned towards a target
-    //    //if (RotationTarget != null)
-    //    if (false)
-    //    {
-    //        target = RotationTarget.position;
-    //    }
-    //    else
-    //    {
-    //        // If the pawn is part of a flock
-    //        if(IsFlocking())
-    //        {
-    //            if(FlockAgent.RotationTarget != null)
-    //            {
-    //                target = FlockAgent.RotationTarget;
-    //                finalRotationSpeed *= 2;
-    //            }
-    //        }
-    //        else
-    //        {
-    //            // If the pawn must rally the destination of an ongoing action
-    //            if (!ActionManager.QueueIsEmpty() && !ActionManager.GetCurrentAction().IsInactive())
-    //            {
-    //                Vector3 lookPosition = NavMeshAgent.velocity;
-                    
-    //                if(ActionManager.GetCurrentTarget() != null)
-    //                {
-    //                    lookPosition = ActionManager.GetCurrentTarget().position;
-    //                }
-    //                else if (ActionManager.GetCurrentDestination() != null && ActionManager.GetCurrentDestination() != Vector3.zero)
-    //                {
-    //                    lookPosition = ActionManager.GetCurrentDestination();
-    //                }
-
-    //                target = lookPosition;
-    //            }
-    //        }
-    //    }
-
-    //    // Don't continue if the resulting target is zero
-    //    if (target == Vector3.zero)
-    //        return;
-
-    //    target -= transform.position;
-    //    target.y = 0;
-
-    //    Quaternion rotation = Quaternion.LookRotation(target);
-    //    transform.rotation = Quaternion.Slerp(transform.rotation, rotation, Time.deltaTime * finalRotationSpeed);
-    //}
-
-
-
-
-
     private void ManageRings()
     {
         // Focus
@@ -338,6 +165,24 @@ public class Pawn : MonoBehaviour
         else if (!IsHovered() && HoverRing.activeInHierarchy)
         {
             HoverRing.SetActive(false);
+        }
+    }
+
+    public void DrawPath()
+    {
+        PathRenderer.positionCount = NavMeshAgent.path.corners.Length;
+        PathRenderer.SetPosition(0, transform.position);
+
+        if (NavMeshAgent.path.corners.Length < 2)
+        {
+            return;
+        }
+
+        NavMeshPath path = NavMeshAgent.path;
+        for (int i = 0; i < path.corners.Length; i++)
+        {
+            Vector3 corner = path.corners[i];
+            PathRenderer.SetPosition(i, corner);
         }
     }
 
@@ -431,21 +276,6 @@ public class Pawn : MonoBehaviour
 
 
 
-
-    //public void Face(Vector3 position)
-    //{
-    //    Vector3 relativeTarget = (position - transform.position).normalized;
-    //    RotationTarget = relativeTarget;
-    //}
-
-    //public void StopFacing()
-    //{
-    //    RotationTarget = null;
-    //}
-
-
-
-
     #nullable enable
     public void LookAt(Transform? target)
     {
@@ -466,13 +296,13 @@ public class Pawn : MonoBehaviour
         if(ActionManager.QueueIsEmpty())
         {
             // If the pawn is a warrior
-            if (Occupations.Contains("warrior"))
+            if (Occupation == "warrior")
             {
                 // If the target is from a rival faction
                 if (pawn.Faction != Faction && IsEnemyWith(pawn))
                 {
                     // If the target is a warrior from another faction
-                    if (pawn.Occupations.Contains("warrior"))
+                    if (pawn.Occupation == "warrior")
                     {
                         Action fight = new()
                         {
@@ -582,7 +412,7 @@ public class Pawn : MonoBehaviour
 
     public void Routine()
     {
-        if(Occupations.Contains("trader"))
+        if(Occupation == "trader")
         {
             if(Faction.Label == "Wanderers")
             {
@@ -596,28 +426,32 @@ public class Pawn : MonoBehaviour
                 }
             }
         }
-        //else if(Occupations.Contains("warrior"))
-        //{
-        //    if(Settlement != null)
-        //    {
-        //        WarriorRoutine();
-        //    }
-        //}
-        else if(Occupations.Contains("worker"))
+        else if(Occupation == "warrior")
+        {
+            if(Settlement != null)
+            {
+                if (Flock.Commander == this)
+                {
+                    CommanderRoutine();
+                }
+                //WarriorRoutine();
+            }
+        }
+        else if(Occupation == "worker")
         {
             if (Settlement != null)
             {
                 WorkerRoutine();
             }
         }
-        else if (Occupations.Contains("innkeeper"))
+        else if (Occupation == "innkeeper")
         {
             if (Settlement != null)
             {
                 InnkeeperRoutine();
             }
         }
-        else if(!Occupations.Any())
+        else if(Occupation != "")
         {
             if (Settlement != null)
             {
@@ -670,7 +504,7 @@ public class Pawn : MonoBehaviour
                 EncounteredVillagers = 0;
                 Say($"Hello {nearestSettlement.Label}!");
 
-                LocalVillagers = FindObjectsOfType<Pawn>().Where(i => i.Settlement == nearestSettlement && i.Occupations.Contains("trader")).ToList();
+                LocalVillagers = FindObjectsOfType<Pawn>().Where(i => i.Settlement == nearestSettlement && i.Occupation == "trader").ToList();
 
                 foreach (Pawn villager in LocalVillagers)
                 {
@@ -725,6 +559,19 @@ public class Pawn : MonoBehaviour
 
 
 
+    public void CommanderRoutine()
+    {
+        ActionManager.IsLoop = true;
+
+        foreach(Transform waypoint in Settlement.Patrol)
+        {
+            GoTo(waypoint.position, true);
+        }
+    }
+
+
+
+
 
     public void WorkerRoutine()
     {
@@ -773,6 +620,7 @@ public class Pawn : MonoBehaviour
             StartingScript = () =>
             {
                 Animator.SetBool("IsBartending", true);
+                _PawnMovement.RotationTarget = Settlement.transform;
                 return Task.FromResult(0);
             },
             SuccessCondition = () =>
@@ -827,8 +675,7 @@ public class Pawn : MonoBehaviour
 
     public void AssignTo(string occupation)
     {
-        Occupations.Clear();
-        Occupations.Add(occupation);
+        Occupation = occupation;
         ActionManager.ClearActionQueue();
     }
 

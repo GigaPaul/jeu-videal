@@ -18,6 +18,7 @@ public class Settlement : MonoBehaviour
     public List<Transform> Patrol = new();
     public int ResourceStock;
     public int VillagerCost { get; set; }
+    FlockManager WarBand { get; set; }
 
     private void Awake()
     {
@@ -33,26 +34,37 @@ public class Settlement : MonoBehaviour
         DrawRadius();
 
         InvokeRepeating(nameof(BalanceJobs), 0, 1);
-        //InvokeRepeating(nameof(CheckResources), 0, 1);
-
-        Invoke(nameof(FormFlock), 1.5f);
+        InvokeRepeating(nameof(CheckResources), 0, 1);
     }
 
     public void FormFlock()
     {
         if (IsDeserted())
+        {
             return;
+        }
+
+        if(WarBand != null)
+        {
+            return;
+        }
 
         List<Pawn> warriors = GetVillagersWithJob("warrior");
 
         if (!warriors.Any())
+        {
             return;
+        }
 
-        GameObject flockGO = new();
-        FlockManager flock = flockGO.AddComponent<FlockManager>();
 
-        flock.AddMember(warriors);
-        flock.Commander = flock.Members.First();
+        GameObject flockGO = Resources.Load("Prefabs/FlockManager") as GameObject;
+        FlockManager flockPrefab = flockGO.GetComponent<FlockManager>();
+
+        WarBand = Instantiate(flockPrefab, GetRandomPoint(), Quaternion.identity);
+
+
+        WarBand.AddMember(warriors);
+        WarBand.Commander = WarBand.Members.First();
     }
 
     public void BalanceJobs()
@@ -98,6 +110,10 @@ public class Settlement : MonoBehaviour
                 else if (!HasEnoughWarriors())
                 {
                     pawnToPromote.AssignTo("warrior");
+                    if(WarBand != null)
+                    {
+                        WarBand.AddMember(pawnToPromote);
+                    }
                 }
                 else if (!HasEnoughTraders())
                 {
@@ -109,11 +125,18 @@ public class Settlement : MonoBehaviour
                 }
             }
         }
+
+
+
+
+        FormFlock();
     }
 
     private void CheckResources()
     {
-        if(ResourceStock >= VillagerCost && GetVillagers().Count <= 20)
+        float maxVillagers = 20;
+
+        if(ResourceStock >= VillagerCost && GetVillagers().Count <= maxVillagers)
         {
             Debug.Log($"Spawning new villager in {Label}");
             ResourceStock -= VillagerCost;
@@ -157,7 +180,7 @@ public class Settlement : MonoBehaviour
 
     public List<Pawn> GetActives()
     {
-        return GetVillagers().Where(i => i.Occupations.Any()).ToList();
+        return GetVillagers().Where(i => i.Occupation == "").ToList();
     }
 
     public List<Pawn> GetActiveCivilians()
@@ -167,7 +190,7 @@ public class Settlement : MonoBehaviour
 
     public List<Pawn> GetVillagersWithJob(string occupation)
     {
-        return GetActives().Where(i => i.Occupations.Contains(occupation)).ToList();
+        return GetActives().Where(i => i.Occupation == occupation).ToList();
     }
 
     public List<Pawn> GetUnemployed()
@@ -179,7 +202,7 @@ public class Settlement : MonoBehaviour
     {
         float angle = Random.Range(0, Mathf.PI * 2);
         float radius = Mathf.Sqrt(Random.Range(0f, 1)) * Size * percentage;
-        Vector3 randomPlace = new Vector3(Mathf.Cos(angle) * radius, 0, Mathf.Sin(angle) * radius);
+        Vector3 randomPlace = new (Mathf.Cos(angle) * radius, 0, Mathf.Sin(angle) * radius);
 
         return transform.position + randomPlace;
     }
@@ -195,8 +218,7 @@ public class Settlement : MonoBehaviour
 
     public int GetMinWarriors()
     {
-        return Mathf.CeilToInt( (GetVillagers().Count - GetMinInnkeepers()) / 1f);
-        //return Mathf.CeilToInt( (GetVillagers().Count - GetMinInnkeepers()) / 3f);
+        return Mathf.CeilToInt( (GetVillagers().Count - GetMinInnkeepers()) / 3f);
     }
 
     public int GetMinTraders()

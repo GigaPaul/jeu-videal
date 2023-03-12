@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(Pawn))]
 public class PawnAnimation : MonoBehaviour
 {
     public Animator Animator;
@@ -42,8 +43,21 @@ public class PawnAnimation : MonoBehaviour
         if (!_Pawn.IsAlive)
             return;
 
-        Animator.SetLayerWeight(1, _PawnMovement.SpeedQuotient * 2);
-        Animator.SetFloat("Z Velocity", _PawnMovement.Velocity.z);
-        Animator.SetFloat("X Velocity", _PawnMovement.Velocity.x);
+        //float weight = _PawnMovement.SpeedQuotient * 2;
+
+        //if (weight > 1)
+        //    weight = 1;
+
+        float intensity = Vector3.Distance(Vector3.zero, _Pawn.NavMeshAgent.velocity) / _PawnMovement.WalkingSpeed;
+
+        Animator.SetLayerWeight(1, intensity);
+
+
+
+        Vector3 localVelocity = transform.InverseTransformDirection(_Pawn.NavMeshAgent.velocity);
+        Animator.SetFloat("Z Velocity", localVelocity.z / _PawnMovement.MaxSpeed);
+        Animator.SetFloat("X Velocity", localVelocity.x / _PawnMovement.MaxSpeed);
+        //Animator.SetFloat("Z Velocity", _PawnMovement.Velocity.z * 2);
+        //Animator.SetFloat("X Velocity", _PawnMovement.Velocity.x * 2);
     }
 }

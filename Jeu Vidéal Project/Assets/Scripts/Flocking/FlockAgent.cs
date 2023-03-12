@@ -7,16 +7,6 @@ public class FlockAgent : MonoBehaviour
     public Pawn _Pawn;
     public Vector3 RotationTarget;
     public Vector3 PositionTarget;
-    public Transform TestSphere;
-
-
-    private void FixedUpdate()
-    {
-        if(_Pawn.IsFlocking())
-        {
-            ApplyRules();
-        }
-    }
 
 
     public void ApplyRules()
@@ -81,7 +71,7 @@ public class FlockAgent : MonoBehaviour
         if(direction != Vector3.zero)
         {
             RotationTarget = direction;
-            TestSphere.position = direction;
+            //TestSphere.position = direction;
         }
     }
 
@@ -92,9 +82,10 @@ public class FlockAgent : MonoBehaviour
         float distance = GetDistanceFromTarget();
 
         bool hasReachedDestination = distance <= _Pawn.NavMeshAgent.stoppingDistance;
-        bool commanderIsIdle = _Pawn.Flock.Commander.HasReachedDestination();
+        //bool commanderIsIdle = _Pawn.Flock.Commander.HasReachedDestination();
 
-        return hasReachedDestination && commanderIsIdle;
+        //return hasReachedDestination && commanderIsIdle;
+        return hasReachedDestination;
     }
 
 
@@ -102,6 +93,7 @@ public class FlockAgent : MonoBehaviour
     public float GetDistanceFromTarget()
     {
         float distance = Vector3.Distance(transform.position, PositionTarget);
+
         return Mathf.Floor(distance * 10) / 10;
     }
 }
