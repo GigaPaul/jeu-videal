@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -49,7 +50,7 @@ public class Settlement : MonoBehaviour
             return;
         }
 
-        List<Pawn> warriors = GetVillagersWithJob("warrior");
+        List<Pawn> warriors = GetVillagersWithJob(typeof(SmartGuard));
 
         if (!warriors.Any())
         {
@@ -87,17 +88,17 @@ public class Settlement : MonoBehaviour
             {
                 pawnToPromote = GetUnemployed().First();
             }
-            else if (GetVillagersWithJob("worker").Count > 0)
+            else if (GetVillagersWithJob(typeof(SmartWorker)).Count > 0)
             {
-                pawnToPromote = GetVillagersWithJob("worker").First();
+                pawnToPromote = GetVillagersWithJob(typeof(SmartWorker)).First();
             }
-            else if (GetVillagersWithJob("trader").Count > 0)
+            else if (GetVillagersWithJob(typeof(SmartTrader)).Count > 0)
             {
-                pawnToPromote = GetVillagersWithJob("trader").First();
+                pawnToPromote = GetVillagersWithJob(typeof(SmartTrader)).First();
             }
-            else if (GetVillagersWithJob("warrior").Count > 0)
+            else if (GetVillagersWithJob(typeof(SmartGuard)).Count > 0)
             {
-                pawnToPromote = GetVillagersWithJob("warrior").First();
+                pawnToPromote = GetVillagersWithJob(typeof(SmartGuard)).First();
             }
 
 
@@ -105,11 +106,11 @@ public class Settlement : MonoBehaviour
             {
                 if (!HasEnoughInnkeepers())
                 {
-                    pawnToPromote.AssignTo("innkeeper");
+                    pawnToPromote.AssignTo(typeof(SmartInnkeeper));
                 }
                 else if (!HasEnoughWarriors())
                 {
-                    pawnToPromote.AssignTo("warrior");
+                    pawnToPromote.AssignTo(typeof(SmartGuard));
                     if(WarBand != null)
                     {
                         WarBand.AddMember(pawnToPromote);
@@ -117,11 +118,11 @@ public class Settlement : MonoBehaviour
                 }
                 else if (!HasEnoughTraders())
                 {
-                    pawnToPromote.AssignTo("trader");
+                    pawnToPromote.AssignTo(typeof(SmartTrader));
                 }
                 else
                 {
-                    pawnToPromote.AssignTo("worker");
+                    pawnToPromote.AssignTo(typeof(SmartWorker));
                 }
             }
         }
@@ -180,17 +181,17 @@ public class Settlement : MonoBehaviour
 
     public List<Pawn> GetActives()
     {
-        return GetVillagers().Where(i => i.Occupation != "").ToList();
+        return GetVillagers().Where(i => i.GetComponent<SmartPawn>() && i.GetComponent<SmartUnemployed>() == null).ToList();
     }
 
     public List<Pawn> GetActiveCivilians()
     {
-        return GetActives().Where(i => !GetVillagersWithJob("warrior").Contains(i)).ToList();
+        return GetActives().Where(i => !GetVillagersWithJob(typeof(SmartGuard)).Contains(i)).ToList();
     }
 
-    public List<Pawn> GetVillagersWithJob(string occupation)
+    public List<Pawn> GetVillagersWithJob(Type type)
     {
-        return GetActives().Where(i => i.Occupation == occupation).ToList();
+        return GetActives().Where(i => i.GetComponent(type)).ToList();
     }
 
     public List<Pawn> GetUnemployed()
@@ -200,8 +201,8 @@ public class Settlement : MonoBehaviour
 
     public Vector3 GetRandomPoint(float percentage = 1)
     {
-        float angle = Random.Range(0, Mathf.PI * 2);
-        float radius = Mathf.Sqrt(Random.Range(0f, 1)) * Size * percentage;
+        float angle = UnityEngine.Random.Range(0, Mathf.PI * 2);
+        float radius = Mathf.Sqrt(UnityEngine.Random.Range(0f, 1)) * Size * percentage;
         Vector3 randomPlace = new (Mathf.Cos(angle) * radius, 0, Mathf.Sin(angle) * radius);
 
         return transform.position + randomPlace;
@@ -232,17 +233,17 @@ public class Settlement : MonoBehaviour
 
     public bool HasEnoughInnkeepers()
     {
-        return GetVillagersWithJob("innkeeper").Count >= GetMinInnkeepers();
+        return GetVillagersWithJob(typeof(SmartInnkeeper)).Count >= GetMinInnkeepers();
     }
 
     public bool HasEnoughWarriors()
     {
-        return GetVillagersWithJob("warrior").Count >= GetMinWarriors();
+        return GetVillagersWithJob(typeof(SmartGuard)).Count >= GetMinWarriors();
     }
 
     public bool HasEnoughTraders()
     {
-        return GetVillagersWithJob("trader").Count >= GetMinTraders();
+        return GetVillagersWithJob(typeof(SmartTrader)).Count >= GetMinTraders();
     }
 
     public bool IsDeserted()

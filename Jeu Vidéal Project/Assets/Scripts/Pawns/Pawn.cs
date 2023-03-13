@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -28,7 +29,7 @@ public class Pawn : MonoBehaviour
     public bool IsAlive => HitPoints > 0;
 
     //public List<string> Occupations = new();
-    public string Occupation;
+    //public string Occupation;
 
     public PawnMovement _PawnMovement;
     //public Transform RotationTarget;
@@ -87,7 +88,7 @@ public class Pawn : MonoBehaviour
         PathRenderer.endWidth = 0.1f;
         PathRenderer.positionCount = 0;
 
-        InvokeRepeating(nameof(AIRoutine), 0, 1);
+        //InvokeRepeating(nameof(AIRoutine), 0, 1);
         InvokeRepeating(nameof(ManageActions), 0, 0.25f);
     }
 
@@ -100,26 +101,26 @@ public class Pawn : MonoBehaviour
 
 
 
-    private void AIRoutine()
-    {
-        if(IsAlive)
-        {
-            // If the pawn is not moving
-            if (!IsMoving())
-            {
-                // If the pawn has nothing to do
-                if (ActionManager.QueueIsEmpty())
-                {
-                    // If the spawn isn't playable
-                    if (!IsPlayable())
-                    {
-                        // Start AI routine
-                        Routine();
-                    }
-                }
-            }
-        }
-    }
+    //private void AIRoutine()
+    //{
+    //    if(IsAlive)
+    //    {
+    //        // If the pawn is not moving
+    //        if (!IsMoving())
+    //        {
+    //            // If the pawn has nothing to do
+    //            if (ActionManager.QueueIsEmpty())
+    //            {
+    //                // If the spawn isn't playable
+    //                if (!IsPlayable())
+    //                {
+    //                    // Start AI routine
+    //                    Routine();
+    //                }
+    //            }
+    //        }
+    //    }
+    //}
 
 
 
@@ -293,73 +294,73 @@ public class Pawn : MonoBehaviour
 
     public void Analyze(Pawn pawn)
     {
-        if(ActionManager.QueueIsEmpty())
-        {
-            // If the pawn is a warrior
-            if (Occupation == "warrior")
-            {
-                // If the target is from a rival faction
-                if (pawn.Faction != Faction && IsEnemyWith(pawn))
-                {
-                    // If the target is a warrior from another faction
-                    if (pawn.Occupation == "warrior")
-                    {
-                        Action fight = new()
-                        {
-                            Label = "Fighting",
-                            Target = pawn.transform
-                        };
+        //if(ActionManager.QueueIsEmpty())
+        //{
+        //    // If the pawn is a warrior
+        //    if (Occupation == "warrior")
+        //    {
+        //        // If the target is from a rival faction
+        //        if (pawn.Faction != Faction && IsEnemyWith(pawn))
+        //        {
+        //            // If the target is a warrior from another faction
+        //            if (pawn.Occupation == "warrior")
+        //            {
+        //                Action fight = new()
+        //                {
+        //                    Label = "Fighting",
+        //                    Target = pawn.transform
+        //                };
 
 
 
 
 
-                        fight.StartingScript = async () =>
-                        {
-                            Animator.SetBool("IsFighting", true);
+        //                fight.StartingScript = async () =>
+        //                {
+        //                    Animator.SetBool("IsFighting", true);
 
-                            while (IsAlive && pawn.IsAlive)
-                            {
-                                fight.TokenSource.Token.ThrowIfCancellationRequested();
+        //                    while (IsAlive && pawn.IsAlive)
+        //                    {
+        //                        fight.TokenSource.Token.ThrowIfCancellationRequested();
 
-                                if (!Animator.GetBool("Punch"))
-                                {
-                                    Punch(pawn);
-                                    int length = Animator.GetCurrentAnimatorClipInfo(0).Length * 1000;
-                                    //int wait = Random.Range(0, 5000);
-                                    int wait = 0;
-                                    await Action.WaitFor(length + wait, fight.TokenSource.Token);
-                                    //await Task.Delay();
-                                }
+        //                        if (!Animator.GetBool("Punch"))
+        //                        {
+        //                            Punch(pawn);
+        //                            int length = Animator.GetCurrentAnimatorClipInfo(0).Length * 1000;
+        //                            //int wait = Random.Range(0, 5000);
+        //                            int wait = 0;
+        //                            await Action.WaitFor(length + wait, fight.TokenSource.Token);
+        //                            //await Task.Delay();
+        //                        }
 
-                                await Action.WaitFor(250, fight.TokenSource.Token);
-                                //await Task.Delay(250, fight.TokenSource.Token);
-                            }
+        //                        await Action.WaitFor(250, fight.TokenSource.Token);
+        //                        //await Task.Delay(250, fight.TokenSource.Token);
+        //                    }
 
-                            Animator.SetBool("IsFighting", false);
-                        };
+        //                    Animator.SetBool("IsFighting", false);
+        //                };
 
 
 
-                        Do(fight);
-                        //Action insult = new()
-                        //{
-                        //    Label = "Insulting",
-                        //    StartingScript = async () =>
-                        //    {
-                        //        //Face(pawn.transform.position);
-                        //        Say("Stay away from my village.");
-                        //        //pawn.Face(transform.position);
-                        //        await Task.Delay(1000);
-                        //    },
-                        //    IsOneShot = true
-                        //};
+        //                Do(fight);
+        //                //Action insult = new()
+        //                //{
+        //                //    Label = "Insulting",
+        //                //    StartingScript = async () =>
+        //                //    {
+        //                //        //Face(pawn.transform.position);
+        //                //        Say("Stay away from my village.");
+        //                //        //pawn.Face(transform.position);
+        //                //        await Task.Delay(1000);
+        //                //    },
+        //                //    IsOneShot = true
+        //                //};
 
-                        //Do(insult, true, true);
-                    }
-                }
-            }
-        }
+        //                //Do(insult, true, true);
+        //            }
+        //        }
+        //    }
+        //}
 
     }
 
@@ -410,55 +411,55 @@ public class Pawn : MonoBehaviour
 
 
 
-    public void Routine()
-    {
-        if(Occupation == "trader")
-        {
-            if(Faction.Label == "Wanderers")
-            {
-                TraderRoutine();
-            }
-            else
-            {
-                if (Settlement != null)
-                {
-                    UnemployedRoutine();
-                }
-            }
-        }
-        else if(Occupation == "warrior")
-        {
-            if(Settlement != null)
-            {
-                if (Flock.Commander == this)
-                {
-                    CommanderRoutine();
-                }
-                //WarriorRoutine();
-            }
-        }
-        else if(Occupation == "worker")
-        {
-            if (Settlement != null)
-            {
-                WorkerRoutine();
-            }
-        }
-        else if (Occupation == "innkeeper")
-        {
-            if (Settlement != null)
-            {
-                InnkeeperRoutine();
-            }
-        }
-        else if(Occupation != "")
-        {
-            if (Settlement != null)
-            {
-                UnemployedRoutine();
-            }
-        }
-    }
+    //public void Routine()
+    //{
+    //    if(Occupation == "trader")
+    //    {
+    //        if(Faction.Label == "Wanderers")
+    //        {
+    //            TraderRoutine();
+    //        }
+    //        else
+    //        {
+    //            if (Settlement != null)
+    //            {
+    //                UnemployedRoutine();
+    //            }
+    //        }
+    //    }
+    //    else if(Occupation == "warrior")
+    //    {
+    //        if(Settlement != null)
+    //        {
+    //            if (Flock.Commander == this)
+    //            {
+    //                CommanderRoutine();
+    //            }
+    //            //WarriorRoutine();
+    //        }
+    //    }
+    //    else if(Occupation == "worker")
+    //    {
+    //        if (Settlement != null)
+    //        {
+    //            WorkerRoutine();
+    //        }
+    //    }
+    //    else if (Occupation == "innkeeper")
+    //    {
+    //        if (Settlement != null)
+    //        {
+    //            InnkeeperRoutine();
+    //        }
+    //    }
+    //    else if(Occupation != "")
+    //    {
+    //        if (Settlement != null)
+    //        {
+    //            UnemployedRoutine();
+    //        }
+    //    }
+    //}
 
     public void TraderRoutine()
     {
@@ -504,7 +505,7 @@ public class Pawn : MonoBehaviour
                 EncounteredVillagers = 0;
                 Say($"Hello {nearestSettlement.Label}!");
 
-                LocalTraders = FindObjectsOfType<Pawn>().Where(i => i.Settlement == nearestSettlement && i.Occupation == "trader").ToList();
+                LocalTraders = FindObjectsOfType<Pawn>().Where(i => i.Settlement == nearestSettlement && i.GetComponent<SmartTrader>()).ToList();
 
                 foreach (Pawn local in LocalTraders)
                 {
@@ -575,7 +576,7 @@ public class Pawn : MonoBehaviour
 
     public void WorkerRoutine()
     {
-        Transform randomWorkingStation = Settlement.WorkingStations[Random.Range(0, Settlement.WorkingStations.Count)];
+        Transform randomWorkingStation = Settlement.WorkingStations[UnityEngine.Random.Range(0, Settlement.WorkingStations.Count)];
         float waitingTime = 4.833f;
         ActionManager.IsLoop = true;
 
@@ -660,7 +661,7 @@ public class Pawn : MonoBehaviour
 
     public void Say(string text)
     {
-        Object ChatBubbleResource = Resources.Load("Prefabs/ChatBubble");
+        UnityEngine.Object ChatBubbleResource = Resources.Load("Prefabs/ChatBubble");
 
         GameObject Parent = GameObject.Find("Chat").gameObject;
         Transform ChatPosition = transform.Find("ChatBox").transform;
@@ -673,9 +674,17 @@ public class Pawn : MonoBehaviour
         ChatBubble.GetComponentInChildren<TextMeshProUGUI>().text = text;
     }
 
-    public void AssignTo(string occupation)
+    public void AssignTo(Type type)
     {
-        Occupation = occupation;
+        //Occupation = occupation
+        Component[] occupations = GetComponents(type);
+
+        foreach (Component c in occupations)
+        {
+            Destroy(c);
+        }
+
+        gameObject.AddComponent(type);
         ActionManager.ClearActionQueue();
     }
 

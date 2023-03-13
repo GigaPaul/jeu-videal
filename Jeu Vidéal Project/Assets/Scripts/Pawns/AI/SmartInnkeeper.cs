@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SmartGuard : SmartPawn
+public class SmartInnkeeper : SmartPawn
 {
     protected override void Routine()
     {
