@@ -490,7 +490,7 @@ public class Pawn : MonoBehaviour
         TraderVisitedSettlements.Add(nearestSettlement);
 
 
-        List<Pawn> LocalVillagers = new();
+        List<Pawn> LocalTraders = new();
 
         //Transform waypoint = new GameObject().transform;
         Vector3 waypoint = nearestSettlement.GetRandomPoint(0.5f);
@@ -504,9 +504,9 @@ public class Pawn : MonoBehaviour
                 EncounteredVillagers = 0;
                 Say($"Hello {nearestSettlement.Label}!");
 
-                LocalVillagers = FindObjectsOfType<Pawn>().Where(i => i.Settlement == nearestSettlement && i.Occupation == "trader").ToList();
+                LocalTraders = FindObjectsOfType<Pawn>().Where(i => i.Settlement == nearestSettlement && i.Occupation == "trader").ToList();
 
-                foreach (Pawn villager in LocalVillagers)
+                foreach (Pawn local in LocalTraders)
                 {
                     
 
@@ -516,13 +516,13 @@ public class Pawn : MonoBehaviour
                         Target = transform,
                         StartingScript = () =>
                         {
-                            villager.Say("Hello trader!");
+                            local.Say("Hello trader!");
                             EncounteredVillagers++;
                             return Task.FromResult(0);
                         }
                     };
 
-                    villager.Do(buyFromTrader);
+                    local.Do(buyFromTrader);
                 }
 
                 return Task.FromResult(0);
@@ -530,7 +530,7 @@ public class Pawn : MonoBehaviour
 
             SuccessCondition = () =>
             {
-                return EncounteredVillagers == LocalVillagers.Count;
+                return EncounteredVillagers == LocalTraders.Count;
             },
 
             SuccessScript = () =>

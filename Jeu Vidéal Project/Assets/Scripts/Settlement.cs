@@ -180,7 +180,7 @@ public class Settlement : MonoBehaviour
 
     public List<Pawn> GetActives()
     {
-        return GetVillagers().Where(i => i.Occupation == "").ToList();
+        return GetVillagers().Where(i => i.Occupation != "").ToList();
     }
 
     public List<Pawn> GetActiveCivilians()

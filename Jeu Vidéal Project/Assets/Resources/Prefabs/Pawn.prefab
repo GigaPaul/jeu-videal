@@ -126,9 +126,8 @@ MonoBehaviour:
   MaxHitPoints: 100
   TraderVisitedSettlements: []
   Radius: 1.5
-  Occupations: []
+  Occupation: 
   _PawnMovement: {fileID: 252642415109149108}
-  RotationTarget: {fileID: 0}
   FlockAgent: {fileID: 9177274016242366817}
   Animator: {fileID: 6013067969466507376}
   ActionManager: {fileID: 1837366921252666521}
