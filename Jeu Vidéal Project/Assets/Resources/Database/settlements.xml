@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SettlementCollection>
+	<Settlements>
+		<Settlement name="Abourg" id="0">
+			<Culture>0</Culture>
+			<Population>5</Population>
+		</Settlement>
+	</Settlements>
+</SettlementCollection>

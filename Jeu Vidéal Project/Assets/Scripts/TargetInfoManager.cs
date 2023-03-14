@@ -18,8 +18,29 @@ public class TargetInfoManager : MonoBehaviour
 
     private void FixedUpdate()
     {
-        ActivePawnName.text = Globals.FocusedPawn?.gameObject.name;
-        TargetName.text = Globals.FocusedPawn?.StareTarget?.GetComponentInParent<Pawn>().gameObject.name;
+        if(Globals.FocusedPawn == null)
+        {
+            ActivePawnName.text = "";
+            TargetName.text = "";
+            ActionLabel.text = "";
+            FactionName.text = "";
+            SettlementName.text = "";
+            return;
+        }
+
+        PawnAttributes attributes = Globals.FocusedPawn.GetComponent<PawnAttributes>();
+        ActivePawnName.text = attributes.GetFullName();
+
+        string targetName = "";
+
+        if(Globals.FocusedPawn.StareTarget != null)
+        {
+            PawnAttributes targetAttributes = Globals.FocusedPawn.StareTarget.GetComponentInParent<PawnAttributes>();
+            targetName = targetAttributes.GetFullName();
+        }
+
+        TargetName.text = targetName;
+
         ActionLabel.text = Globals.FocusedPawn?.ActionManager.GetCurrentAction()?.Label;
         FactionName.text = Globals.FocusedPawn?.Faction?.Label;
         SettlementName.text = Globals.FocusedPawn?.Settlement?.Label;

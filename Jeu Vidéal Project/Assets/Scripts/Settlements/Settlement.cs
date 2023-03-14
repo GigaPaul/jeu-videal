@@ -8,6 +8,7 @@ public class Settlement : MonoBehaviour
 {
     public int Id { get; set; }
     public string Label;
+    public Culture _Culture;
     public Faction Faction;
     public int Size = 10;
     public LineRenderer CircleRenderer;
@@ -133,6 +134,20 @@ public class Settlement : MonoBehaviour
         FormFlock();
     }
 
+
+    public void CreateVillager()
+    {
+        GameObject villagerPrefab = Resources.Load("Prefabs/Pawn") as GameObject;
+        Pawn newPawn = villagerPrefab.GetComponent<Pawn>();
+
+        newPawn.GetComponent<PawnAttributes>()._Culture = _Culture;
+        newPawn.Faction = Faction;
+        newPawn.Settlement = this;
+
+        Instantiate(newPawn, GetRandomPoint(), Quaternion.identity);
+    }
+
+
     private void CheckResources()
     {
         float maxVillagers = 20;
@@ -141,13 +156,7 @@ public class Settlement : MonoBehaviour
         {
             Debug.Log($"Spawning new villager in {Label}");
             ResourceStock -= VillagerCost;
-            GameObject villagerPrefab = Resources.Load("Prefabs/Pawn") as GameObject;
-            Pawn newPawn = villagerPrefab.GetComponent<Pawn>();
-
-            newPawn.Faction = Faction;
-            newPawn.Settlement = this;
-
-            Instantiate(newPawn, GetRandomPoint(), Quaternion.identity);
+            CreateVillager();
         }
     }
 

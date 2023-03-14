@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CultureCollection>
+	<Cultures>
+		<Culture name="Andalusian" id="0">
+			<NameOrder>FirstName LastName</NameOrder>
+			<FirstNames>
+				<FirstName>Alphonso</FirstName>
+				<FirstName>Anselmo</FirstName>
+				<FirstName>Sebastián</FirstName>
+				<FirstName>Armando</FirstName>
+				<FirstName>Lope</FirstName>
+				<FirstName>Máximo</FirstName>
+				<FirstName>Eulálio</FirstName>
+				<FirstName>José</FirstName>
+				<FirstName>Lino</FirstName>
+				<FirstName>Gil</FirstName>
+			</FirstNames>
+
+			<LastNames>
+				<LastName>Marco</LastName>
+				<LastName>Oquendo</LastName>
+				<LastName>Camarena</LastName>
+				<LastName>Angulo</LastName>
+				<LastName>Andujar</LastName>
+				<LastName>Picano</LastName>
+				<LastName>Obando</LastName>
+				<LastName>Dario</LastName>
+				<LastName>Pedraza</LastName>
+				<LastName>De los Reyes</LastName>
+			</LastNames>
+		</Culture>
+	</Cultures>
+</CultureCollection>
