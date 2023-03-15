@@ -6,21 +6,22 @@ using UnityEngine;
 public class TargetInfoManager : MonoBehaviour
 {
     public TextMeshProUGUI ActivePawnName;
+    public TextMeshProUGUI JobName;
     public TextMeshProUGUI TargetName;
     public TextMeshProUGUI ActionLabel;
     public TextMeshProUGUI FactionName;
     public TextMeshProUGUI SettlementName;
 
-    private void Awake()
-    {
-        //Clear();
-    }
+
+
+
 
     private void FixedUpdate()
     {
         if(Globals.FocusedPawn == null)
         {
             ActivePawnName.text = "";
+            JobName.text = "";
             TargetName.text = "";
             ActionLabel.text = "";
             FactionName.text = "";
@@ -30,6 +31,17 @@ public class TargetInfoManager : MonoBehaviour
 
         PawnAttributes attributes = Globals.FocusedPawn.GetComponent<PawnAttributes>();
         ActivePawnName.text = attributes.GetFullName();
+
+
+        string jobName = "";
+
+        if(Globals.FocusedPawn.GetComponent<SmartPawn>() != null)
+        {
+            jobName = Globals.FocusedPawn.GetComponent<SmartPawn>().Label;
+        }   
+
+        JobName.text = jobName;
+
 
         string targetName = "";
 

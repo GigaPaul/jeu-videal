@@ -1811,6 +1811,14 @@ PrefabInstance:
       propertyPath: sceneId
       value: 3627927852
       objectReference: {fileID: 0}
+    - target: {fileID: 2849153964453732237, guid: 83b07df143bbef246a9fd92eaf69ffd5, type: 3}
+      propertyPath: LastName
+      value: Guy
+      objectReference: {fileID: 0}
+    - target: {fileID: 2849153964453732237, guid: 83b07df143bbef246a9fd92eaf69ffd5, type: 3}
+      propertyPath: FirstName
+      value: Green
+      objectReference: {fileID: 0}
     - target: {fileID: 6013067969466507376, guid: 83b07df143bbef246a9fd92eaf69ffd5, type: 3}
       propertyPath: m_Controller
       value: 

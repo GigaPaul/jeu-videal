@@ -4,6 +4,11 @@ using UnityEngine;
 
 public class SmartInnkeeper : SmartPawn
 {
+    public override string Label
+    {
+        get { return "Innkeeper"; }
+    }
+
     protected override void Routine()
     {
         //Debug.Log("test");

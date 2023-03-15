@@ -4,6 +4,10 @@ using UnityEngine;
 public abstract class SmartPawn : MonoBehaviour
 {
     public Pawn _Pawn;
+    public virtual string Label
+    {
+        get { return "Wanderer"; }
+    }
 
 
 

@@ -47,11 +47,5 @@ public class SettlementManager : MonoBehaviour
                 settlement.CreateVillager();
             }
         }
-
-
-        //for(int i = 0; i < Settlements.Count; i++)
-        //{
-        //    Settlement settlement = Settlements[i];
-        //}
     }
 }

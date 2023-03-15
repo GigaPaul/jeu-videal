@@ -22,6 +22,10 @@ public class Settlement : MonoBehaviour
     public int VillagerCost { get; set; }
     FlockManager WarBand { get; set; }
 
+
+
+
+
     private void Awake()
     {
         Id = Globals.Settlements.Count;
@@ -29,6 +33,10 @@ public class Settlement : MonoBehaviour
         ResourceStock = 0;
         VillagerCost = 50;
     }
+
+
+
+
 
     // Start is called before the first frame update
     void Start()
@@ -38,6 +46,10 @@ public class Settlement : MonoBehaviour
         InvokeRepeating(nameof(BalanceJobs), 0, 1);
         InvokeRepeating(nameof(CheckResources), 0, 1);
     }
+
+
+
+
 
     public void FormFlock()
     {

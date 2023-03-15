@@ -4,8 +4,13 @@ using UnityEngine;
 
 public class SmartGuard : SmartPawn
 {
+    public override string Label
+    {
+        get { return "Guard"; }
+    }
+
     protected override void Routine()
     {
-        //Debug.Log("test");
+        Debug.Log("test");
     }
 }

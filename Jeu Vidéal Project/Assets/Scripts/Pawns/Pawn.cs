@@ -28,11 +28,7 @@ public class Pawn : MonoBehaviour
     // Status
     public bool IsAlive => HitPoints > 0;
 
-    //public List<string> Occupations = new();
-    //public string Occupation;
-
     public PawnMovement _PawnMovement;
-    //public Transform RotationTarget;
     public FlockAgent FlockAgent;
     public Animator Animator;
     public ActionManager ActionManager;

@@ -16,11 +16,19 @@ public class PawnAttributes : MonoBehaviour
     public Title? _Title;
     #nullable disable
 
+
+
+
+
     // Start is called before the first frame update
     void Start()
     {
         InitPersonality();
     }
+
+
+
+
 
     private void InitPersonality()
     {
@@ -50,20 +58,37 @@ public class PawnAttributes : MonoBehaviour
         {
             LastName = _Culture.LastNames[Random.Range(0, _Culture.LastNames.Count)];
         }
-
-        //float rand = Random.Range(0, 100);
-
-        //if (rand > 50)
-        //{
-        //    Title title1 = new("Big", 0);
-        //    Title title2 = new("«The Big»", 1);
-        //    Title title3 = new("The Big", 2);
-        //    _Title = title1;
-        //}
     }
 
     public string GetFullName()
     {
-        return _Culture.GetFullNameOf(this);
+        if(_Culture != null)
+        {
+            return _Culture.GetFullNameOf(this);
+        }
+
+        if(FirstName != "" || LastName != "")
+        {
+            string result = "";
+
+            if(FirstName != null)
+            {
+                result += FirstName;
+
+                if(LastName != null)
+                {
+                    result += " ";
+                }
+            }
+
+            if(LastName != null)
+            {
+                result += LastName;
+            }
+
+            return result;
+        }
+
+        return "Wanderer";
     }
 }
