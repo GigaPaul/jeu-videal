@@ -11,6 +11,6 @@ public class SmartGuard : SmartPawn
 
     protected override void Routine()
     {
-        Debug.Log("test");
+        //Debug.Log("test");
     }
 }

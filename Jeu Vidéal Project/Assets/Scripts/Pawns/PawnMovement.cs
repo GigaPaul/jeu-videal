@@ -19,6 +19,8 @@ public class PawnMovement : MonoBehaviour
     //public Vector3 Velocity = Vector3.zero;
 
     public Vector3 VelocityDirection = Vector3.zero;
+    [SerializeField]
+    LineRenderer PathRenderer;
 
 
 
@@ -63,6 +65,20 @@ public class PawnMovement : MonoBehaviour
 
 
 
+    private void FixedUpdate()
+    {
+        PathRenderer.positionCount = 0;
+
+        if (_Pawn.IsFocused() && _Pawn.NavMeshAgent.hasPath)
+        {
+            DrawPath();
+        }
+    }
+
+
+
+
+
     private void Rotate()
     {
         Vector3 target = Vector3.zero;
@@ -91,32 +107,23 @@ public class PawnMovement : MonoBehaviour
             // If the pawn must rally the destination of an ongoing action
             if (!_ActionManager.QueueIsEmpty() && !_ActionManager.GetCurrentAction().IsInactive())
             {
-                Vector3 lookPosition = _NavMeshAgent.velocity;
-
-                if (_ActionManager.GetCurrentTarget() != null)
-                {
-                    lookPosition = _ActionManager.GetCurrentTarget().position;
-                }
-                else if (_ActionManager.GetCurrentDestination() != null && _ActionManager.GetCurrentDestination() != Vector3.zero)
-                {
-                    lookPosition = _ActionManager.GetCurrentDestination();
-                }
-
-                target = lookPosition;
+                target = transform.position + _NavMeshAgent.velocity.normalized;
             }
         }
 
-        // Don't continue if the resulting target is zero
+        //// Don't continue if the resulting target is zero
         if (target == Vector3.zero)
+        {
             return;
+        }
+
+        if(target == transform.position)
+        {
+            return;
+        }
 
         target -= transform.position;
         target.y = 0;
-
-        //_FlockAgent.TestSphere.position = transform.position + target;
-
-        if (target == Vector3.zero)
-            return;
 
         Quaternion rotation = Quaternion.LookRotation(target);
         transform.rotation = Quaternion.Slerp(transform.rotation, rotation, Time.deltaTime * RotationSpeed);
@@ -134,6 +141,29 @@ public class PawnMovement : MonoBehaviour
         if(_Pawn.IsFlocking())
         {
             GoForward();
+        }
+    }
+
+
+
+
+
+    public void DrawPath()
+    {
+        PathRenderer.positionCount = _Pawn.NavMeshAgent.path.corners.Length;
+        PathRenderer.SetPosition(0, transform.position);
+
+        if (_Pawn.NavMeshAgent.path.corners.Length < 2)
+        {
+            return;
+        }
+
+        NavMeshPath path = _Pawn.NavMeshAgent.path;
+        for (int i = 0; i < path.corners.Length; i++)
+        {
+            Vector3 corner = path.corners[i];
+            corner += Vector3.up * 0.1f;
+            PathRenderer.SetPosition(i, corner);
         }
     }
 

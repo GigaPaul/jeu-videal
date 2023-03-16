@@ -41,8 +41,6 @@ public class Pawn : MonoBehaviour
     public Transform Model;
     public GameObject HoverRing;
     public GameObject FocusRing;
-    [SerializeField]
-    LineRenderer PathRenderer;
 
     #nullable enable
     public Transform? Target;
@@ -80,10 +78,6 @@ public class Pawn : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        PathRenderer.startWidth = 0.1f;
-        PathRenderer.endWidth = 0.1f;
-        PathRenderer.positionCount = 0;
-
         //InvokeRepeating(nameof(AIRoutine), 0, 1);
         InvokeRepeating(nameof(ManageActions), 0, 0.25f);
     }
@@ -162,24 +156,6 @@ public class Pawn : MonoBehaviour
         else if (!IsHovered() && HoverRing.activeInHierarchy)
         {
             HoverRing.SetActive(false);
-        }
-    }
-
-    public void DrawPath()
-    {
-        PathRenderer.positionCount = NavMeshAgent.path.corners.Length;
-        PathRenderer.SetPosition(0, transform.position);
-
-        if (NavMeshAgent.path.corners.Length < 2)
-        {
-            return;
-        }
-
-        NavMeshPath path = NavMeshAgent.path;
-        for (int i = 0; i < path.corners.Length; i++)
-        {
-            Vector3 corner = path.corners[i];
-            PathRenderer.SetPosition(i, corner);
         }
     }
 

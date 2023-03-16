@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 3544916001024441994}
   - component: {fileID: 3328548189740514746}
   - component: {fileID: 8504145134061247455}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Character_Female_Face_01.003
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -92,7 +92,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1839753503731473216}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Character_Bodyless_01
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -128,7 +128,7 @@ GameObject:
   - component: {fileID: 1028831785232521155}
   - component: {fileID: 6171631461408529631}
   - component: {fileID: 4195515613168004083}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -222,7 +222,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6555623291864431549}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Model
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -259,7 +259,7 @@ GameObject:
   - component: {fileID: 3969819956222307143}
   - component: {fileID: 5364228079285948479}
   - component: {fileID: 7102107422113101591}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Sphere
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -358,7 +358,7 @@ GameObject:
   - component: {fileID: 1128627427563259308}
   - component: {fileID: 7020551830517259850}
   - component: {fileID: 1484080143374474877}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Player
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -513,7 +513,7 @@ GameObject:
   - component: {fileID: 4143614495394902688}
   - component: {fileID: 6037365830424507823}
   - component: {fileID: 1529233265592704239}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Character_Male_Face_01.003
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -594,7 +594,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2160918451398899508}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Rotation
   m_TagString: Untagged
   m_Icon: {fileID: 0}

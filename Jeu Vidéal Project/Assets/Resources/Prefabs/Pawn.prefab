@@ -139,7 +139,6 @@ MonoBehaviour:
   Model: {fileID: 7874943237713491560}
   HoverRing: {fileID: 4071536831851718164}
   FocusRing: {fileID: 4071688656429950027}
-  PathRenderer: {fileID: 4016223599897275809}
   Target: {fileID: 0}
   IsBeingDebugged: 0
 --- !u!114 &252642415109149108
@@ -162,6 +161,7 @@ MonoBehaviour:
   RotationSpeed: 5
   RotationTarget: {fileID: 0}
   VelocityDirection: {x: 0, y: 0, z: 0}
+  PathRenderer: {fileID: 4016223599897275809}
 --- !u!114 &2233957820035231425
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -207,7 +207,6 @@ MonoBehaviour:
   _Pawn: {fileID: 1468532837860305611}
   FirstName: 
   LastName: 
-  Title: 
 --- !u!114 &1837366921252666521
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -323,7 +322,7 @@ LineRenderer:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 0.024101257
+        value: 0.1024204
         inSlope: 0
         outSlope: 0
         tangentMode: 0
