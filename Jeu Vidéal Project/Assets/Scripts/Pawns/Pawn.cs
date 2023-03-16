@@ -23,7 +23,7 @@ public class Pawn : MonoBehaviour
     public int MaxHitPoints;
     public int HitPoints { get; private set; }
     public List<Settlement> TraderVisitedSettlements = new();
-    public float Radius = 1.5f;
+    //public float Radius = 1.5f;
 
     // Status
     public bool IsAlive => HitPoints > 0;
@@ -190,11 +190,23 @@ public class Pawn : MonoBehaviour
         if (ActionManager.QueueIsEmpty())
             return true;
 
+
         if(ActionManager.GetCurrentTarget() != null)
         {
             float distance = Vector3.Distance(transform.position, ActionManager.GetCurrentTarget().position);
-            float flooredDistance = Mathf.Floor(distance * 10) / 10;
-            return flooredDistance <= Radius;
+            float flooredDistance = Mathf.Floor(distance);
+            //float flooredDistance = Mathf.Floor(distance * 10) / 10;
+
+            Transform target = ActionManager.GetCurrentTarget();
+            float radius = NavMeshAgent.stoppingDistance;
+
+            if (target.GetComponent<NavMeshAgent>())
+            {
+                radius += target.GetComponent<NavMeshAgent>().radius;
+            }
+
+            return flooredDistance <= radius;
+            //return flooredDistance <= Radius;
         }
         else
         {

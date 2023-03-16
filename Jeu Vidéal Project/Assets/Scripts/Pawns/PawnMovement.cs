@@ -16,6 +16,7 @@ public class PawnMovement : MonoBehaviour
     [Range(0f, 10f)]
     public float RotationSpeed;
     public Transform RotationTarget;
+    public Vector3 RotationTargetOffset = new();
     //public Vector3 Velocity = Vector3.zero;
 
     public Vector3 VelocityDirection = Vector3.zero;
@@ -86,7 +87,7 @@ public class PawnMovement : MonoBehaviour
         // If the pawn must be turned towards a target
         if (RotationTarget != null)
         {
-            target = RotationTarget.position;
+            target = RotationTarget.position + RotationTargetOffset;
         }
         // If the pawn is part of a flock
         else if (_Pawn.IsFlocking())
@@ -108,8 +109,15 @@ public class PawnMovement : MonoBehaviour
             if (!_ActionManager.QueueIsEmpty() && !_ActionManager.GetCurrentAction().IsInactive())
             {
                 target = transform.position + _NavMeshAgent.velocity.normalized;
+                //if (GetComponent<SmartInnkeeper>())
+                //{
+                //    Debug.Log("4");
+                //    Debug.Log(RotationTarget);
+                //}
             }
         }
+
+        target.y = 0;
 
         //// Don't continue if the resulting target is zero
         if (target == Vector3.zero)
@@ -123,7 +131,6 @@ public class PawnMovement : MonoBehaviour
         }
 
         target -= transform.position;
-        target.y = 0;
 
         Quaternion rotation = Quaternion.LookRotation(target);
         transform.rotation = Quaternion.Slerp(transform.rotation, rotation, Time.deltaTime * RotationSpeed);
@@ -235,22 +242,6 @@ public class PawnMovement : MonoBehaviour
 
 
 
-    //private void GoForward()
-    //{
-    //    if (_FlockAgent.HasReachedPosition())
-    //    {
-    //        if (_NavMeshAgent.velocity != Vector3.zero)
-    //            _NavMeshAgent.velocity = Vector3.zero;
-
-    //        return;
-    //    }
-
-    //    _NavMeshAgent.velocity = MaxSpeed * SpeedQuotient * transform.forward;
-    //    //transform.position += Time.deltaTime * speed * transform.forward;
-    //}
-
-
-
     public void Pathfind()
     {
         bool cannotPathfind = !(!_Pawn.IsFlocking() && !_ActionManager.QueueIsEmpty() && !_Pawn.HasReachedDestination());
@@ -274,7 +265,16 @@ public class PawnMovement : MonoBehaviour
         }
         else
         {
-            Vector3 subPos = (_ActionManager.GetCurrentTarget().position - transform.position).normalized * _Pawn.Radius;
+            Transform target = _ActionManager.GetCurrentTarget();
+            float radius = _NavMeshAgent.stoppingDistance;
+
+            if (target.GetComponent<NavMeshAgent>())
+            {
+                radius += target.GetComponent<NavMeshAgent>().radius;
+            }
+
+            //Vector3 subPos = (_ActionManager.GetCurrentTarget().position - transform.position).normalized * _Pawn.Radius;
+            Vector3 subPos = (_ActionManager.GetCurrentTarget().position - transform.position).normalized * radius;
 
             Vector3 targetPosition = _ActionManager.GetCurrentTarget().position - subPos;
             targetPosition.y = Terrain.activeTerrain.SampleHeight(targetPosition);

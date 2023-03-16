@@ -99,11 +99,6 @@ public class Action
 
     public void Load()
     {
-        //if(Target != null)
-        //{
-        //    Destination = null;
-        //}
-
         Status = 1;
     }
 

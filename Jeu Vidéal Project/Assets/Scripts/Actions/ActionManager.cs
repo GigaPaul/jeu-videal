@@ -115,15 +115,6 @@ public class ActionManager : MonoBehaviour
 
 
 
-    //public Vector3 CalculateDestination()
-    //{
-
-    //}
-
-
-
-
-
     #nullable enable
     public Transform? GetCurrentTarget()
     {
