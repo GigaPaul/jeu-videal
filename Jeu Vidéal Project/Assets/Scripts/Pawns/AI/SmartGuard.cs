@@ -11,6 +11,17 @@ public class SmartGuard : SmartPawn
 
     protected override void Routine()
     {
-        //Debug.Log("test");
+        if(_Pawn.Flock.Commander != _Pawn)
+        {
+            return;
+        }
+
+
+        _Pawn.ActionManager.IsLoop = true;
+
+        foreach (Transform waypoint in _Pawn.Settlement.Patrol)
+        {
+            _Pawn.GoTo(waypoint.position, true);
+        }
     }
 }

@@ -109,11 +109,6 @@ public class PawnMovement : MonoBehaviour
             if (!_ActionManager.QueueIsEmpty() && !_ActionManager.GetCurrentAction().IsInactive())
             {
                 target = transform.position + _NavMeshAgent.velocity.normalized;
-                //if (GetComponent<SmartInnkeeper>())
-                //{
-                //    Debug.Log("4");
-                //    Debug.Log(RotationTarget);
-                //}
             }
         }
 
@@ -131,6 +126,11 @@ public class PawnMovement : MonoBehaviour
         }
 
         target -= transform.position;
+
+        //if(_Pawn.IsBeingDebugged)
+        //{
+        //    Debug.Log(target);
+        //}
 
         Quaternion rotation = Quaternion.LookRotation(target);
         transform.rotation = Quaternion.Slerp(transform.rotation, rotation, Time.deltaTime * RotationSpeed);
