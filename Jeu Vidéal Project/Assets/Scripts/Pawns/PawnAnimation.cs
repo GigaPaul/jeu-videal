@@ -8,6 +8,10 @@ public class PawnAnimation : MonoBehaviour
     public Animator Animator;
     public Pawn _Pawn;
     public PawnMovement _PawnMovement;
+    public int BaseLayer = 0;
+    public int WalkLayer = 1;
+    public int RightHandLayer = 2;
+    public int LeftHandLayer = 3;
 
 
 
@@ -18,6 +22,7 @@ public class PawnAnimation : MonoBehaviour
     {
         CheckDeath();
         CheckSpeed();
+        CheckEquipedTools();
     }
 
 
@@ -43,21 +48,27 @@ public class PawnAnimation : MonoBehaviour
         if (!_Pawn.IsAlive)
             return;
 
-        //float weight = _PawnMovement.SpeedQuotient * 2;
-
-        //if (weight > 1)
-        //    weight = 1;
-
         float intensity = Vector3.Distance(Vector3.zero, _Pawn.NavMeshAgent.velocity) / _PawnMovement.WalkingSpeed;
 
-        Animator.SetLayerWeight(1, intensity);
+        Animator.SetLayerWeight(WalkLayer, intensity);
 
 
 
         Vector3 localVelocity = transform.InverseTransformDirection(_Pawn.NavMeshAgent.velocity);
         Animator.SetFloat("Z Velocity", localVelocity.z / _PawnMovement.MaxSpeed);
         Animator.SetFloat("X Velocity", localVelocity.x / _PawnMovement.MaxSpeed);
-        //Animator.SetFloat("Z Velocity", _PawnMovement.Velocity.z * 2);
-        //Animator.SetFloat("X Velocity", _PawnMovement.Velocity.x * 2);
+    }
+
+
+
+
+
+    public void CheckEquipedTools()
+    {
+        int rightIntensity = _Pawn.Attachments.RightHand.Item != null ? 1 : 0;
+        int leftIntensity = _Pawn.Attachments.LeftHand.Item != null ? 1 : 0;
+
+        Animator.SetLayerWeight(RightHandLayer, rightIntensity);
+        Animator.SetLayerWeight(LeftHandLayer, leftIntensity);
     }
 }

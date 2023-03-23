@@ -9,6 +9,16 @@ public class SmartGuard : SmartPawn
         get { return "Guard"; }
     }
 
+    protected override void Start()
+    {
+        base.Start();
+
+        Object SwordObject = Resources.Load("Prefabs/Tools/Sword");
+        GameObject Sword = Instantiate(SwordObject) as GameObject;
+
+        _Pawn.Attachments.RightHand.Attach(Sword.transform);
+    }
+
     protected override void Routine()
     {
         if(_Pawn.Flock.Commander != _Pawn)
@@ -17,7 +27,7 @@ public class SmartGuard : SmartPawn
         }
 
 
-        _Pawn.ActionManager.IsLoop = true;
+        _Pawn._ActionManager.IsLoop = true;
 
         foreach (Transform waypoint in _Pawn.Settlement.Patrol)
         {

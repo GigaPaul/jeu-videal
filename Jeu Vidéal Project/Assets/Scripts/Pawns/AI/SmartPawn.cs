@@ -3,6 +3,7 @@ using UnityEngine;
 [RequireComponent(typeof(Pawn))]
 public abstract class SmartPawn : MonoBehaviour
 {
+    [HideInInspector]
     public Pawn _Pawn;
     public virtual string Label
     {
@@ -14,7 +15,7 @@ public abstract class SmartPawn : MonoBehaviour
 
 
     // Start is called before the first frame update
-    void Start()
+    protected virtual void Start()
     {
         _Pawn = GetComponent<Pawn>();
         InvokeRepeating(nameof(RoutineController), 0, 1);
@@ -39,7 +40,7 @@ public abstract class SmartPawn : MonoBehaviour
         }
 
         // If the pawn has tasks to do
-        if (!_Pawn.ActionManager.QueueIsEmpty())
+        if (!_Pawn._ActionManager.QueueIsEmpty())
         {
             return;
         }

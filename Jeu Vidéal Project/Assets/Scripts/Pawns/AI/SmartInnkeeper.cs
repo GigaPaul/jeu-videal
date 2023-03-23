@@ -19,13 +19,21 @@ public class SmartInnkeeper : SmartPawn
             StartingScript = () =>
             {
                 _Pawn.Animator.SetBool("IsBartending", true);
-                _Pawn._PawnMovement.RotationTarget = _Pawn.Settlement.Inn;
-                _Pawn._PawnMovement.RotationTargetOffset = _Pawn.Settlement.Inn.forward;
+                _Pawn.Movement.RotationTarget = _Pawn.Settlement.Inn;
+                _Pawn.Movement.RotationTargetOffset = _Pawn.Settlement.Inn.forward;
                 return Task.FromResult(0);
             },
+
             SuccessCondition = () =>
             {
                 return false;
+            },
+
+            EndingScript = () =>
+            {
+                _Pawn.Animator.SetBool("IsBartending", false);
+                _Pawn.Movement.RotationTarget = null;
+                _Pawn.Movement.RotationTargetOffset = Vector3.zero;
             }
         };
 

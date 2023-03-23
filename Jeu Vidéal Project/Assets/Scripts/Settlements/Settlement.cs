@@ -44,7 +44,7 @@ public class Settlement : MonoBehaviour
         DrawRadius();
 
         InvokeRepeating(nameof(BalanceJobs), 0, 1);
-        InvokeRepeating(nameof(CheckResources), 0, 1);
+        //InvokeRepeating(nameof(CheckResources), 0, 1);
     }
 
 

@@ -88,12 +88,14 @@ public class FlockManager : MonoBehaviour
 
         Vector3 leavingPoint = FindLeavingPoint();
 
-        if (leavingPoint == Vector3.zero)
+        Vector3 direction = leavingPoint - transform.position;
+
+
+        if (direction == Vector3.zero)
         {
             return;
         }
 
-        Vector3 direction = leavingPoint - transform.position;
         Quaternion rotation = Quaternion.LookRotation(direction);
         transform.rotation = rotation;
     }
@@ -204,7 +206,7 @@ public class FlockManager : MonoBehaviour
                 continue;
             }
 
-            member.FlockAgent.PositionTarget = availablePositions[index];
+            member._FlockAgent.PositionTarget = availablePositions[index];
 
             Array.Clear(availablePositions, index, 1);
         }
@@ -231,7 +233,7 @@ public class FlockManager : MonoBehaviour
             }
 
 
-            member.FlockAgent.PositionTarget = availablePositions[closestIndex];
+            member._FlockAgent.PositionTarget = availablePositions[closestIndex];
             Array.Clear(availablePositions, closestIndex, 1);
             remainingMembers.Remove(member);
         }
@@ -329,7 +331,8 @@ public class FlockManager : MonoBehaviour
         float bPrime = 2 * (m * b - m * d - c);
         float cPrime = c * c + (b - d) * (b - d) - r * r;
 
-        float rightDividend = (float)Math.Sqrt(bPrime * bPrime - 4 * aPrime * cPrime);
+
+        float rightDividend = (float)Math.Sqrt(Math.Abs(bPrime * bPrime - 4 * aPrime * cPrime));
         float divisor = 2 * aPrime;
 
         // There are two possible solutions in this case

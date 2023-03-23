@@ -1,9 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
+
+public delegate void PawnScript();
 
 public class Action
 {
@@ -14,9 +17,21 @@ public class Action
     public Transform? Target { get; set; }
     public Vector3 Destination { get; set; }
 
-
+    /// <summary>
+    ///     Script executed when the actor reaches the destination.
+    /// </summary>
     public Func<Task>? StartingScript { get; set; }
+
+    /// <summary>
+    ///     Script executed after StartingScript has been executed and if SuccessCondition has been achieved.
+    /// </summary>
     public Func<Task>? SuccessScript { get; set; }
+
+    /// <summary>
+    /// Script executed before the end of the action even after a cancellation.
+    /// </summary>
+    public PawnScript? EndingScript { get; set; }
+
     public CancellationTokenSource TokenSource = new();
 
 
@@ -38,6 +53,8 @@ public class Action
     {
         if(StartingScript != null)
         {
+            TokenSource = new();
+
             try
             {
                 await StartingScript.Invoke();
@@ -65,22 +82,28 @@ public class Action
         }
     }
 
-    public static async Task WaitFor(int milliseconds, CancellationToken token)
+
+
+
+    public float RemainingDistance()
     {
-        int currentWaiting = 0;
-        while (!token.IsCancellationRequested && currentWaiting <= milliseconds)
+
+        float remainingDistance = Vector3.Distance(Destination, Actor.transform.position);
+        return Mathf.Floor(remainingDistance * 10) / 10;
+    }
+
+
+
+
+
+    public void End()
+    {
+        if(EndingScript == null)
         {
-            try
-            {
-                await Task.Delay(10);
-            }
-            catch (OperationCanceledException)
-            {
-                Debug.Log("The action has been canceled.");
-            }
-            currentWaiting += 10;
-            //Debug.Log($"{currentWaiting} / {milliseconds}");
+            return;
         }
+
+        EndingScript.Invoke();
     }
 
 
@@ -204,13 +227,11 @@ public class Action
 
     public bool HasEnded()
     {
-        bool result = true;
-
-        if(SuccessCondition != null)
+        if(SuccessCondition == null)
         {
-            result = SuccessCondition.Invoke();
+            return true;
         }
 
-        return result;
+        return SuccessCondition.Invoke();
     }
 }

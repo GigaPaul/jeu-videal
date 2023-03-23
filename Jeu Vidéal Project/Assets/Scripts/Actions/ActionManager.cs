@@ -30,6 +30,8 @@ public class ActionManager : MonoBehaviour
 
     private void FixedUpdate()
     {
+        CheckActionCancellation();
+
         if(!QueueIsEmpty() && !GetCurrentAction().IsInactive())
         {
             if (GetCurrentAction().IsLoading())
@@ -44,6 +46,25 @@ public class ActionManager : MonoBehaviour
             {
                 OngoingCoroutine = StartCoroutine(StopAction());
             }
+        }
+    }
+
+
+
+
+
+    private void CheckActionCancellation()
+    {
+        if(QueueIsEmpty())
+        {
+            return;
+        }
+
+        bool hasReachedDestination = GetCurrentAction().RemainingDistance() <= Pawn.NavMeshAgent.stoppingDistance;
+
+        if (!GetCurrentAction().IsUnloaded() && !hasReachedDestination)
+        {
+            GetCurrentAction().Unload();
         }
     }
 
@@ -83,6 +104,7 @@ public class ActionManager : MonoBehaviour
         GetCurrentAction().Stop();
         Task task = GetCurrentAction().PerformSuccessScript();
         yield return new WaitUntil(() => task.IsCompleted);
+        GetCurrentAction().End();
         NextAction();
     }
 
@@ -150,17 +172,19 @@ public class ActionManager : MonoBehaviour
 
     public void CancelCurrentAction()
     {
-        if (GetCurrentAction() != null)
+        if(GetCurrentAction() == null)
         {
-            if (OngoingCoroutine != null)
-            {
-                StopCoroutine(OngoingCoroutine);
-            }
-
-            NextAction();
-            //Pawn.NavMeshAgent.ResetPath();
+            return;
         }
 
+        if (OngoingCoroutine != null)
+        {
+            StopCoroutine(OngoingCoroutine);
+        }
+
+        GetCurrentAction().End();
+
+        NextAction();
     }
 
 
@@ -169,15 +193,19 @@ public class ActionManager : MonoBehaviour
 
     public void ResetCurrentAction()
     {
-        if (GetCurrentAction() != null)
+        if (GetCurrentAction() == null)
         {
-            if (OngoingCoroutine != null)
-            {
-                StopCoroutine(OngoingCoroutine);
-            }
-
-            GetCurrentAction().Unload();
+            return;
         }
+
+        if (OngoingCoroutine != null)
+        {
+            StopCoroutine(OngoingCoroutine);
+        }
+
+        GetCurrentAction().End();
+
+        GetCurrentAction().Unload();
     }
 
 

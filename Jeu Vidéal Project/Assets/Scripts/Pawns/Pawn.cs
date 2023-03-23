@@ -28,13 +28,16 @@ public class Pawn : MonoBehaviour
     // Status
     public bool IsAlive => HitPoints > 0;
 
-    public PawnMovement _PawnMovement;
-    public FlockAgent FlockAgent;
-    public Animator Animator;
-    public ActionManager ActionManager;
-    public NavMeshAgent NavMeshAgent;
+    public PawnAttributes Attributes { get; set; }
+    public PawnMovement Movement { get; set; }
+    public PawnAttachments Attachments { get; set; }
+    public FlockAgent _FlockAgent { get; set; }
+    public ActionManager _ActionManager { get; set; }
+
     public MultiAimConstraint HeadAim;
+    public NavMeshAgent NavMeshAgent;
     public RigBuilder RigBuilder;
+    public Animator Animator;
 
     public Transform RigTarget;
     public Transform FocusElement;
@@ -78,7 +81,12 @@ public class Pawn : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        //InvokeRepeating(nameof(AIRoutine), 0, 1);
+        Attributes = GetComponent<PawnAttributes>();
+        Movement = GetComponent<PawnMovement>();
+        Attachments = GetComponent<PawnAttachments>();
+        _FlockAgent = GetComponent<FlockAgent>();
+        _ActionManager = GetComponent<ActionManager>();
+
         InvokeRepeating(nameof(ManageActions), 0, 0.25f);
     }
 
@@ -121,12 +129,12 @@ public class Pawn : MonoBehaviour
         if(IsAlive)
         {
             // If the current action is unloaded (Pawn just reached his target)
-            if (!ActionManager.QueueIsEmpty() && ActionManager.GetCurrentAction().IsUnloaded())
+            if (!_ActionManager.QueueIsEmpty() && _ActionManager.GetCurrentAction().IsUnloaded())
             {
                 if(HasReachedDestination())
                 {
                     // Load the current action
-                    ActionManager.GetCurrentAction().Load();
+                    _ActionManager.GetCurrentAction().Load();
                 }
             }
         }
@@ -187,33 +195,45 @@ public class Pawn : MonoBehaviour
 
     public bool HasReachedDestination()
     {
-        if (ActionManager.QueueIsEmpty())
+        if (_ActionManager.QueueIsEmpty())
+        {
             return true;
-
-
-        if(ActionManager.GetCurrentTarget() != null)
-        {
-            float distance = Vector3.Distance(transform.position, ActionManager.GetCurrentTarget().position);
-            float flooredDistance = Mathf.Floor(distance);
-            //float flooredDistance = Mathf.Floor(distance * 10) / 10;
-
-            Transform target = ActionManager.GetCurrentTarget();
-            float radius = NavMeshAgent.stoppingDistance;
-
-            if (target.GetComponent<NavMeshAgent>())
-            {
-                radius += target.GetComponent<NavMeshAgent>().radius;
-            }
-
-            return flooredDistance <= radius;
-            //return flooredDistance <= Radius;
         }
-        else
-        {
-            float distance = Vector3.Distance(transform.position, ActionManager.GetCurrentDestination());
-            float flooredDistance = Mathf.Floor(distance);
-            return flooredDistance <= NavMeshAgent.stoppingDistance;
-        }
+
+        bool actionIsUnloaded = _ActionManager.GetCurrentAction().IsUnloaded();
+        bool hasReachedDestination = _ActionManager.GetCurrentAction().RemainingDistance() <= NavMeshAgent.stoppingDistance;
+
+        return actionIsUnloaded && hasReachedDestination;
+
+
+
+        //return Vector3.Distance(transform.position, NavMeshAgent.destination) <= NavMeshAgent.stoppingDistance;
+
+        //if(ActionManager.GetCurrentTarget() != null)
+        //{
+        //    float distance = Vector3.Distance(transform.position, ActionManager.GetCurrentTarget().position);
+        //    float flooredDistance = Mathf.Floor(distance);
+        //    //float flooredDistance = Mathf.Floor(distance * 10) / 10;
+
+        //    Transform target = ActionManager.GetCurrentTarget();
+        //    float radius = NavMeshAgent.stoppingDistance;
+
+        //    if (target.GetComponent<NavMeshAgent>())
+        //    {
+        //        radius += target.GetComponent<NavMeshAgent>().radius;
+        //    }
+
+
+
+        //    return flooredDistance <= radius;
+        //}
+        //else
+        //{
+        //    float distance = Vector3.Distance(transform.position, ActionManager.GetCurrentDestination());
+        //    float flooredDistance = Mathf.Floor(distance);
+
+        //    return flooredDistance <= NavMeshAgent.stoppingDistance;
+        //}
     }
 
     public bool IsMoving()
@@ -358,16 +378,16 @@ public class Pawn : MonoBehaviour
 
         if (!isQueueing)
         {
-            ActionManager.ClearActionQueue();
+            _ActionManager.ClearActionQueue();
         }
 
         if (isImmediate)
         {
-            ActionManager.Queue.Insert(0, action);
+            _ActionManager.Queue.Insert(0, action);
         }
         else
         {
-            ActionManager.Queue.Add(action);
+            _ActionManager.Queue.Add(action);
         }
     }
 
@@ -421,7 +441,7 @@ public class Pawn : MonoBehaviour
         }
 
         gameObject.AddComponent(type);
-        ActionManager.ClearActionQueue();
+        _ActionManager.ClearActionQueue();
     }
 
     public bool HasInSights(Transform target)

@@ -185,9 +185,6 @@ public class InputManager : MonoBehaviour
     private void CancelAlts(InputAction.CallbackContext context)
     {
         Player.IsQueueing = false;
-        //if (context.ReadValue<float>() == -1)
-        //{
-        //}
     }
 
 

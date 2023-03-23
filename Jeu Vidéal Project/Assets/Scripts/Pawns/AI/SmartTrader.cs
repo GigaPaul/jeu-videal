@@ -65,7 +65,6 @@ public class SmartTrader : SmartPawn
 
         List<Pawn> LocalTraders = new();
 
-        //Transform waypoint = new GameObject().transform;
         Vector3 waypoint = nearestSettlement.GetRandomPoint(0.5f);
 
         Action traderAction = new()
@@ -81,8 +80,6 @@ public class SmartTrader : SmartPawn
 
                 foreach (Pawn local in LocalTraders)
                 {
-
-
                     Action buyFromTrader = new()
                     {
                         Label = "Buying",
