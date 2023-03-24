@@ -22,8 +22,52 @@ public class SmartWorker : SmartPawn
 
     protected override void Routine()
     {
+        if(!FindObjectOfType<TimeManager>())
+        {
+            return;
+        }
+
+        TimeManager timeManager = FindObjectOfType<TimeManager>();
+        double hour = timeManager.CurrentDate.TimeOfDay.Hours;
+
+        if(9 <= hour && hour < 17)
+        {
+            WorkRoutine();
+        }
+        else
+        {
+            OffDutyRoutine();
+        }
+    }
+
+
+
+
+    private void OffDutyRoutine()
+    {
+        Vector3 wanderPoint = _Pawn.Settlement.GetRandomPoint();
+
+        float waitingTime = 3;
+
+        Action wander = new()
+        {
+            Label = "Wandering",
+            Destination = wanderPoint
+        };
+
+        wander.StartingScript = async () =>
+        {
+            await Task.Delay((int)(waitingTime * 1000), wander.TokenSource.Token);
+        };
+
+        _Pawn.Do(wander);
+    }
+
+
+    private void WorkRoutine()
+    {
         Transform randomWorkingStation = _Pawn.Settlement.WorkingStations[UnityEngine.Random.Range(0, _Pawn.Settlement.WorkingStations.Count)];
-        _Pawn._ActionManager.IsLoop = true;
+        //_Pawn._ActionManager.IsLoop = true;
 
 
 
@@ -49,7 +93,7 @@ public class SmartWorker : SmartPawn
 
         working.EndingScript = () =>
         {
-            if(_Pawn.Movement.RotationTarget == working.Target)
+            if (_Pawn.Movement.RotationTarget == working.Target)
             {
                 _Pawn.Movement.RotationTarget = null;
             }
