@@ -55,9 +55,7 @@ public class Faction : MonoBehaviour
 
             foreach (Pawn pawn in members)
             {
-                List<Renderer> renderers = pawn.Model.GetComponentsInChildren<Renderer>().Where(i => i.material != Material).ToList();
-
-                foreach (Renderer renderer in renderers)
+                foreach (Renderer renderer in pawn.Model.Renderers)
                 {
                     renderer.material = Material;
                 }

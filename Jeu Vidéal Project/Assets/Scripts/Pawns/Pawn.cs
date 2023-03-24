@@ -41,7 +41,8 @@ public class Pawn : MonoBehaviour
 
     public Transform RigTarget;
     public Transform FocusElement;
-    public Transform Model;
+    //public Transform Model;
+    public PawnModel Model { get; set; }
     public GameObject HoverRing;
     public GameObject FocusRing;
 
@@ -86,6 +87,7 @@ public class Pawn : MonoBehaviour
         Attachments = GetComponent<PawnAttachments>();
         _FlockAgent = GetComponent<FlockAgent>();
         _ActionManager = GetComponent<ActionManager>();
+        Model = GetComponentInChildren<PawnModel>();
 
         InvokeRepeating(nameof(ManageActions), 0, 0.25f);
     }

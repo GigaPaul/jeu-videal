@@ -74,6 +74,7 @@ public class SmartTrader : SmartPawn
             StartingScript = () =>
             {
                 EncounteredTraders = 0;
+                _Pawn.Animator.SetTrigger("Wave");
                 _Pawn.Say($"Hello {nearestSettlement.Label}!");
 
                 LocalTraders = FindObjectsOfType<Pawn>().Where(i => i.Settlement == nearestSettlement && i.GetComponent<SmartTrader>()).ToList();
