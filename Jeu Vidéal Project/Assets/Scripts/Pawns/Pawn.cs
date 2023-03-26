@@ -171,6 +171,24 @@ public class Pawn : MonoBehaviour
 
 
 
+
+
+    public void Use(Furniture furniture)
+    {
+        if(furniture.IsBeingUsed())
+        {
+            return;
+        }
+
+        Action use = furniture.GetAction(this);
+
+        Do(use);
+    }
+
+
+
+
+
     public bool IsFocused()
     {
         return Globals.FocusedPawn == this;

@@ -229,6 +229,11 @@ public class Settlement : MonoBehaviour
         return transform.position + randomPlace;
     }
 
+    public List<Bed> GetBeds()
+    {
+        return GetComponentsInChildren<Bed>().ToList();
+    }
+
 
 
 

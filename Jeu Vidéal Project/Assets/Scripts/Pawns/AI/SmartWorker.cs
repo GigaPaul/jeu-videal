@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -45,28 +46,41 @@ public class SmartWorker : SmartPawn
 
     private void OffDutyRoutine()
     {
-        Vector3 wanderPoint = _Pawn.Settlement.GetRandomPoint();
+        List<Bed> beds = _Pawn.Settlement.GetBeds();
+        beds = beds.Where(i => !i.IsBeingUsed()).ToList();
 
-        float waitingTime = 3;
-
-        Action wander = new()
+        if(beds.Count == 0)
         {
-            Label = "Wandering",
-            Destination = wanderPoint
-        };
+            return;
+        }
 
-        wander.StartingScript = async () =>
-        {
-            await Task.Delay((int)(waitingTime * 1000), wander.TokenSource.Token);
-        };
+        int random = Random.Range(0, beds.Count);
+        Bed bed = beds[random];
+        _Pawn.Do(bed.GetAction(_Pawn));
 
-        _Pawn.Do(wander);
+
+        //Vector3 wanderPoint = _Pawn.Settlement.GetRandomPoint();
+
+        //float waitingTime = 3;
+
+        //Action wander = new()
+        //{
+        //    Label = "Wandering",
+        //    Destination = wanderPoint
+        //};
+
+        //wander.StartingScript = async () =>
+        //{
+        //    await Task.Delay((int)(waitingTime * 1000), wander.TokenSource.Token);
+        //};
+
+        //_Pawn.Do(wander);
     }
 
 
     private void WorkRoutine()
     {
-        Transform randomWorkingStation = _Pawn.Settlement.WorkingStations[UnityEngine.Random.Range(0, _Pawn.Settlement.WorkingStations.Count)];
+        Transform randomWorkingStation = _Pawn.Settlement.WorkingStations[Random.Range(0, _Pawn.Settlement.WorkingStations.Count)];
         //_Pawn._ActionManager.IsLoop = true;
 
 
