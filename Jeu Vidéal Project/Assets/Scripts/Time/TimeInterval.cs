@@ -16,6 +16,19 @@ public class TimeInterval
 
     public bool Contains(TimeSpan timespan)
     {
-        return Start <= timespan && timespan < End;
+        if(Start <= End)
+        {
+            return Start <= timespan && timespan < End;
+        }
+
+        // If the interval is crossing midnight (Ex: Start = 22:00 and End = 05:00)
+
+        TimeSpan earlyMidnight = new(0, 0, 0);
+        TimeSpan lateMidnight = new(24, 0, 0);
+
+        bool isLate = Start <= timespan && timespan <= lateMidnight;
+        bool isEarly = earlyMidnight <= timespan && timespan < End;
+
+        return isLate || isEarly;
     }
 }

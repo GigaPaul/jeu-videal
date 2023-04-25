@@ -10,6 +10,7 @@ public abstract class SmartPawn : MonoBehaviour
     public Pawn _Pawn;
     public List<TimeInterval> WorkingHours = new();
     public TimeManager _TimeManager;
+    public bool IsDiurnal = true;
 
     public virtual string Label
     {
@@ -87,5 +88,28 @@ public abstract class SmartPawn : MonoBehaviour
         }
 
         return false;
+    }
+
+
+    public bool MustSleep()
+    {
+        TimeSpan timeOfDay = _TimeManager.CurrentDate.TimeOfDay;
+
+        if (IsDiurnal)
+        {
+            TimeSpan start = new(22, 0, 0);
+            TimeSpan end = new(6, 0, 0);
+            TimeInterval interval = new(start, end);
+
+            return interval.Contains(timeOfDay);
+        }
+        else
+        {
+            TimeSpan start = new(12, 0, 0);
+            TimeSpan end = new(18, 0, 0);
+            TimeInterval interval = new(start, end);
+
+            return interval.Contains(timeOfDay);
+        }
     }
 }

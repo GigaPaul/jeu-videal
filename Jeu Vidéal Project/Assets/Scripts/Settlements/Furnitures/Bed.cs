@@ -17,7 +17,7 @@ public class Bed : Furniture
         {
             Label = ActionLabel,
             Target = transform,
-            SuccessCondition = () => { return pawn.GetComponent<SmartPawn>().MustWork(); },
+            SuccessCondition = () => { return !pawn.GetComponent<SmartPawn>().MustSleep(); },
             ValidityCondition = () => { return !IsBeingUsed(); }
         };
 

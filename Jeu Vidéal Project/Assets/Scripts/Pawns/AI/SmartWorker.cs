@@ -17,6 +17,7 @@ public class SmartWorker : SmartPawn
         base.Start();
         TimeSpan start = new(9, 0, 0);
         TimeSpan end = new(17,0,0);
+
         TimeInterval workInterval = new(start, end);
         WorkingHours.Add(workInterval);
 
@@ -32,6 +33,10 @@ public class SmartWorker : SmartPawn
         {
             WorkRoutine();
         }
+        else if(MustSleep())
+        {
+            SleepingRoutine();
+        }
         else
         {
             OffDutyRoutine();
@@ -41,12 +46,12 @@ public class SmartWorker : SmartPawn
 
 
 
-    private void OffDutyRoutine()
+    private void SleepingRoutine()
     {
         List<Bed> beds = _Pawn.Settlement.GetBeds();
         beds = beds.Where(i => !i.IsBeingUsed()).ToList();
 
-        if(beds.Count == 0)
+        if (beds.Count == 0)
         {
             return;
         }
@@ -54,24 +59,29 @@ public class SmartWorker : SmartPawn
         int random = UnityEngine.Random.Range(0, beds.Count);
         Bed bed = beds[random];
         _Pawn.Do(bed.GetAction(_Pawn));
+    }
 
 
-        //Vector3 wanderPoint = _Pawn.Settlement.GetRandomPoint();
 
-        //float waitingTime = 3;
 
-        //Action wander = new()
-        //{
-        //    Label = "Wandering",
-        //    Destination = wanderPoint
-        //};
+    private void OffDutyRoutine()
+    {
+        Vector3 wanderPoint = _Pawn.Settlement.GetRandomPoint();
 
-        //wander.StartingScript = async () =>
-        //{
-        //    await Task.Delay((int)(waitingTime * 1000), wander.TokenSource.Token);
-        //};
+        float waitingTime = 3;
 
-        //_Pawn.Do(wander);
+        Action wander = new()
+        {
+            Label = "Wandering",
+            Destination = wanderPoint
+        };
+
+        wander.StartingScript = async () =>
+        {
+            await Task.Delay((int)(waitingTime * 1000), wander.TokenSource.Token);
+        };
+
+        _Pawn.Do(wander);
     }
 
 
