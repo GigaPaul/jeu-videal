@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 [RequireComponent(typeof(Pawn))]
@@ -5,6 +8,9 @@ public abstract class SmartPawn : MonoBehaviour
 {
     [HideInInspector]
     public Pawn _Pawn;
+    public List<TimeInterval> WorkingHours = new();
+    public TimeManager _TimeManager;
+
     public virtual string Label
     {
         get { return "Wanderer"; }
@@ -18,6 +24,7 @@ public abstract class SmartPawn : MonoBehaviour
     protected virtual void Start()
     {
         _Pawn = GetComponent<Pawn>();
+        _TimeManager = FindObjectOfType<TimeManager>();
         InvokeRepeating(nameof(RoutineController), 0, 1);
     }
 
@@ -60,4 +67,25 @@ public abstract class SmartPawn : MonoBehaviour
 
 
     protected abstract void Routine();
+
+    public bool MustWork()
+    {
+        if(!WorkingHours.Any())
+        {
+            return false;
+        }
+
+
+        TimeSpan timeOfDay = _TimeManager.CurrentDate.TimeOfDay;
+
+        foreach (TimeInterval interval in WorkingHours)
+        {
+            if(interval.Contains(timeOfDay))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

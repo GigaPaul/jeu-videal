@@ -12,13 +12,22 @@ public class StareTarget : MonoBehaviour
     private void Awake()
     {
         Pawn = GetComponentInParent<Pawn>();
-        DefaultPosition.position = Pawn.FocusElement.position + Pawn.NavMeshAgent.transform.forward;
-        transform.position = DefaultPosition.position;
+        //Vector3 forward = Pawn.NavMeshAgent.transform.forward;
+        //DefaultPosition.position = Pawn.FocusElement.position + forward;
+        //transform.position = DefaultPosition.position;
     }
 
     private void LateUpdate()
     {
-        Target = Pawn.StareTarget != null ? Pawn.StareTarget : DefaultPosition;
+        if(Pawn.StareTarget != null)
+        {
+            Target = Pawn.StareTarget;
+        }
+        else
+        {
+            DefaultPosition.position = Pawn.FocusElement.position + Pawn.NavMeshAgent.transform.forward;
+            Target = DefaultPosition;
+        }
 
         transform.position = Vector3.Lerp(transform.position, Target.position, Time.deltaTime * RotationSpeed);
     }

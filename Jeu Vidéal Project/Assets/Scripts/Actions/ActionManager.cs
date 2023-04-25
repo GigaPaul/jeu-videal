@@ -34,6 +34,16 @@ public class ActionManager : MonoBehaviour
 
         if(!QueueIsEmpty() && !GetCurrentAction().IsInactive())
         {
+            if(GetCurrentAction().IsUnloaded() || GetCurrentAction().IsLoading())
+            {
+                if(!GetCurrentAction().AreConditionsValid())
+                {
+                    CancelCurrentAction();
+                    return;
+                }
+            }
+            
+            
             if (GetCurrentAction().IsLoading())
             {
                 OngoingCoroutine = StartCoroutine(InitializeAction());

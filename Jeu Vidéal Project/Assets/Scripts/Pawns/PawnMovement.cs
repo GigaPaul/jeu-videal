@@ -286,21 +286,26 @@ public class PawnMovement : MonoBehaviour
             Vector3 subPos = (_ActionManager.GetCurrentTarget().position - transform.position).normalized * radius;
 
             Vector3 targetPosition = _ActionManager.GetCurrentTarget().position - subPos;
-            targetPosition.y = Terrain.activeTerrain.SampleHeight(targetPosition);
+            //targetPosition.y = Terrain.activeTerrain.SampleHeight(targetPosition);
             _ActionManager.GetCurrentAction().Destination = targetPosition;
         }
 
 
         NavMeshPath path = new();
-        bool canBeReached = _NavMeshAgent.CalculatePath(_ActionManager.GetCurrentDestination(), path);
+        //bool canBeReached = _NavMeshAgent.CalculatePath(_ActionManager.GetCurrentDestination(), path);
+        bool canBeReached = NavMesh.CalculatePath(transform.position, _ActionManager.GetCurrentDestination(), NavMesh.AllAreas, path);
 
 
         if (!canBeReached)
         {
-            Vector3 pawnDirection = _ActionManager.GetCurrentDestination() + (transform.position - _ActionManager.GetCurrentDestination()).normalized;
+            //Vector3 destination = _ActionManager.GetCurrentDestination() + (transform.position - _ActionManager.GetCurrentDestination()).normalized;
+            Vector3 dir = (transform.position - _ActionManager.GetCurrentDestination()).normalized;
+            Vector3 destination = _ActionManager.GetCurrentDestination() + dir * 0.2f;
 
-            if (NavMesh.SamplePosition(pawnDirection, out NavMeshHit navHit, 10f, NavMesh.AllAreas))
+
+            if (NavMesh.SamplePosition(destination, out NavMeshHit navHit, 1.0f, NavMesh.AllAreas))
             {
+
                 _ActionManager.GetCurrentAction().Destination = navHit.position;
             }
         }

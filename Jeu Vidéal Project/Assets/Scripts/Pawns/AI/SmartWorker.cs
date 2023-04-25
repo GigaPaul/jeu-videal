@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,8 +15,12 @@ public class SmartWorker : SmartPawn
     protected override void Start()
     {
         base.Start();
+        TimeSpan start = new(9, 0, 0);
+        TimeSpan end = new(17,0,0);
+        TimeInterval workInterval = new(start, end);
+        WorkingHours.Add(workInterval);
 
-        Object PickaxeObject = Resources.Load("Prefabs/Tools/Pickaxe");
+        UnityEngine.Object PickaxeObject = Resources.Load("Prefabs/Tools/Pickaxe");
         GameObject Pickaxe = Instantiate(PickaxeObject) as GameObject;
 
         _Pawn.Attachments.RightHand.Attach(Pickaxe.transform);
@@ -23,15 +28,7 @@ public class SmartWorker : SmartPawn
 
     protected override void Routine()
     {
-        if(!FindObjectOfType<TimeManager>())
-        {
-            return;
-        }
-
-        TimeManager timeManager = FindObjectOfType<TimeManager>();
-        double hour = timeManager.CurrentDate.TimeOfDay.Hours;
-
-        if(9 <= hour && hour < 17)
+        if(MustWork())
         {
             WorkRoutine();
         }
@@ -54,7 +51,7 @@ public class SmartWorker : SmartPawn
             return;
         }
 
-        int random = Random.Range(0, beds.Count);
+        int random = UnityEngine.Random.Range(0, beds.Count);
         Bed bed = beds[random];
         _Pawn.Do(bed.GetAction(_Pawn));
 
@@ -80,7 +77,7 @@ public class SmartWorker : SmartPawn
 
     private void WorkRoutine()
     {
-        Transform randomWorkingStation = _Pawn.Settlement.WorkingStations[Random.Range(0, _Pawn.Settlement.WorkingStations.Count)];
+        Transform randomWorkingStation = _Pawn.Settlement.WorkingStations[UnityEngine.Random.Range(0, _Pawn.Settlement.WorkingStations.Count)];
         //_Pawn._ActionManager.IsLoop = true;
 
 

@@ -149,17 +149,15 @@ public class InputManager : MonoBehaviour
         {
             Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
 
+
+
+
             if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, Globals.GroundMask))
             {
                 if (Globals.FocusedPawn != null && Globals.FocusedPawn.IsPlayable())
                 {
                     Globals.FocusedPawn.GoTo(hit.point, Player.IsQueueing);
                 }
-                //else if (Globals.FocusedPawn == null)
-                //{
-                //    FlockManager flock = FindObjectOfType<FlockManager>();
-                //    flock.MarchOn(hit.point);
-                //}
             }
 
             RightClickIsHeld = false;

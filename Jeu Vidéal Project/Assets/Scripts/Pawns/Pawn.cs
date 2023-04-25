@@ -396,6 +396,12 @@ public class Pawn : MonoBehaviour
     {
         action.Actor = this;
 
+        // If validity condition are false, don't add the action to the queue
+        if(!action.AreConditionsValid())
+        {
+            return;
+        }
+
         if (!isQueueing)
         {
             _ActionManager.ClearActionQueue();

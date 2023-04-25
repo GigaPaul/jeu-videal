@@ -17,7 +17,8 @@ public class Bed : Furniture
         {
             Label = ActionLabel,
             Target = transform,
-            SuccessCondition = () => { return false; }
+            SuccessCondition = () => { return pawn.GetComponent<SmartPawn>().MustWork(); },
+            ValidityCondition = () => { return !IsBeingUsed(); }
         };
 
 
@@ -38,6 +39,8 @@ public class Bed : Furniture
                 pawn.Movement.RotationTarget = null;
                 pawn.Movement.RotationTargetOffset = Vector3.zero;
             }
+
+            User = null;
             pawn.Animator.SetBool("IsSitting", false);
         };
 

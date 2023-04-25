@@ -131,7 +131,6 @@ MonoBehaviour:
   Animator: {fileID: 6013067969466507376}
   RigTarget: {fileID: 6626649457308793271}
   FocusElement: {fileID: 7878716994477375766}
-  Model: {fileID: 7874943237713491560}
   HoverRing: {fileID: 4071536831851718164}
   FocusRing: {fileID: 4071688656429950027}
   Target: {fileID: 0}

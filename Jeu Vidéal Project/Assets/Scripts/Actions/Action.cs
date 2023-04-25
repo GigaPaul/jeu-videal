@@ -36,6 +36,7 @@ public class Action
 
 
 
+    public Func<bool>? ValidityCondition { get; set; }
     public Func<bool>? SuccessCondition { get; set; }
 #nullable disable
     public int Status { get; set; } = 0;
@@ -233,5 +234,19 @@ public class Action
         }
 
         return SuccessCondition.Invoke();
+    }
+
+
+
+
+
+    public bool AreConditionsValid()
+    {
+        if (ValidityCondition == null)
+        {
+            return true;
+        }
+
+        return ValidityCondition.Invoke();
     }
 }
