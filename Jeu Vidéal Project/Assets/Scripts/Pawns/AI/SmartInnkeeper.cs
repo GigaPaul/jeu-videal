@@ -40,7 +40,7 @@ public class SmartInnkeeper : SmartPawn
 
             SuccessCondition = () =>
             {
-                return false;
+                return !MustWork();
             },
 
             EndingScript = () =>
