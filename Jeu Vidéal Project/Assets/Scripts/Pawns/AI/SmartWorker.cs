@@ -27,68 +27,10 @@ public class SmartWorker : SmartPawn
         _Pawn.Attachments.RightHand.Attach(Pickaxe.transform);
     }
 
-    protected override void Routine()
-    {
-        if(MustWork())
-        {
-            WorkRoutine();
-        }
-        else if(MustSleep())
-        {
-            SleepingRoutine();
-        }
-        else
-        {
-            OffDutyRoutine();
-        }
-    }
 
-
-
-
-    private void SleepingRoutine()
-    {
-        List<Bed> beds = _Pawn.Settlement.GetBeds();
-        beds = beds.Where(i => !i.IsBeingUsed()).ToList();
-
-        if (beds.Count == 0)
-        {
-            return;
-        }
-
-        int random = UnityEngine.Random.Range(0, beds.Count);
-        Bed bed = beds[random];
-        _Pawn.Do(bed.GetAction(_Pawn));
-    }
-
-
-
-
-    private void OffDutyRoutine()
-    {
-        Vector3 wanderPoint = _Pawn.Settlement.GetRandomPoint();
-
-        float waitingTime = 3;
-
-        Action wander = new()
-        {
-            Label = "Wandering",
-            Destination = wanderPoint
-        };
-
-        wander.StartingScript = async () =>
-        {
-            await Task.Delay((int)(waitingTime * 1000), wander.TokenSource.Token);
-        };
-
-        _Pawn.Do(wander);
-    }
-
-
-    private void WorkRoutine()
+    protected override void Work()
     {
         Transform randomWorkingStation = _Pawn.Settlement.WorkingStations[UnityEngine.Random.Range(0, _Pawn.Settlement.WorkingStations.Count)];
-        //_Pawn._ActionManager.IsLoop = true;
 
 
 

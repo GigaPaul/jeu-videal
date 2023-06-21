@@ -8,6 +8,7 @@ public class PawnMovement : MonoBehaviour
     public NavMeshAgent _NavMeshAgent;
     public FlockAgent _FlockAgent;
     public ActionManager _ActionManager;
+    public Patrol _Patrol = new();
 
     [Range(0f, 10f)]
     public float MaxSpeed;
@@ -257,20 +258,16 @@ public class PawnMovement : MonoBehaviour
             return;
         }
 
+        Vector3 destination = _ActionManager.GetCurrentDestination();
 
 
-        //if (!_ActionManager.GetCurrentAction().IsUnloaded())
-        //{
-        //    _ActionManager.ResetCurrentAction();
-        //}
-
-
-        // 
+        // If there are no targets and no destination set, the agent must stay where he is
         if (_ActionManager.GetCurrentTarget() == null)
         {
-            if (_ActionManager.GetCurrentDestination() == null)
+            if (destination == null)
             {
-                _ActionManager.GetCurrentAction().Destination = transform.position;
+                destination = transform.position;
+                //_ActionManager.GetCurrentAction().Destination = transform.position;
             }
         }
         else
@@ -285,31 +282,45 @@ public class PawnMovement : MonoBehaviour
 
             Vector3 subPos = (_ActionManager.GetCurrentTarget().position - transform.position).normalized * radius;
 
-            Vector3 targetPosition = _ActionManager.GetCurrentTarget().position - subPos;
+            //Vector3 targetPosition = _ActionManager.GetCurrentTarget().position - subPos;
+            destination = _ActionManager.GetCurrentTarget().position - subPos;
             //targetPosition.y = Terrain.activeTerrain.SampleHeight(targetPosition);
-            _ActionManager.GetCurrentAction().Destination = targetPosition;
+
+            //_ActionManager.GetCurrentAction().Destination = targetPosition;
         }
 
 
         NavMeshPath path = new();
         //bool canBeReached = _NavMeshAgent.CalculatePath(_ActionManager.GetCurrentDestination(), path);
-        bool canBeReached = NavMesh.CalculatePath(transform.position, _ActionManager.GetCurrentDestination(), NavMesh.AllAreas, path);
+        bool canBeReached = NavMesh.CalculatePath(transform.position, destination, NavMesh.AllAreas, path);
+
 
 
         if (!canBeReached)
         {
-            //Vector3 destination = _ActionManager.GetCurrentDestination() + (transform.position - _ActionManager.GetCurrentDestination()).normalized;
-            Vector3 dir = (transform.position - _ActionManager.GetCurrentDestination()).normalized;
-            Vector3 destination = _ActionManager.GetCurrentDestination() + dir * 0.2f;
+            // Rotate the destination by a random angle in a 90° range. Pawns have a less risk to get the same destination this way
+            float angle = Random.Range(-45, 45);
+            Quaternion rotation = Quaternion.AngleAxis(angle, Vector3.up);
+
+            Vector3 dir = (transform.position - destination).normalized;
+            Vector3 rotatedDirection = rotation * dir;
+            //Vector3 destination = _ActionManager.GetCurrentDestination() + rotatedDirection * 0.2f;
+            destination += rotatedDirection * 0.2f;
+            //_ActionManager.GetCurrentAction().Destination = _ActionManager.GetCurrentDestination() + rotatedDirection * 0.2f;
 
 
-            if (NavMesh.SamplePosition(destination, out NavMeshHit navHit, 1.0f, NavMesh.AllAreas))
-            {
+            //if (NavMesh.SamplePosition(destination, out NavMeshHit navHit, 1.0f, NavMesh.AllAreas))
+            //{
 
-                _ActionManager.GetCurrentAction().Destination = navHit.position;
-            }
+            //    _ActionManager.GetCurrentAction().Destination = navHit.position;
+            //}
         }
 
+        // Makes sure the destination is on the NavMesh
+        if (NavMesh.SamplePosition(destination, out NavMeshHit navHit, 1.0f, NavMesh.AllAreas))
+        {
+            _ActionManager.GetCurrentAction().Destination = navHit.position;
+        }
 
         _NavMeshAgent.SetDestination(_ActionManager.GetCurrentDestination());
     }

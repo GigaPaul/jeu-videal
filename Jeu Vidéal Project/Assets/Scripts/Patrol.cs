@@ -7,7 +7,7 @@ using UnityEngine;
 public class Patrol
 {
     public List<Vector3> Waypoints = new ();
-    public bool IsLoop { get; set; } = false;
+    public bool IsLoop { get; set; } = true;
 
     public bool IsEmpty()
     {
@@ -17,6 +17,11 @@ public class Patrol
 
     public void Next()
     {
+        if(IsEmpty())
+        {
+            return;
+        }
+
         Vector3 currentWaypoint = Waypoints.First();
         Waypoints.Remove(currentWaypoint);
 

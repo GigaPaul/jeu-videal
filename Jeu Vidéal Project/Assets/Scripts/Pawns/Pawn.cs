@@ -221,7 +221,15 @@ public class Pawn : MonoBehaviour
         }
 
         bool actionIsUnloaded = _ActionManager.GetCurrentAction().IsUnloaded();
-        bool hasReachedDestination = _ActionManager.GetCurrentAction().RemainingDistance() <= NavMeshAgent.stoppingDistance;
+
+        float remainingDistance = _ActionManager.GetCurrentAction().RemainingDistance();
+
+        if (_ActionManager.GetCurrentAction().IsWaypoint())
+        {
+            remainingDistance = Mathf.Floor(remainingDistance * 100) / 100;
+        }
+
+        bool hasReachedDestination = remainingDistance <= NavMeshAgent.stoppingDistance;
 
         return actionIsUnloaded && hasReachedDestination;
 

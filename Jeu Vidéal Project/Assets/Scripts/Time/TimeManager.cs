@@ -6,7 +6,7 @@ using UnityEngine;
 public class TimeManager : MonoBehaviour
 {
     private float ElapsedTime;
-    private readonly DateTime StartDate = new(2023, 1, 1, 16, 0, 0);
+    private readonly DateTime StartDate = new(2023, 1, 1, 7, 0, 0);
     /// <summary>
     /// How many real-life seconds for 1 in-game day
     /// </summary>
@@ -15,6 +15,12 @@ public class TimeManager : MonoBehaviour
     public DateTime CurrentDate { get; private set; }
     public Light Sun;
     public bool IsPaused = false;
+
+    private void Start()
+    {
+        SetCurrentDate();
+        DayNightCycle();
+    }
 
 
 

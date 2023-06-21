@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 
 [RequireComponent(typeof(Pawn))]
@@ -67,7 +68,87 @@ public abstract class SmartPawn : MonoBehaviour
 
 
 
-    protected abstract void Routine();
+    //protected abstract void Routine();
+    public void Routine()
+    {
+        if (MustWork())
+        {
+            Work();
+        }
+        else if (MustSleep())
+        {
+            Sleep();
+        }
+        else
+        {
+            FreeTime();
+        }
+    }
+
+
+
+
+
+    protected abstract void Work();
+    //protected abstract void FreeTime();
+    //protected abstract void Sleep();
+
+
+
+
+
+    protected virtual void FreeTime()
+    {
+        if (_Pawn.Settlement == null)
+        {
+            return;
+        }
+
+        Vector3 wanderPoint = _Pawn.Settlement.GetRandomPoint();
+
+        float waitingTime = 3;
+
+        Action wander = new()
+        {
+            Label = "Wandering",
+            Destination = wanderPoint
+        };
+
+        wander.StartingScript = async () =>
+        {
+            await Task.Delay((int)(waitingTime * 1000), wander.TokenSource.Token);
+        };
+
+        _Pawn.Do(wander);
+    }
+
+
+
+
+
+    protected virtual void Sleep()
+    {
+        if(_Pawn.Settlement == null)
+        {
+            return;
+        }
+
+        List<Bed> beds = _Pawn.Settlement.GetBeds();
+        beds = beds.Where(i => !i.IsBeingUsed()).ToList();
+
+        if (beds.Count == 0)
+        {
+            return;
+        }
+
+        int random = UnityEngine.Random.Range(0, beds.Count);
+        Bed bed = beds[random];
+        _Pawn.Do(bed.GetAction(_Pawn));
+    }
+
+
+
+
 
     public bool MustWork()
     {
@@ -89,6 +170,9 @@ public abstract class SmartPawn : MonoBehaviour
 
         return false;
     }
+
+
+
 
 
     public bool MustSleep()

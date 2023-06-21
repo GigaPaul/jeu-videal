@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -10,7 +11,20 @@ public class SmartInnkeeper : SmartPawn
         get { return "Innkeeper"; }
     }
 
-    protected override void Routine()
+
+
+    protected override void Start()
+    {
+        base.Start();
+
+        TimeSpan start = new(9, 0, 0);
+        TimeSpan end = new(17, 0, 0);
+
+        TimeInterval workInterval = new(start, end);
+        WorkingHours.Add(workInterval);
+    }
+
+    protected override void Work()
     {
         Action bartending = new()
         {

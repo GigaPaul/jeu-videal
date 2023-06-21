@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,11 +17,40 @@ public class SmartTrader : SmartPawn
 
 
 
-
-
-    protected override void Routine()
+    protected override void Start()
     {
-        if(_Pawn.Faction.Label == "Wanderers")
+        base.Start();
+
+        if (_Pawn.Faction.Label == "Wanderers")
+        {
+            return;
+        }
+
+        TimeSpan start = new(9, 0, 0);
+        TimeSpan end = new(17, 0, 0);
+
+        TimeInterval workInterval = new(start, end);
+        WorkingHours.Add(workInterval);
+    }
+
+
+
+    //protected override void Routine()
+    //{
+    //    if(_Pawn.Faction.Label == "Wanderers")
+    //    {
+    //        WanderingTraderRoutine();
+    //        return;
+    //    }
+
+    //    LocalTraderRoutine();
+    //}
+
+
+
+    protected override void Work()
+    {
+        if (_Pawn.Faction.Label == "Wanderers")
         {
             WanderingTraderRoutine();
             return;

@@ -8911,7 +8911,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7424dbecfe1398042badef6efd51db1b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SecondsPerDay: 150
+  SecondsPerDay: 300
   Sun: {fileID: 1175089174}
   IsPaused: 0
 --- !u!4 &1308057683
@@ -11640,6 +11640,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _Pawn: {fileID: 0}
   _TimeManager: {fileID: 0}
+  IsDiurnal: 1
 --- !u!4 &2005063816 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1468532837860305610, guid: 83b07df143bbef246a9fd92eaf69ffd5, type: 3}

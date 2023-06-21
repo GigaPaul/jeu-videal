@@ -52,7 +52,7 @@ public class FlockManager : MonoBehaviour
 
         //DrawRadius();
 
-        Commander.NavMeshAgent.avoidancePriority = 49;
+        //Commander.NavMeshAgent.avoidancePriority = 49;
     }
 
 

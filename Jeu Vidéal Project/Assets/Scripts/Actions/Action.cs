@@ -13,7 +13,7 @@ public class Action
     public string Label { get; set; }
     public Pawn Actor { get; set; }
     public bool IsOneShot { get; set; } = false;
-    #nullable enable
+#nullable enable
     public Transform? Target { get; set; }
     public Vector3 Destination { get; set; }
 
@@ -248,5 +248,14 @@ public class Action
         }
 
         return ValidityCondition.Invoke();
+    }
+
+
+
+
+
+    public bool IsWaypoint()
+    {
+        return StartingScript == null && SuccessScript == null && EndingScript == null;
     }
 }
