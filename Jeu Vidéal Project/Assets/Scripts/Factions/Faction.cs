@@ -26,10 +26,15 @@ public class Faction : MonoBehaviour
                 Faction = faction
             };
 
-            if(Label == "Abourg" && faction.Label == "Bescheim" || Label == "Bescheim" && faction.Label == "Abourg")
+            if(Id == "g_player" && faction.Id == "g_bandits" || Id == "g_bandits" && faction.Id == "g_player")
             {
                 relationship.Opinion = -100;
             }
+
+            //if(Label == "Abourg" && faction.Label == "Bescheim" || Label == "Bescheim" && faction.Label == "Abourg")
+            //{
+            //    relationship.Opinion = -100;
+            //}
 
             Relationships.Add(relationship);
         }

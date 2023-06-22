@@ -19,10 +19,18 @@ public class PawnCombat : MonoBehaviour
     public Ability? CastAbility { get; set; }
     #nullable disable
 
+
+
+
+
     private void Awake()
     {
         _Pawn = GetComponent<Pawn>();
     }
+
+
+
+
 
     private void Start()
     {
@@ -35,6 +43,10 @@ public class PawnCombat : MonoBehaviour
         InvokeRepeating(nameof(GetHostilesInRange), 0, 0.25f);
     }
 
+
+
+
+
     private void FixedUpdate()
     {
         PurgeHostileList();
@@ -42,6 +54,10 @@ public class PawnCombat : MonoBehaviour
         TriggerAbility();
         CheckForEvents();
     }
+
+
+
+
 
 
 
@@ -119,7 +135,7 @@ public class PawnCombat : MonoBehaviour
 
     void ChoseTarget()
     {
-        if(ForcedTarget != null && ForcedTarget.CanBeAttacked())
+        if(ForcedTarget != null && _Pawn.CanAttack(ForcedTarget))
         {
             SetTarget(ForcedTarget);
             return;
@@ -127,7 +143,7 @@ public class PawnCombat : MonoBehaviour
 
         ForcedTarget = null;
 
-        if (CurrentTarget != null && CurrentTarget.CanBeAttacked())
+        if (CurrentTarget != null && _Pawn.CanAttack(CurrentTarget))
         {
             // If the current target is in range, no need to find another target
             if(Vector3.Distance(transform.position, CurrentTarget.transform.position) <= AggroRange)
@@ -159,7 +175,7 @@ public class PawnCombat : MonoBehaviour
 
         foreach (Pawn hostile in hostilesToCheck)
         {
-            if(!hostile.CanBeAttacked())
+            if(!_Pawn.CanAttack(hostile))
             {
                 HostilesInRange.Remove(hostile);
             }
@@ -173,10 +189,12 @@ public class PawnCombat : MonoBehaviour
     {
         HostilesInRange.Clear();
 
+        //
         if (_Pawn.Faction.Id != "g_player")
         {
             return;
         }
+        //
 
         if(StanceType == "passive")
         {
@@ -185,7 +203,10 @@ public class PawnCombat : MonoBehaviour
 
 
         List<Collider> hitColliders = Physics.OverlapSphere(transform.position, AggroRange, Globals.FocusableMask)
-            .Where(i => i.GetComponentInParent<Pawn>() != null && i.GetComponentInParent<Pawn>().CanBeAttacked())
+            .Where(i => 
+                i.GetComponentInParent<Pawn>() != null &&
+                i.GetComponentInParent<Pawn>().Faction != _Pawn.Faction &&
+                _Pawn.CanAttack(i.GetComponentInParent<Pawn>()))
             .ToList();
 
         List<Pawn> hitPawns = new();
@@ -193,7 +214,7 @@ public class PawnCombat : MonoBehaviour
         {
             Pawn pawn = collider.GetComponentInParent<Pawn>();
 
-            if (pawn.Faction.Id != "g_bandits" || HostilesInRange.Contains(pawn))
+            if (HostilesInRange.Contains(pawn))
             {
                 continue;
             }
@@ -338,7 +359,7 @@ public class PawnCombat : MonoBehaviour
         }
         else
         {
-            if (!target.CanBeAttacked())
+            if (!_Pawn.CanAttack(target))
             {
                 return;
             }
@@ -361,7 +382,7 @@ public class PawnCombat : MonoBehaviour
     public void ForceTarget(Pawn target)
     {
 
-        if (target != null && !target.CanBeAttacked())
+        if (target != null && !_Pawn.CanAttack(target))
         {
             return;
         }

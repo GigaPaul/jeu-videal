@@ -555,9 +555,14 @@ public class Pawn : MonoBehaviour
         return _PawnCombat.CurrentTarget != null;
     }
 
-
-    public bool CanBeAttacked()
+    public bool CanAttack(Pawn target)
     {
-        return IsAlive && Faction.Id == "g_bandits";
+        return target.IsAlive && Faction.IsAtWarWith(target.Faction);
     }
+
+
+    //public bool CanBeAttacked()
+    //{
+    //    return IsAlive && Faction.Id == "g_bandits";
+    //}
 }
