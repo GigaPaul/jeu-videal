@@ -36,29 +36,41 @@ public abstract class SmartPawn : MonoBehaviour
 
     private void RoutineController()
     {
-        // If the pawn is dead
+        ////////////////////////////////////////////////
+        // All the ways a Pawn would not use their AI //
+        ////////////////////////////////////////////////
+
+        // The pawn is dead
         if (!_Pawn.IsAlive)
         {
             return;
         }
 
-        // If the pawn is moving
+        // The pawn is in combat
+        if(_Pawn.IsInCombat())
+        {
+            return;
+        }
+
+        // The pawn is moving
         if (_Pawn.IsMoving())
         {
             return;
         }
 
-        // If the pawn has tasks to do
+        // The pawn has tasks to do
         if (!_Pawn._ActionManager.QueueIsEmpty())
         {
             return;
         }
 
-        // If the spawn is playable
+        // The spawn is playable
         if (_Pawn.IsPlayable())
         {
             return;
         }
+
+        ////////////////////////////////////////////////
 
         // Start AI routine
         Routine();

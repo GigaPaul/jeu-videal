@@ -172,6 +172,13 @@ public class InputManager : MonoBehaviour
             {
                 if (Globals.FocusedPawn != null && Globals.FocusedPawn.IsPlayable())
                 {
+                    // Untargets the current target if there is one
+                    if(Globals.FocusedPawn._PawnCombat.CurrentTarget != null || Globals.FocusedPawn._PawnCombat.ForcedTarget != null)
+                    {
+                        Globals.FocusedPawn._PawnCombat.ClearTargets();
+                    }
+
+                    // Go to the location
                     Globals.FocusedPawn.GoTo(rightClickHit.point, Player.IsQueueing);
                 }
             }

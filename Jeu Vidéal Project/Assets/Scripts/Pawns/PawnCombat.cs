@@ -32,13 +32,12 @@ public class PawnCombat : MonoBehaviour
         }
 
         LoadBasicAbilities();
-
-
         InvokeRepeating(nameof(GetHostilesInRange), 0, 0.25f);
     }
 
     private void FixedUpdate()
     {
+        PurgeHostileList();
         StanceLoop();
         TriggerAbility();
         CheckForEvents();
@@ -62,17 +61,6 @@ public class PawnCombat : MonoBehaviour
 
     void StanceLoop()
     {
-        if(CastAbility != null)
-        {
-            return;
-        }
-
-        if(CurrentTarget != null && !CurrentTarget.CanBeAttacked())
-        {
-            SetTarget(null);
-        }
-
-
         switch(StanceType)
         {
             case "aggressive":
@@ -92,28 +80,16 @@ public class PawnCombat : MonoBehaviour
 
     void AggressiveStance()
     {
-        if(HostilesInRange.Count == 0 && ForcedTarget == null)
+        ChoseTarget();
+
+        if(CurrentTarget == null)
         {
             return;
         }
 
-        if(ForcedTarget != null && CurrentTarget != ForcedTarget)
-        {
-            Debug.Log("ping");
-            SetTarget(ForcedTarget);
-        }
-
-        bool needNewTarget = CurrentTarget == null || (!TargetIsForced() && Vector3.Distance(transform.position, CurrentTarget.transform.position) > AggroRange);
-
-        // Find a target if the Pawn doesn't have one or if his current target is too far away
-        if (needNewTarget)
-        {
-            SetTarget(GetClosestHostile());
-        }
-
         float targetDist = Vector3.Distance(transform.position, CurrentTarget.transform.position);
 
-        if(targetDist > Abilities.First().Range)
+        if(targetDist > Abilities.First().Range && _Pawn._ActionManager.QueueIsEmpty())
         {
             _Pawn.GoTo(CurrentTarget.transform);
         }
@@ -137,6 +113,50 @@ public class PawnCombat : MonoBehaviour
     void PassiveStance()
     {
 
+    }
+
+
+
+    void ChoseTarget()
+    {
+        if(ForcedTarget != null && ForcedTarget.CanBeAttacked())
+        {
+            SetTarget(ForcedTarget);
+            return;
+        }
+
+        ForcedTarget = null;
+
+        if (CurrentTarget != null && CurrentTarget.CanBeAttacked())
+        {
+            return;
+        }
+
+        if(HostilesInRange.Count == 0)
+        {
+            return;
+        }
+
+        SetTarget(GetClosestHostile());
+    }
+
+    void PurgeHostileList()
+    {
+        if(HostilesInRange.Count == 0)
+        {
+            return;
+        }
+
+        List<Pawn> hostilesToCheck = new();
+        hostilesToCheck.AddRange(HostilesInRange);
+
+        foreach (Pawn hostile in hostilesToCheck)
+        {
+            if(!hostile.CanBeAttacked())
+            {
+                HostilesInRange.Remove(hostile);
+            }
+        }
     }
 
 
@@ -319,6 +339,12 @@ public class PawnCombat : MonoBehaviour
             _Pawn.Movement.RotationTarget = target.transform;
         }
 
+        // Combat begins here
+        if(CurrentTarget == null)
+        {
+            //
+        }
+
         CurrentTarget = target;
     }
 
@@ -333,5 +359,13 @@ public class PawnCombat : MonoBehaviour
         }
 
         ForcedTarget = target;
+    }
+
+
+
+    public void ClearTargets()
+    {
+        ForcedTarget = null;
+        SetTarget(null);
     }
 }
