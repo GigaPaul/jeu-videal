@@ -98,7 +98,7 @@ public class InputManager : MonoBehaviour
                 Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
                 Pawn hitPawn = null;
 
-                if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity))
+                if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, Globals.FocusableMask))
                 {
                     hitPawn = hit.transform.GetComponentInParent<Pawn>();
                     FocusedObject = hitPawn;
@@ -148,15 +148,31 @@ public class InputManager : MonoBehaviour
         if(RightClickIsHeld)
         {
             Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
+            RaycastHit rightClickHit;
 
+            // Right click on focusable object
+            if (Physics.Raycast(ray, out rightClickHit, Mathf.Infinity, Globals.FocusableMask))
+            {
+                if(rightClickHit.transform.GetComponentInParent<Pawn>())
+                {
+                    if(Globals.FocusedPawn != null)
+                    {
+                        Pawn interactedPawn = rightClickHit.transform.GetComponentInParent<Pawn>();
 
+                        if(interactedPawn.Faction.Id == "g_bandits")
+                        {
+                            Globals.FocusedPawn._PawnCombat.ForceTarget(interactedPawn);
+                        }
+                    }
 
-
-            if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, Globals.GroundMask))
+                }
+            }
+            // Right click on ground
+            else if (Physics.Raycast(ray, out rightClickHit, Mathf.Infinity, Globals.GroundMask))
             {
                 if (Globals.FocusedPawn != null && Globals.FocusedPawn.IsPlayable())
                 {
-                    Globals.FocusedPawn.GoTo(hit.point, Player.IsQueueing);
+                    Globals.FocusedPawn.GoTo(rightClickHit.point, Player.IsQueueing);
                 }
             }
 

@@ -31,6 +31,7 @@ public class Pawn : MonoBehaviour
     public PawnAttributes Attributes { get; set; }
     public PawnMovement Movement { get; set; }
     public PawnAttachments Attachments { get; set; }
+    public PawnCombat _PawnCombat { get; set; }
     public FlockAgent _FlockAgent { get; set; }
     public ActionManager _ActionManager { get; set; }
 
@@ -85,6 +86,7 @@ public class Pawn : MonoBehaviour
         Attributes = GetComponent<PawnAttributes>();
         Movement = GetComponent<PawnMovement>();
         Attachments = GetComponent<PawnAttachments>();
+        _PawnCombat = GetComponent<PawnCombat>();
         _FlockAgent = GetComponent<FlockAgent>();
         _ActionManager = GetComponent<ActionManager>();
         Model = GetComponentInChildren<PawnModel>();
@@ -167,22 +169,6 @@ public class Pawn : MonoBehaviour
         {
             HoverRing.SetActive(false);
         }
-    }
-
-
-
-
-
-    public void Use(Furniture furniture)
-    {
-        if(furniture.IsBeingUsed())
-        {
-            return;
-        }
-
-        Action use = furniture.GetAction(this);
-
-        Do(use);
     }
 
 
@@ -283,6 +269,9 @@ public class Pawn : MonoBehaviour
 
 
 
+
+
+    // Pre-scripted actions
     public void GoTo(Vector3 destination, bool isQueueing = false)
     {
         Action walk = new()
@@ -309,7 +298,67 @@ public class Pawn : MonoBehaviour
 
 
 
-    #nullable enable
+
+    public void Use(Furniture furniture)
+    {
+        if (furniture.IsBeingUsed())
+        {
+            return;
+        }
+
+        Action use = furniture.GetAction(this);
+
+        Do(use);
+    }
+
+
+
+
+
+    //public void Punch(Pawn target)
+    //{
+
+    //    Ability punchAbility = new("Punch")
+    //    {
+    //        Range = 2,
+    //        Target = target
+    //    };
+
+    //    Cast(punchAbility);
+
+    //    Action punch = new()
+    //    {
+    //        Label = "Punching",
+    //        Target = target.transform
+    //    };
+
+
+
+
+    //    punch.StartingScript = () =>
+    //    {
+    //        //Movement.RotationTarget = punch.Target;
+
+    //        return Task.FromResult(0);
+    //    };
+
+    //    //punch.EndingScript = () =>
+    //    //{
+    //    //    //if (Movement.RotationTarget == punch.Target)
+    //    //    //{
+    //    //    //    Movement.RotationTarget = null;
+    //    //    //}
+    //    //};
+
+
+
+    //    Do(punch);
+    //}
+
+
+
+
+#nullable enable
     public void LookAt(Transform? target)
     {
         StareTarget = target;
@@ -426,14 +475,21 @@ public class Pawn : MonoBehaviour
     }
 
 
-
-
-
-    public void Punch(Pawn pawn)
+    public void Cast(Ability ability)
     {
-        Animator.SetTrigger("Punch");
-        pawn.TakeDamage(10);
+        _PawnCombat.CastAbility = ability;
     }
+
+    public void Cast(Ability ability, Pawn target)
+    {
+        ability.Target = target;
+        _PawnCombat.CastAbility = ability;
+    }
+
+
+
+
+
 
     public void TakeDamage(int damage)
     {
@@ -489,5 +545,19 @@ public class Pawn : MonoBehaviour
         bool xTargetSightable = 90 - FieldOfView / 2 <= xAngle && xAngle <= 90 + FieldOfView / 2;
 
         return yTargetSightable && xTargetSightable;
+    }
+
+
+
+
+    public bool IsInCombat()
+    {
+        return _PawnCombat.CurrentTarget != null;
+    }
+
+
+    public bool CanBeAttacked()
+    {
+        return IsAlive && Faction.Id == "g_bandits";
     }
 }

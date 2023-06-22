@@ -21,6 +21,7 @@ public class PawnAnimation : MonoBehaviour
     void FixedUpdate()
     {
         CheckDeath();
+        CheckCombat();
         CheckSpeed();
         CheckEquipedTools();
     }
@@ -37,6 +38,21 @@ public class PawnAnimation : MonoBehaviour
             return;
 
         Animator.SetTrigger("Death");
+    }
+
+
+
+
+    private void CheckCombat()
+    {
+        if(_Pawn.IsInCombat() && !Animator.GetBool("IsFighting"))
+        {
+            Animator.SetBool("IsFighting", true);
+        }
+        else if(!_Pawn.IsInCombat() && Animator.GetBool("IsFighting"))
+        {
+            Animator.SetBool("IsFighting", false);
+        }
     }
 
 

@@ -27,6 +27,10 @@ public class Player : NetworkBehaviour
         IsRotating = false;
         IsQueueing = false;
 
+        // Pour empêcher la collision entre le joueur et les radius d'aggro, à changer c'est nul
+        Physics.IgnoreLayerCollision(9, 7);
+
+
         // If the player is the local player
         if (isLocalPlayer)
         {

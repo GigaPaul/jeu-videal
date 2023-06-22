@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class Faction : MonoBehaviour
 {
+    public string Id;
     public string Label;
     public Material Material;
     public List<FactionRelation> Relationships = new();
