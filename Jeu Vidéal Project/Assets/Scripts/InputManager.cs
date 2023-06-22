@@ -175,7 +175,7 @@ public class InputManager : MonoBehaviour
                     // Untargets the current target if there is one
                     if(Globals.FocusedPawn._PawnCombat.CurrentTarget != null || Globals.FocusedPawn._PawnCombat.ForcedTarget != null)
                     {
-                        Globals.FocusedPawn._PawnCombat.ClearTargets();
+                        Globals.FocusedPawn._PawnCombat.ForceTarget(null);
                     }
 
                     // Go to the location

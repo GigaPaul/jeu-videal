@@ -129,7 +129,14 @@ public class PawnCombat : MonoBehaviour
 
         if (CurrentTarget != null && CurrentTarget.CanBeAttacked())
         {
-            return;
+            // If the current target is in range, no need to find another target
+            if(Vector3.Distance(transform.position, CurrentTarget.transform.position) <= AggroRange)
+            {
+                return;
+            }
+
+            // Else, it's no longer a target
+            SetTarget(null);
         }
 
         if(HostilesInRange.Count == 0)
@@ -353,10 +360,12 @@ public class PawnCombat : MonoBehaviour
 
     public void ForceTarget(Pawn target)
     {
-        if (!target.CanBeAttacked())
+
+        if (target != null && !target.CanBeAttacked())
         {
             return;
         }
+
 
         ForcedTarget = target;
     }
