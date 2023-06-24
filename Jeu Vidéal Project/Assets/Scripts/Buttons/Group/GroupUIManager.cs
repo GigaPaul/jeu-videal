@@ -5,24 +5,41 @@ using UnityEngine;
 
 public class GroupUIManager : MonoBehaviour
 {
-    List<Pawn> ControlledPawns = new();
+    public List<Pawn> ControlledPawns = new();
+    public GameObject ButtonPrefab;
+
+
+
     // Start is called before the first frame update
     void Start()
     {
         CheckControlledPawns();
     }
 
+
+
+    private void FixedUpdate()
+    {
+        CheckControlledPawns();
+    }
+
+
+
+
+
     public void CheckControlledPawns()
     {
-        Faction playerFaction = FindObjectsOfType<Faction>().FirstOrDefault(i => i.Id == "g_player");
-
-        List<Pawn> playablePawns = FindObjectsOfType<Pawn>().Where(i => i.Faction == playerFaction).ToList();
+        List<Pawn> playablePawns = FindObjectsOfType<Pawn>().Where(i => i.IsPlayable()).ToList();
 
         foreach(Pawn pawn in playablePawns)
         {
             AddControlledPawn(pawn);
         }
     }
+
+
+
+
 
     public void AddControlledPawn(Pawn pawn)
     {
@@ -32,10 +49,31 @@ public class GroupUIManager : MonoBehaviour
         }
 
         ControlledPawns.Add(pawn);
+
+
+
+        GameObject newButtonGO = Instantiate(ButtonPrefab);
+        GroupMemberButton newButton = newButtonGO.GetComponent<GroupMemberButton>();
+        newButton._Pawn = pawn;
+
+        newButtonGO.transform.SetParent(transform, false);
     }
+
+
+
+
 
     public void RemoveControlledPawn(Pawn pawn)
     {
         ControlledPawns.Remove(pawn);
+
+        GroupMemberButton toDelete = GetComponentsInChildren<GroupMemberButton>().FirstOrDefault(i => i._Pawn == pawn);
+
+        if(toDelete == null)
+        {
+            return;
+        }
+
+        Destroy(toDelete);
     }
 }

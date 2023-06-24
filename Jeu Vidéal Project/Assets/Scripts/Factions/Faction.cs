@@ -166,7 +166,7 @@ public class Faction : MonoBehaviour
 
     public bool IsPlayable()
     {
-        return FindObjectsOfType<Faction>().FirstOrDefault(i => i.Label == "Player") == this;
+        return FindObjectsOfType<Faction>().FirstOrDefault(i => i.Id == "g_player") == this;
     }
 
     public bool IsAtWarWith(Faction faction)

@@ -1,23 +1,30 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class GroupMemberButton : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    public Pawn _Pawn { get; set; }
+
+
+    private void FixedUpdate()
     {
-        
+        if(_Pawn == null)
+        {
+            return;
+        }
+
+        GetComponentInChildren<TextMeshProUGUI>().text = _Pawn.Attributes.GetFullName();
     }
 
-    // Update is called once per frame
-    void Update()
+    public void FocusPawn()
     {
-        
-    }
+        if(_Pawn == null)
+        {
+            return;
+        }
 
-    public void Test()
-    {
-        Debug.Log("ping");
+        Globals.FocusedPawn = _Pawn;
     }
 }
