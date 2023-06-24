@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -19,6 +20,7 @@ public class PawnMovement : MonoBehaviour
     public Transform RotationTarget;
     public Vector3 RotationTargetOffset = new();
     //public Vector3 Velocity = Vector3.zero;
+    public Vector3 PositionMagnet;
 
     public Vector3 VelocityDirection = Vector3.zero;
     [SerializeField]
@@ -60,6 +62,8 @@ public class PawnMovement : MonoBehaviour
     private void LateUpdate()
     {
         Rotate();
+
+        FindPositionMagnet();
         Move();
     }
 
@@ -83,6 +87,9 @@ public class PawnMovement : MonoBehaviour
 
     private void Rotate()
     {
+        if (!_Pawn.IsAlive)
+            return;
+
         Vector3 target = Vector3.zero;
 
         // If the pawn must be turned towards a target
@@ -115,7 +122,7 @@ public class PawnMovement : MonoBehaviour
 
         target.y = 0;
 
-        //// Don't continue if the resulting target is zero
+        // Don't continue if the resulting target is zero
         if (target == Vector3.zero)
         {
             return;
@@ -141,9 +148,41 @@ public class PawnMovement : MonoBehaviour
         if (!_Pawn.IsAlive)
             return;
 
-        if(_Pawn.IsFlocking())
+        if(PositionMagnet == Vector3.zero)
         {
-            GoForward();
+            return;
+        }
+
+        GoToMagnet();
+    }
+
+
+
+
+    public void FindPositionMagnet()
+    {
+        // If the pawn is in a flock, magnetize him to go to his target
+        if (_Pawn.IsFlocking())
+        {
+            // If the flock has a target
+            if (_FlockAgent.PositionTarget != Vector3.zero)
+            {
+                if(!_FlockAgent.HasReachedPosition())
+                {
+                    PositionMagnet = _FlockAgent.PositionTarget;
+                    return;
+                }
+            }
+        }
+
+
+
+
+
+        // If there are no reason for a magnet to exist yet a magnet exists, destroy it
+        if(PositionMagnet != Vector3.zero)
+        {
+            PositionMagnet = Vector3.zero;
         }
     }
 
@@ -171,27 +210,13 @@ public class PawnMovement : MonoBehaviour
     }
 
 
-    private void GoForward()
+
+    private void GoToMagnet()
     {
-        // If the flock has no target, return
-        if (_FlockAgent.PositionTarget == Vector3.zero)
-        {
-            return;
-        }
-
-        // If pawn has reached his target, reset and return
-        if (_FlockAgent.HasReachedPosition())
-        {
-            _FlockAgent.PositionTarget = Vector3.zero;
-            return;
-        }
-
-
-
         // Normalized vector pointing to the target's position
-        Vector3 direction = _FlockAgent.PositionTarget - transform.position;
+        Vector3 direction = PositionMagnet - transform.position;
 
-        float distToTarget = _FlockAgent.GetDistanceFromTarget();
+        float distToTarget = Mathf.Floor(Vector3.Distance(transform.position, PositionMagnet) * 10) / 10;
 
         // If the target is far away
         if (distToTarget > 1)
@@ -239,24 +264,32 @@ public class PawnMovement : MonoBehaviour
 
 
     public void Pathfind()
-    { 
-        if(_ActionManager.QueueIsEmpty())
+    {
+        if (_ActionManager.QueueIsEmpty())
         {
             _Pawn.NavMeshAgent.ResetPath();
             return;
         }
 
-        if(!_ActionManager.GetCurrentAction().IsUnloaded())
+
+        if (!_ActionManager.GetCurrentAction().IsUnloaded())
         {
             _Pawn.NavMeshAgent.ResetPath();
             return;
         }
 
-        if(_Pawn.IsFlocking() || _Pawn.HasReachedDestination())
+
+        if (_Pawn.IsFlocking() || _Pawn.HasReachedDestination())
         {
             _Pawn.NavMeshAgent.ResetPath();
             return;
         }
+
+
+        //if (_Pawn.IsInCombat() && _Pawn.IsCasting() && _Pawn._PawnCombat.TooCloseFor(_Pawn._PawnCombat.CastAbility))
+        //{
+        //    return;
+        //}
 
         Vector3 destination = _ActionManager.GetCurrentDestination();
 
@@ -275,9 +308,38 @@ public class PawnMovement : MonoBehaviour
             Transform target = _ActionManager.GetCurrentTarget();
             float radius = _NavMeshAgent.stoppingDistance;
 
-            if (target.GetComponent<NavMeshAgent>())
+            if(_Pawn.IsInCombat())
             {
-                radius += target.GetComponent<NavMeshAgent>().radius + 0.5f;
+                Ability ability;
+
+                if(_Pawn.IsCasting())
+                {
+                    ability = _Pawn._PawnCombat.CastAbility;
+                }
+                else
+                {
+                    ability = _Pawn._PawnCombat.Abilities.First();
+                }
+
+                // In this case ability should never be null but it's just in case
+                if(ability != null)
+                {
+                    if (_Pawn._PawnCombat.TooFarFor(ability))
+                    {
+                        radius = ability.MaxRange;
+                    }
+                    else if (_Pawn._PawnCombat.TooCloseFor(ability))
+                    {
+                        radius = ability.MinRange;
+                    }
+                }
+            }
+            else
+            {
+                if (target.GetComponent<NavMeshAgent>())
+                {
+                    radius += target.GetComponent<NavMeshAgent>().radius + 0.5f;
+                }
             }
 
             Vector3 subPos = (_ActionManager.GetCurrentTarget().position - transform.position).normalized * radius;

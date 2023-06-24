@@ -31,6 +31,11 @@ public class Faction : MonoBehaviour
                 relationship.Opinion = -100;
             }
 
+            //if (Id == "g_player" && faction.Id == "v_abourg" || Id == "v_abourg" && faction.Id == "g_player")
+            //{
+            //    relationship.Opinion = -100;
+            //}
+
             //if(Label == "Abourg" && faction.Label == "Bescheim" || Label == "Bescheim" && faction.Label == "Abourg")
             //{
             //    relationship.Opinion = -100;

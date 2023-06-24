@@ -159,7 +159,7 @@ public class InputManager : MonoBehaviour
                     {
                         Pawn interactedPawn = rightClickHit.transform.GetComponentInParent<Pawn>();
 
-                        if(interactedPawn.Faction.Id == "g_bandits")
+                        if(Globals.FocusedPawn.CanAttack(interactedPawn))
                         {
                             Globals.FocusedPawn._PawnCombat.ForceTarget(interactedPawn);
                         }

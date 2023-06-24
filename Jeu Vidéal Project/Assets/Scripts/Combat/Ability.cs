@@ -8,15 +8,25 @@ public class Ability
     public string Label;
     public string TriggerLabel;
     public int Damages;
-    public int Range;
+    public float MaxRange;
+    public float MinRange;
     public bool HasBeenTriggered = false;
     public Pawn Target { get; set; }
 
 
-    public Ability(string triggerLabel, int damages = 10, int range = 1)
+    public Ability(string triggerLabel, int damages = 10, float maxRange = 2, float minRange = 1)
     {
         TriggerLabel = triggerLabel;
         Damages = damages;
-        Range = range;
+        MaxRange = maxRange;
+
+        if(maxRange >= minRange)
+        {
+            MinRange = minRange;
+        }
+        else
+        {
+            MinRange = maxRange / 2;
+        }
     }
 }

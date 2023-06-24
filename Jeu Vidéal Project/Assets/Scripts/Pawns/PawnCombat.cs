@@ -39,7 +39,7 @@ public class PawnCombat : MonoBehaviour
             StanceType = "aggressive";
         }
 
-        LoadBasicAbilities();
+        LoadDefaultAbilities();
         InvokeRepeating(nameof(GetHostilesInRange), 0, 0.25f);
     }
 
@@ -62,11 +62,12 @@ public class PawnCombat : MonoBehaviour
 
 
 
-    void LoadBasicAbilities()
+    void LoadDefaultAbilities()
     {
         Ability autoAttack = new("Punch")
         {
-            Range = 2
+            MinRange = 1,
+            MaxRange = 2
         };
 
         Abilities.Add(autoAttack);
@@ -94,22 +95,45 @@ public class PawnCombat : MonoBehaviour
 
 
 
+    // Stance were the pawn actively go for their target
     void AggressiveStance()
     {
         ChoseTarget();
 
+        // If no target was found, stop there
         if(CurrentTarget == null)
         {
             return;
         }
 
-        float targetDist = Vector3.Distance(transform.position, CurrentTarget.transform.position);
-
-        if(targetDist > Abilities.First().Range && _Pawn._ActionManager.QueueIsEmpty())
+        // If in range for auto attack, then auto attack
+        if (InRangeFor(Abilities.First()))
+        {
+            _Pawn.Cast(Abilities.First(), CurrentTarget);
+        }
+        // Else, if the pawn isn't already walking, walk to a correct range
+        else if(_Pawn._ActionManager.QueueIsEmpty())
         {
             _Pawn.GoTo(CurrentTarget.transform);
         }
-        else
+    }
+
+
+
+
+    // Stance where the pawn waits for their target to be in range to attack them
+    void DefensiveStance()
+    {
+        ChoseTarget();
+
+        // If no target was found, stop there
+        if (CurrentTarget == null)
+        {
+            return;
+        }
+
+        // If in range for auto attack, then auto attack
+        if (InRangeFor(Abilities.First()))
         {
             _Pawn.Cast(Abilities.First(), CurrentTarget);
         }
@@ -118,17 +142,9 @@ public class PawnCombat : MonoBehaviour
 
 
 
-    void DefensiveStance()
-    {
-
-    }
-
-
-
-
     void PassiveStance()
     {
-
+        return;
     }
 
 
@@ -143,16 +159,27 @@ public class PawnCombat : MonoBehaviour
 
         ForcedTarget = null;
 
-        if (CurrentTarget != null && _Pawn.CanAttack(CurrentTarget))
-        {
-            // If the current target is in range, no need to find another target
-            if(Vector3.Distance(transform.position, CurrentTarget.transform.position) <= AggroRange)
-            {
-                return;
-            }
 
-            // Else, it's no longer a target
-            SetTarget(null);
+
+
+
+        if(CurrentTarget != null)
+        {
+            if (_Pawn.CanAttack(CurrentTarget))
+            {
+                // If the current target is in range, no need to find another target
+                if(Vector3.Distance(transform.position, CurrentTarget.transform.position) <= AggroRange)
+                {
+                    return;
+                }
+
+                // Else, it's no longer a target
+                SetTarget(null);
+            }
+            else
+            {
+                SetTarget(null);
+            }
         }
 
         if(HostilesInRange.Count == 0)
@@ -189,12 +216,12 @@ public class PawnCombat : MonoBehaviour
     {
         HostilesInRange.Clear();
 
-        //
-        if (_Pawn.Faction.Id != "g_player")
-        {
-            return;
-        }
-        //
+        ////
+        //if (_Pawn.Faction.Id != "g_player")
+        //{
+        //    return;
+        //}
+        ////
 
         if(StanceType == "passive")
         {
@@ -272,7 +299,7 @@ public class PawnCombat : MonoBehaviour
         Vector3 currentPosition = _Pawn.transform.position;
         Vector3 targetPosition = CastAbility.Target.transform.position;
 
-        if (Vector3.Distance(currentPosition, targetPosition) > CastAbility.Range)
+        if (Vector3.Distance(currentPosition, targetPosition) > CastAbility.MaxRange)
         {
             return;
         }
@@ -334,6 +361,28 @@ public class PawnCombat : MonoBehaviour
 
         return eventHappenned;
     }
+
+    public bool TooCloseFor(Ability ability)
+    {
+        float targetDist = Vector3.Distance(transform.position, CurrentTarget.transform.position);
+
+        return targetDist < ability.MinRange;
+    }
+
+
+    public bool TooFarFor(Ability ability)
+    {
+        float targetDist = Vector3.Distance(transform.position, CurrentTarget.transform.position);
+
+        return targetDist > ability.MaxRange;
+    }
+
+
+    public bool InRangeFor(Ability ability)
+    {
+        return !TooCloseFor(ability) && !TooFarFor(ability);
+    }
+
 
 
     public bool TargetIsForced()

@@ -74,6 +74,14 @@ public class Pawn : MonoBehaviour
 
         RigBuilder.Build();
         HitPoints = MaxHitPoints;
+
+        _PawnCombat = GetComponent<PawnCombat>();
+        Attributes = GetComponent<PawnAttributes>();
+        Movement = GetComponent<PawnMovement>();
+        Attachments = GetComponent<PawnAttachments>();
+        _FlockAgent = GetComponent<FlockAgent>();
+        _ActionManager = GetComponent<ActionManager>();
+        Model = GetComponentInChildren<PawnModel>();
     }
 
 
@@ -83,13 +91,6 @@ public class Pawn : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        Attributes = GetComponent<PawnAttributes>();
-        Movement = GetComponent<PawnMovement>();
-        Attachments = GetComponent<PawnAttachments>();
-        _PawnCombat = GetComponent<PawnCombat>();
-        _FlockAgent = GetComponent<FlockAgent>();
-        _ActionManager = GetComponent<ActionManager>();
-        Model = GetComponentInChildren<PawnModel>();
 
         InvokeRepeating(nameof(ManageActions), 0, 0.25f);
     }
@@ -555,9 +556,14 @@ public class Pawn : MonoBehaviour
         return _PawnCombat.CurrentTarget != null;
     }
 
+    public bool IsCasting()
+    {
+        return _PawnCombat.CastAbility != null;
+    }
+
     public bool CanAttack(Pawn target)
     {
-        return target.IsAlive && Faction.IsAtWarWith(target.Faction);
+        return target != this && target.IsAlive && Faction != target.Faction && Faction.IsAtWarWith(target.Faction);
     }
 
 

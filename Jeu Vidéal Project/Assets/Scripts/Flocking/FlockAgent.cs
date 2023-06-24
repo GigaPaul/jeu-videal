@@ -9,6 +9,22 @@ public class FlockAgent : MonoBehaviour
     public Vector3 PositionTarget;
 
 
+    private void FixedUpdate()
+    {
+        if (_Pawn.IsFlocking())
+        {
+            // If pawn has reached his target, reset and return
+            if (HasReachedPosition())
+            {
+                PositionTarget = Vector3.zero;
+            }
+        }
+    }
+
+
+
+
+
     public void ApplyRules()
     {
         SteeringSeparation();
