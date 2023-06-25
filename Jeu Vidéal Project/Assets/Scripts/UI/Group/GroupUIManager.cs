@@ -55,6 +55,7 @@ public class GroupUIManager : MonoBehaviour
         GameObject newButtonGO = Instantiate(ButtonPrefab);
         GroupMemberButton newButton = newButtonGO.GetComponent<GroupMemberButton>();
         newButton._Pawn = pawn;
+        Debug.Log(pawn);
 
         newButtonGO.transform.SetParent(transform, false);
     }

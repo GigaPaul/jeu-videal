@@ -14,8 +14,9 @@ public class Ability
     public Pawn Target { get; set; }
 
 
-    public Ability(string triggerLabel, int damages = 10, float maxRange = 2, float minRange = 1)
+    public Ability(string id, string triggerLabel, int damages = 10, float maxRange = 2, float minRange = 1)
     {
+        Id = id;
         TriggerLabel = triggerLabel;
         Damages = damages;
         MaxRange = maxRange;

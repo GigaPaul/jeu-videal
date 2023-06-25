@@ -34,6 +34,7 @@ public class Pawn : MonoBehaviour
     public PawnCombat _PawnCombat { get; set; }
     public FlockAgent _FlockAgent { get; set; }
     public ActionManager _ActionManager { get; set; }
+    public PawnAnimation _PawnAnimation { get; set; }
 
     public MultiAimConstraint HeadAim;
     public NavMeshAgent NavMeshAgent;
@@ -81,6 +82,7 @@ public class Pawn : MonoBehaviour
         Attachments = GetComponent<PawnAttachments>();
         _FlockAgent = GetComponent<FlockAgent>();
         _ActionManager = GetComponent<ActionManager>();
+        _PawnAnimation = GetComponent<PawnAnimation>();
         Model = GetComponentInChildren<PawnModel>();
     }
 
@@ -98,32 +100,22 @@ public class Pawn : MonoBehaviour
     void FixedUpdate()
     {
         ManageRings();
+        CheckDeathStatus();
     }
 
 
 
 
+    private void CheckDeathStatus()
+    {
+        // If the pawn is still alive or didn't died right now
+        if(IsAlive || Animator.GetBool("IsDead"))
+        {
+            return;
+        }
 
-    //private void AIRoutine()
-    //{
-    //    if(IsAlive)
-    //    {
-    //        // If the pawn is not moving
-    //        if (!IsMoving())
-    //        {
-    //            // If the pawn has nothing to do
-    //            if (ActionManager.QueueIsEmpty())
-    //            {
-    //                // If the spawn isn't playable
-    //                if (!IsPlayable())
-    //                {
-    //                    // Start AI routine
-    //                    Routine();
-    //                }
-    //            }
-    //        }
-    //    }
-    //}
+        Die();
+    }
 
 
 
@@ -143,6 +135,35 @@ public class Pawn : MonoBehaviour
                 }
             }
         }
+    }
+
+
+
+
+
+    public void Focus()
+    {
+        Globals.FocusedPawn = this;
+
+        AbilityBar bar = FindObjectOfType<AbilityBar>();
+
+        if(IsPlayable())
+        {
+            bar.LoadAbilitiesOf(this);
+        }
+        else
+        {
+            bar.UnloadAbilities();
+        }
+    }
+
+
+
+    public void Unfocus()
+    {
+        Globals.FocusedPawn = null;
+        AbilityBar bar = FindObjectOfType<AbilityBar>();
+        bar.UnloadAbilities();
     }
 
 
@@ -534,6 +555,17 @@ public class Pawn : MonoBehaviour
         gameObject.AddComponent(type);
         _ActionManager.ClearActionQueue();
     }
+
+
+    public void Die()
+    {
+        _PawnCombat.ClearTargets();
+        _ActionManager.ClearActionQueue();
+        _PawnAnimation.PlayDeathAnim();
+
+        NavMeshAgent.enabled = false;
+    }
+
 
     public bool HasInSights(Transform target)
     {

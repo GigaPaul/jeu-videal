@@ -36,9 +36,9 @@ public abstract class SmartPawn : MonoBehaviour
 
     private void RoutineController()
     {
-        ////////////////////////////////////////////////
-        // All the ways a Pawn would not use their AI //
-        ////////////////////////////////////////////////
+        ///////////////////////////////////////////////////
+        // All the reasons a Pawn would not use their AI //
+        ///////////////////////////////////////////////////
 
         // The pawn is dead
         if (!_Pawn.IsAlive)

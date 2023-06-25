@@ -20,7 +20,13 @@ public class PawnAnimation : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
-        CheckDeath();
+        //CheckDeath();
+
+        if(!_Pawn.IsAlive)
+        {
+            return;
+        }
+
         CheckCombat();
         CheckSpeed();
         CheckEquipedTools();
@@ -30,14 +36,25 @@ public class PawnAnimation : MonoBehaviour
 
 
 
-    private void CheckDeath()
+    //private void CheckDeath()
+    //{
+    //    bool dontTriggerDeathAnim = _Pawn.IsAlive || Animator.GetBool("IsDead");
+
+    //    if (dontTriggerDeathAnim)
+    //        return;
+
+    //    Animator.SetBool("IsDead", true);
+    //}
+
+
+
+
+    public void PlayDeathAnim()
     {
-        bool dontTriggerDeathAnim = _Pawn.IsAlive || Animator.GetBool("Death");
-
-        if (dontTriggerDeathAnim)
-            return;
-
-        Animator.SetTrigger("Death");
+        if (!Animator.GetBool("IsDead"))
+        {
+            Animator.SetBool("IsDead", true);
+        }
     }
 
 

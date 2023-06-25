@@ -49,6 +49,11 @@ public class PawnCombat : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if(!_Pawn.IsAlive)
+        {
+            return;
+        }
+
         PurgeHostileList();
         StanceLoop();
         TriggerAbility();
@@ -64,13 +69,20 @@ public class PawnCombat : MonoBehaviour
 
     void LoadDefaultAbilities()
     {
-        Ability autoAttack = new("Punch")
-        {
-            MinRange = 1,
-            MaxRange = 2
-        };
+        AbilityManager abilityManager = FindObjectOfType<AbilityManager>();
 
-        Abilities.Add(autoAttack);
+
+        Ability autoAttack = abilityManager.Abilities.FirstOrDefault(i => i.Id == "a_auto_attack");
+        if(autoAttack != null)
+        {
+            Abilities.Add(autoAttack);
+        }
+
+        Ability slash = abilityManager.Abilities.FirstOrDefault(i => i.Id == "a_slash");
+        if (slash != null)
+        {
+            Abilities.Add(slash);
+        }
     }
 
 

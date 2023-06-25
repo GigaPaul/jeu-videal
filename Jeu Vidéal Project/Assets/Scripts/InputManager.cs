@@ -5,7 +5,9 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 public class InputManager : MonoBehaviour
 {
@@ -14,6 +16,7 @@ public class InputManager : MonoBehaviour
     bool LeftClickIsHeld = false;
     bool RightClickIsHeld = false;
     public RectTransform SelectionArea;
+    public bool CursorOverUI = false;
 
     #nullable enable
     Pawn? FocusedObject { get; set; }
@@ -35,7 +38,8 @@ public class InputManager : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if(LeftClickIsHeld)
+        CursorOverUI = EventSystem.current.IsPointerOverGameObject();
+        if (LeftClickIsHeld)
         {
             GenerateSelection();
         }
@@ -88,6 +92,15 @@ public class InputManager : MonoBehaviour
 
     private void StartActions(InputAction.CallbackContext context)
     {
+        // Check if the cursor isn't over a button or something
+        if (CursorOverUI)
+        {
+            return;
+        }
+
+
+
+
         float value = context.ReadValue<float>();
 
         switch (value)
@@ -97,6 +110,8 @@ public class InputManager : MonoBehaviour
                 LeftClickIsHeld = true;
                 Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
                 Pawn hitPawn = null;
+                SelectionArea.position = Mouse.current.position.ReadValue();
+
 
                 if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, Globals.FocusableMask))
                 {
@@ -106,9 +121,8 @@ public class InputManager : MonoBehaviour
 
                 if (hitPawn == null)
                 {
-                    SelectionArea.position = Mouse.current.position.ReadValue();
-                    SelectionArea.gameObject.SetActive(true);
-                    GenerateSelection();
+                    //SelectionArea.gameObject.SetActive(true);
+                    //GenerateSelection();
                 }
                 break;
 
@@ -127,7 +141,11 @@ public class InputManager : MonoBehaviour
 
     private void PerformActions(InputAction.CallbackContext context)
     {
-
+        // Check if the cursor isn't over a button or something
+        if (CursorOverUI)
+        {
+            return;
+        }
     }
 
 
@@ -136,12 +154,25 @@ public class InputManager : MonoBehaviour
 
     private void CancelActions(InputAction.CallbackContext context)
     {
-        if(LeftClickIsHeld)
+        if (LeftClickIsHeld)
         {
-            Globals.FocusedPawn = FocusedObject;
+            if(!CursorOverUI)
+            {
+                if (FocusedObject != null)
+                {
+                    FocusedObject.Focus();
+                }
+                else if(Globals.FocusedPawn != null)
+                {
+                    Globals.FocusedPawn.Unfocus();
+                }
+            }
+
             LeftClickIsHeld = false;
             SelectionArea.gameObject.SetActive(false);
+            FocusedObject = null;
         }
+
 
 
 
@@ -283,6 +314,19 @@ public class InputManager : MonoBehaviour
     {
         Vector2 mousePosition = Mouse.current.position.ReadValue();
         Vector2 selectionPos = new(SelectionArea.transform.position.x, SelectionArea.transform.position.y);
+
+        float distance = Vector2.Distance(mousePosition, selectionPos);
+
+        if(distance < 15)
+        {
+            return;
+        }
+
+        if(!SelectionArea.gameObject.activeSelf)
+        {
+            SelectionArea.gameObject.SetActive(true);
+        }
+
         Vector2 size = mousePosition - selectionPos;
         SelectionArea.sizeDelta = size;
     }

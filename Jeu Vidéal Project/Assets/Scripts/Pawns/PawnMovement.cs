@@ -9,7 +9,6 @@ public class PawnMovement : MonoBehaviour
     public NavMeshAgent _NavMeshAgent;
     public FlockAgent _FlockAgent;
     public ActionManager _ActionManager;
-    public Patrol _Patrol = new();
 
     [Range(0f, 10f)]
     public float MaxSpeed;
@@ -265,6 +264,12 @@ public class PawnMovement : MonoBehaviour
 
     public void Pathfind()
     {
+        if(!_Pawn.IsAlive)
+        {
+            return;
+        }
+
+
         if (_ActionManager.QueueIsEmpty())
         {
             _Pawn.NavMeshAgent.ResetPath();
