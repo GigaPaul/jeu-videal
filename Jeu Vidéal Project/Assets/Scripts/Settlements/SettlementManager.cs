@@ -42,7 +42,7 @@ public class SettlementManager : MonoBehaviour
             settlement._Culture = culture;
 
 
-            for (int i = 0; i <= data.InitialPopulation; i++)
+            for (int i = 0; i < data.InitialPopulation; i++)
             {
                 settlement.CreateVillager();
             }

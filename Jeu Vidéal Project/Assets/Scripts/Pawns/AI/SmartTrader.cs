@@ -13,7 +13,6 @@ public class SmartTrader : SmartPawn
     }
 
     private List<Settlement> VisitedSettlements = new();
-    private int EncounteredTraders = 0;
 
 
 
@@ -97,52 +96,52 @@ public class SmartTrader : SmartPawn
 
         Vector3 waypoint = nearestSettlement.GetRandomPoint(0.5f);
 
-        Action traderAction = new()
-        {
-            Label = "Trading",
-            Destination = waypoint,
-            StartingScript = () =>
-            {
-                EncounteredTraders = 0;
-                _Pawn.Animator.SetTrigger("Wave");
-                _Pawn.Say($"Hello {nearestSettlement.Label}!");
+        //System.Action traderAction = new()
+        //{
+        //    Label = "Trading",
+        //    Destination = waypoint,
+        //    StartingScript = () =>
+        //    {
+        //        EncounteredTraders = 0;
+        //        _Pawn.Animator.SetTrigger("Wave");
+        //        _Pawn.Say($"Hello {nearestSettlement.Label}!");
 
-                LocalTraders = FindObjectsOfType<Pawn>().Where(i => i.Settlement == nearestSettlement && i.GetComponent<SmartTrader>()).ToList();
+        //        LocalTraders = FindObjectsOfType<Pawn>().Where(i => i.Settlement == nearestSettlement && i.GetComponent<SmartTrader>()).ToList();
 
-                foreach (Pawn local in LocalTraders)
-                {
-                    Action buyFromTrader = new()
-                    {
-                        Label = "Buying",
-                        Target = transform,
-                        StartingScript = () =>
-                        {
-                            local.Say("Hello trader!");
-                            EncounteredTraders++;
-                            return Task.FromResult(0);
-                        }
-                    };
+        //        foreach (Pawn local in LocalTraders)
+        //        {
+        //            System.Action buyFromTrader = new()
+        //            {
+        //                Label = "Buying",
+        //                Target = transform,
+        //                StartingScript = () =>
+        //                {
+        //                    local.Say("Hello trader!");
+        //                    EncounteredTraders++;
+        //                    return Task.FromResult(0);
+        //                }
+        //            };
 
-                    local.Do(buyFromTrader);
-                }
+        //            //local.Do(buyFromTrader);
+        //        }
 
-                return Task.FromResult(0);
-            },
+        //        return Task.FromResult(0);
+        //    },
 
-            SuccessCondition = () =>
-            {
-                return EncounteredTraders == LocalTraders.Count;
-            },
+        //    SuccessCondition = () =>
+        //    {
+        //        return EncounteredTraders == LocalTraders.Count;
+        //    },
 
-            SuccessScript = () =>
-            {
-                _Pawn.Say("I've seen everyone in this village, bye!");
+        //    SuccessScript = () =>
+        //    {
+        //        _Pawn.Say("I've seen everyone in this village, bye!");
 
-                return Task.FromResult(0);
-            }
-        };
+        //        return Task.FromResult(0);
+        //    }
+        //};
 
-        _Pawn.Do(traderAction);
+        //_Pawn.Do(traderAction);
     }
 
 
@@ -153,18 +152,8 @@ public class SmartTrader : SmartPawn
     {
         Vector3 wanderPoint = _Pawn.Settlement.GetRandomPoint();
 
-        float waitingTime = 3;
-
-        Action wander = new()
-        {
-            Label = "Wandering",
-            Destination = wanderPoint
-        };
-
-        wander.StartingScript = async () =>
-        {
-            await Task.Delay((int)(waitingTime * 1000), wander.TokenSource.Token);
-        };
+        Action wander = Action.Find("act_wander");
+        wander.Destination = wanderPoint;
 
         _Pawn.Do(wander);
     }

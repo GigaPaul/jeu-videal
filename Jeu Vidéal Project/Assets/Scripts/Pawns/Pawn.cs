@@ -22,8 +22,6 @@ public class Pawn : MonoBehaviour
     [Range(1, 100)]
     public int MaxHitPoints;
     public int HitPoints { get; private set; }
-    //public List<Settlement> TraderVisitedSettlements = new();
-    //public float Radius = 1.5f;
 
     // Status
     public bool IsAlive => HitPoints > 0;
@@ -32,6 +30,7 @@ public class Pawn : MonoBehaviour
     public PawnMovement Movement { get; set; }
     public PawnAttachments Attachments { get; set; }
     public PawnCombat _PawnCombat { get; set; }
+    public AbilityHolder _AbilityHolder { get; set; }
     public FlockAgent _FlockAgent { get; set; }
     public ActionManager _ActionManager { get; set; }
     public PawnAnimation _PawnAnimation { get; set; }
@@ -77,6 +76,7 @@ public class Pawn : MonoBehaviour
         HitPoints = MaxHitPoints;
 
         _PawnCombat = GetComponent<PawnCombat>();
+        _AbilityHolder = GetComponent<AbilityHolder>();
         Attributes = GetComponent<PawnAttributes>();
         Movement = GetComponent<PawnMovement>();
         Attachments = GetComponent<PawnAttachments>();
@@ -126,12 +126,12 @@ public class Pawn : MonoBehaviour
         if(IsAlive)
         {
             // If the current action is unloaded (Pawn just reached his target)
-            if (!_ActionManager.QueueIsEmpty() && _ActionManager.GetCurrentAction().IsUnloaded())
+            if (!_ActionManager.QueueIsEmpty() && _ActionManager.CurrentAction.Status == Action.StatusType.unloaded)
             {
                 if(HasReachedDestination())
                 {
                     // Load the current action
-                    _ActionManager.GetCurrentAction().Load();
+                    _ActionManager.CurrentAction.Status = Action.StatusType.loading;
                 }
             }
         }
@@ -228,11 +228,11 @@ public class Pawn : MonoBehaviour
             return true;
         }
 
-        bool actionIsUnloaded = _ActionManager.GetCurrentAction().IsUnloaded();
+        bool actionIsUnloaded = _ActionManager.CurrentAction.Status == Action.StatusType.unloaded;
 
-        float remainingDistance = _ActionManager.GetCurrentAction().RemainingDistance();
+        float remainingDistance = _ActionManager.CurrentAction.RemainingDistance();
 
-        if (_ActionManager.GetCurrentAction().IsWaypoint())
+        if (_ActionManager.CurrentAction.IsWaypoint)
         {
             remainingDistance = Mathf.Floor(remainingDistance * 100) / 100;
         }
@@ -240,36 +240,6 @@ public class Pawn : MonoBehaviour
         bool hasReachedDestination = remainingDistance <= NavMeshAgent.stoppingDistance;
 
         return actionIsUnloaded && hasReachedDestination;
-
-
-
-        //return Vector3.Distance(transform.position, NavMeshAgent.destination) <= NavMeshAgent.stoppingDistance;
-
-        //if(ActionManager.GetCurrentTarget() != null)
-        //{
-        //    float distance = Vector3.Distance(transform.position, ActionManager.GetCurrentTarget().position);
-        //    float flooredDistance = Mathf.Floor(distance);
-        //    //float flooredDistance = Mathf.Floor(distance * 10) / 10;
-
-        //    Transform target = ActionManager.GetCurrentTarget();
-        //    float radius = NavMeshAgent.stoppingDistance;
-
-        //    if (target.GetComponent<NavMeshAgent>())
-        //    {
-        //        radius += target.GetComponent<NavMeshAgent>().radius;
-        //    }
-
-
-
-        //    return flooredDistance <= radius;
-        //}
-        //else
-        //{
-        //    float distance = Vector3.Distance(transform.position, ActionManager.GetCurrentDestination());
-        //    float flooredDistance = Mathf.Floor(distance);
-
-        //    return flooredDistance <= NavMeshAgent.stoppingDistance;
-        //}
     }
 
     public bool IsMoving()
@@ -296,11 +266,8 @@ public class Pawn : MonoBehaviour
     // Pre-scripted actions
     public void GoTo(Vector3 destination, bool isQueueing = false)
     {
-        Action walk = new()
-        {
-            Label = "Moving...",
-            Destination = destination
-        };
+        Action walk = Action.Find("act_move");
+        walk.Destination = destination;
 
         Do(walk, false, isQueueing);
     }
@@ -308,11 +275,8 @@ public class Pawn : MonoBehaviour
 
     public void GoTo(Transform target, bool isQueueing = false)
     {
-        Action walk = new()
-        {
-            Label = "Moving...",
-            Target = target
-        };
+        Action walk = Action.Find("act_move");
+        walk.Target = target;
 
         Do(walk, false, isQueueing);
     }
@@ -328,9 +292,12 @@ public class Pawn : MonoBehaviour
             return;
         }
 
-        Action use = furniture.GetAction(this);
-
-        Do(use);
+        if(furniture.UsageAction == null)
+        {
+            return;
+        }
+        
+        Do(furniture.UsageAction);
     }
 
 
@@ -476,7 +443,7 @@ public class Pawn : MonoBehaviour
         action.Actor = this;
 
         // If validity condition are false, don't add the action to the queue
-        if(!action.AreConditionsValid())
+        if(!action.IsValid())
         {
             return;
         }
@@ -499,13 +466,29 @@ public class Pawn : MonoBehaviour
 
     public void Cast(Ability ability)
     {
-        _PawnCombat.CastAbility = ability;
+        if(ability.NeedsTarget)
+        {
+            if(!IsInCombat())
+            {
+                return;
+            }
+
+            Cast(ability, _PawnCombat.CurrentTarget);
+        }
+        else
+        {
+            Ability abilityClone = Instantiate(ability);
+            abilityClone.Caster = this;
+            _AbilityHolder.Hold(abilityClone);
+        }
     }
 
     public void Cast(Ability ability, Pawn target)
     {
-        ability.Target = target;
-        _PawnCombat.CastAbility = ability;
+        Ability abilityClone = Instantiate(ability);
+        abilityClone.Caster = this;
+        abilityClone.Target = target;
+        _AbilityHolder.Hold(abilityClone);
     }
 
 
@@ -590,7 +573,8 @@ public class Pawn : MonoBehaviour
 
     public bool IsCasting()
     {
-        return _PawnCombat.CastAbility != null;
+        return _AbilityHolder.AbilityHeld != null;
+        //return _PawnCombat.CastAbility != null;
     }
 
     public bool CanAttack(Pawn target)

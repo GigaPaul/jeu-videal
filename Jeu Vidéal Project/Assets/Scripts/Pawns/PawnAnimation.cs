@@ -20,6 +20,10 @@ public class PawnAnimation : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
+        if(_Pawn.IsBeingDebugged)
+        {
+            return;
+        }
         //CheckDeath();
 
         if(!_Pawn.IsAlive)

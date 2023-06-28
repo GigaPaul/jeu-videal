@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d4ece66015afadc4bb0fa836a3f8a9a6, type: 3}
+  m_Name: act_move
+  m_EditorClassIdentifier: 
+  Label: Moving
+  Id: 
+  IsOneShot: 0
+  IsWaypoint: 1
+  StartWaitingTime: 0
+  EndWaitingTime: 0

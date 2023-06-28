@@ -4,17 +4,11 @@ using UnityEngine;
 
 public abstract class Furniture : MonoBehaviour
 {
-#nullable enable
+    #nullable enable
     [HideInInspector]
     public Pawn? User;
-    #nullable disable
-
-    public virtual string ActionLabel
-    {
-        get { return "Using furniture"; }
-    }
-
-    public abstract Action GetAction(Pawn pawn);
+#nullable disable
+    public Action UsageAction;
 
 
 

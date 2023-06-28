@@ -1,90 +1,68 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 
-public delegate void PawnScript();
-
-public class Action
+[CreateAssetMenu(fileName = "BasicAction", menuName = "Action/BasicAction")]
+public class Action : ScriptableObject
 {
-    public string Label { get; set; }
+    public string Label;
+    public string Id;
+    public bool IsOneShot = false;
+    public bool IsWaypoint = false;
+    /// <summary>
+    /// Time in ms the Pawn will wait after reaching the destination of the action
+    /// </summary>
+    public int StartWaitingTime;
+    /// <summary>
+    /// Time in ms the Pawn will wait after the action succeeds
+    /// </summary>
+    public int EndWaitingTime;
+
+    public enum StatusType
+    {
+        unloaded,
+        loading,
+        initializing,
+        initialized,
+        running,
+        inactive
+    }
+    public StatusType Status { get; set; } = StatusType.unloaded;
+
+
     public Pawn Actor { get; set; }
-    public bool IsOneShot { get; set; } = false;
-#nullable enable
+    #nullable enable
     public Transform? Target { get; set; }
+    #nullable disable
     public Vector3 Destination { get; set; }
 
-    /// <summary>
-    ///     Script executed when the actor reaches the destination.
-    /// </summary>
-    public Func<Task>? StartingScript { get; set; }
-
-    /// <summary>
-    ///     Script executed after StartingScript has been executed and if SuccessCondition has been achieved.
-    /// </summary>
-    public Func<Task>? SuccessScript { get; set; }
-
-    /// <summary>
-    /// Script executed before the end of the action even after a cancellation.
-    /// </summary>
-    public PawnScript? EndingScript { get; set; }
-
-    public CancellationTokenSource TokenSource = new();
-
-
-
-    public Func<bool>? ValidityCondition { get; set; }
-    public Func<bool>? SuccessCondition { get; set; }
-#nullable disable
-    public int Status { get; set; } = 0;
-
-
-
-
-
-
-
-
-
-
-    public async Task PerformStartingScript()
-    {
-        if(StartingScript != null)
+    public virtual Task OnStart()
+    { 
+        if(StartWaitingTime == 0)
         {
-            TokenSource = new();
-
-            try
-            {
-                await StartingScript.Invoke();
-            }
-            catch(OperationCanceledException)
-            {
-                Debug.Log("The action has been canceled.");
-            }
-            finally
-            {
-                TokenSource.Dispose();
-            }
+            return Task.FromResult(0);
+        }
+        else
+        {
+            //await Task.Delay(StartWaitingTime);
+            return Task.FromResult(0);
         }
     }
 
-
-
-
-
-    public async Task PerformSuccessScript()
-    {
-        if (SuccessScript != null)
+    public virtual Task OnSuccess() {
+        if (EndWaitingTime == 0)
         {
-            await SuccessScript.Invoke();
+            return Task.FromResult(0);
+        }
+        else
+        {
+            //await Task.Delay(EndWaitingTime);
+            return Task.FromResult(0);
         }
     }
 
-
-
+    public virtual Task OnEnd() { return Task.FromResult(0); }
 
     public float RemainingDistance()
     {
@@ -94,168 +72,21 @@ public class Action
     }
 
 
-
-
-
-    public void End()
+    #nullable enable
+    public static Action? Find(string id)
     {
-        if(EndingScript == null)
-        {
-            return;
-        }
+        return Instantiate(Resources.Load<Action>($"Actions/{id}"));
+    }
+    #nullable disable
 
-        EndingScript.Invoke();
+
+    public virtual bool IsValid()
+    {
+        return true;
     }
 
-
-
-
-
-    public void Unload()
+    public virtual bool HasSucceeded()
     {
-        //TokenSource.Cancel();
-        Status = 0;
-    }
-
-
-
-
-
-    public void Load()
-    {
-        Status = 1;
-    }
-
-
-
-
-
-    public void StartInitialization()
-    {
-        Status = 2;
-    }
-
-
-
-
-
-    public void CompleteInitialization()
-    {
-        Status = 3;
-    }
-
-
-
-
-
-    public void Start()
-    {
-        Status = 4;
-    }
-
-
-
-
-
-    public void Stop()
-    {
-        Status = 5;
-    }
-
-
-
-
-
-
-
-
-
-
-    // BOOLEANS
-    public bool IsUnloaded()
-    {
-        return Status == 0;
-    }
-
-
-
-
-
-    public bool IsLoading()
-    {
-        return Status == 1;
-    }
-
-
-
-
-
-    public bool IsInitializing()
-    {
-        return Status == 2;
-    }
-
-
-
-
-
-    public bool IsInitialized()
-    {
-        return Status == 3;
-    }
-
-
-
-
-
-    public bool IsRunning()
-    {
-        return Status == 4;
-    }
-
-
-
-
-
-    public bool IsInactive()
-    {
-        return Status == 5;
-    }
-
-
-
-
-
-    public bool HasEnded()
-    {
-        if(SuccessCondition == null)
-        {
-            return true;
-        }
-
-        return SuccessCondition.Invoke();
-    }
-
-
-
-
-
-    public bool AreConditionsValid()
-    {
-        if (ValidityCondition == null)
-        {
-            return true;
-        }
-
-        return ValidityCondition.Invoke();
-    }
-
-
-
-
-
-    public bool IsWaypoint()
-    {
-        return StartingScript == null && SuccessScript == null && EndingScript == null;
+        return true;
     }
 }

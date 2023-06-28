@@ -3,7 +3,7 @@
 	<Settlements>
 		<Settlement name="Abourg" id="0">
 			<Culture>0</Culture>
-			<Population>20</Population>
+			<Population>0</Population>
 		</Settlement>
 	</Settlements>
 </SettlementCollection>

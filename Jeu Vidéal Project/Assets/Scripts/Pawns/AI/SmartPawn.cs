@@ -118,18 +118,8 @@ public abstract class SmartPawn : MonoBehaviour
 
         Vector3 wanderPoint = _Pawn.Settlement.GetRandomPoint();
 
-        float waitingTime = 3;
-
-        Action wander = new()
-        {
-            Label = "Wandering",
-            Destination = wanderPoint
-        };
-
-        wander.StartingScript = async () =>
-        {
-            await Task.Delay((int)(waitingTime * 1000), wander.TokenSource.Token);
-        };
+        Action wander = Action.Find("act_wander");
+        wander.Destination = wanderPoint;
 
         _Pawn.Do(wander);
     }
@@ -155,7 +145,16 @@ public abstract class SmartPawn : MonoBehaviour
 
         int random = UnityEngine.Random.Range(0, beds.Count);
         Bed bed = beds[random];
-        _Pawn.Do(bed.GetAction(_Pawn));
+        //_Pawn.Do(bed.GetAction(_Pawn));
+
+
+
+        //
+        Action sleep = Action.Find("act_move");
+        sleep.Destination = bed.transform.position;
+
+        _Pawn.Do(sleep);
+        //
     }
 
 

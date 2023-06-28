@@ -34,51 +34,53 @@ public class SmartWorker : SmartPawn
 
 
 
-        // Working
-        Action working = new()
-        {
-            Label = "Working",
-            Target = randomWorkingStation
-        };
+        //// Working
+        //System.Action working = new()
+        //{
+        //    Label = "Working",
+        //    Target = randomWorkingStation
+        //};
 
-        working.StartingScript = () =>
-        {
-            _Pawn.Movement.RotationTarget = working.Target;
-            _Pawn.Animator.SetBool("IsWorking", true);
-            return Task.FromResult(0);
-        };
+        //working.StartingScript = () =>
+        //{
+        //    _Pawn.Movement.RotationTarget = working.Target;
+        //    _Pawn.Animator.SetBool("IsWorking", true);
+        //    return Task.FromResult(0);
+        //};
 
-        working.SuccessCondition = () =>
-        {
-            // Stop after the animation looped 3 times
-            return _Pawn.Animator.GetCurrentAnimatorStateInfo(0).normalizedTime > 3;
-        };
+        //working.SuccessCondition = () =>
+        //{
+        //    // Stop after the animation looped 3 times
+        //    return _Pawn.Animator.GetCurrentAnimatorStateInfo(0).normalizedTime > 3;
+        //};
 
-        working.EndingScript = () =>
-        {
-            if (_Pawn.Movement.RotationTarget == working.Target)
-            {
-                _Pawn.Movement.RotationTarget = null;
-            }
+        //working.EndingScript = () =>
+        //{
+        //    if (_Pawn.Movement.RotationTarget == working.Target)
+        //    {
+        //        _Pawn.Movement.RotationTarget = null;
+        //    }
 
-            _Pawn.Animator.SetBool("IsWorking", false);
-        };
+        //    _Pawn.Animator.SetBool("IsWorking", false);
+        //};
 
 
 
+
+
+
+        //
+        Action working = Action.Find("act_move");
+        working.Target = randomWorkingStation;
+
+        _Pawn.Do(working);
+        //
 
 
         // Return resources
-        Action returnResources = new()
-        {
-            Label = "Returning resources",
-            Target = _Pawn.Settlement.Storage,
-            StartingScript = () =>
-            {
-                _Pawn.Settlement.ResourceStock += 10;
-                return Task.FromResult(0);
-            }
-        };
+        Action returnResources = Action.Find("act_move");
+        returnResources.Target = _Pawn.Settlement.Storage;
+
 
 
 

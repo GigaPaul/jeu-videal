@@ -113,7 +113,7 @@ public class PawnMovement : MonoBehaviour
         else
         {
             // If the pawn must rally the destination of an ongoing action
-            if (!_ActionManager.QueueIsEmpty() && !_ActionManager.GetCurrentAction().IsInactive())
+            if (!_ActionManager.QueueIsEmpty() && _ActionManager.CurrentAction.Status != Action.StatusType.inactive)
             {
                 target = transform.position + _NavMeshAgent.velocity.normalized;
             }
@@ -277,7 +277,7 @@ public class PawnMovement : MonoBehaviour
         }
 
 
-        if (!_ActionManager.GetCurrentAction().IsUnloaded())
+        if (_ActionManager.CurrentAction.Status != Action.StatusType.unloaded)
         {
             _Pawn.NavMeshAgent.ResetPath();
             return;
@@ -305,7 +305,7 @@ public class PawnMovement : MonoBehaviour
             if (destination == null)
             {
                 destination = transform.position;
-                //_ActionManager.GetCurrentAction().Destination = transform.position;
+                //_ActionManager.CurrentAction.Destination = transform.position;
             }
         }
         else
@@ -319,7 +319,7 @@ public class PawnMovement : MonoBehaviour
 
                 if(_Pawn.IsCasting())
                 {
-                    ability = _Pawn._PawnCombat.CastAbility;
+                    ability = _Pawn._AbilityHolder.AbilityHeld;
                 }
                 else
                 {
@@ -353,7 +353,7 @@ public class PawnMovement : MonoBehaviour
             destination = _ActionManager.GetCurrentTarget().position - subPos;
             //targetPosition.y = Terrain.activeTerrain.SampleHeight(targetPosition);
 
-            //_ActionManager.GetCurrentAction().Destination = targetPosition;
+            //_ActionManager.CurrentAction.Destination = targetPosition;
         }
 
 
@@ -373,20 +373,20 @@ public class PawnMovement : MonoBehaviour
             Vector3 rotatedDirection = rotation * dir;
             //Vector3 destination = _ActionManager.GetCurrentDestination() + rotatedDirection * 0.2f;
             destination += rotatedDirection * 0.2f;
-            //_ActionManager.GetCurrentAction().Destination = _ActionManager.GetCurrentDestination() + rotatedDirection * 0.2f;
+            //_ActionManager.CurrentAction.Destination = _ActionManager.GetCurrentDestination() + rotatedDirection * 0.2f;
 
 
             //if (NavMesh.SamplePosition(destination, out NavMeshHit navHit, 1.0f, NavMesh.AllAreas))
             //{
 
-            //    _ActionManager.GetCurrentAction().Destination = navHit.position;
+            //    _ActionManager.CurrentAction.Destination = navHit.position;
             //}
         }
 
         // Makes sure the destination is on the NavMesh
         if (NavMesh.SamplePosition(destination, out NavMeshHit navHit, 1.0f, NavMesh.AllAreas))
         {
-            _ActionManager.GetCurrentAction().Destination = navHit.position;
+            _ActionManager.CurrentAction.Destination = navHit.position;
         }
 
         _NavMeshAgent.SetDestination(_ActionManager.GetCurrentDestination());

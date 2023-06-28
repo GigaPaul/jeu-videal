@@ -1,33 +1,98 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
-public class Ability
+public class Ability : ScriptableObject
 {
-    public string Id;
-    public string Label;
-    public string TriggerLabel;
-    public int Damages;
-    public float MaxRange;
-    public float MinRange;
-    public bool HasBeenTriggered = false;
+    public string Name;
+    public Sprite _Sprite;
+
+
+    [Header("Animation")]
+
+    //
+    public AnimationClip Clip;
+    public string AnimationTrigger;
+    public enum AnimationStageType
+    {
+        initializing,
+        initialized,
+        start,
+        hit,
+        end
+    }
+    public AnimationStageType AnimationStage = AnimationStageType.initializing;
+    //
+
+    public List<AnimationStalker> CastingAnimations { get; set; } = new();
+    public List<AnimationStalker> ChannelAnimations { get; set; } = new();
+    public List<AnimationStalker> FireAnimations { get; set; } = new();
+
+    public enum StageType
+    {
+        active,
+        casting,
+        channeling,
+        fire
+    }
+    public StageType Stage = StageType.active;
+
+    [Header("Stats")]
+    public bool NeedsTarget = true;
+    public float CastingTime;
+    public float ChannelTime;
+    public float CooldownTime;
+    public float MinRange = 1;
+    public float MaxRange = 2;
+    public Pawn Caster { get; set; }
     public Pawn Target { get; set; }
 
 
-    public Ability(string id, string triggerLabel, int damages = 10, float maxRange = 2, float minRange = 1)
-    {
-        Id = id;
-        TriggerLabel = triggerLabel;
-        Damages = damages;
-        MaxRange = maxRange;
+    public virtual void Activate() { }
 
-        if(maxRange >= minRange)
+    public virtual void BeginCoolDown()
+    { 
+        if(!HasCooldown())
         {
-            MinRange = minRange;
+            return;
         }
-        else
+    }
+
+    public static void ResetAnimations(List<AnimationStalker> stalkers)
+    {
+        foreach(AnimationStalker stalker in stalkers)
         {
-            MinRange = maxRange / 2;
+            stalker.Reset();
         }
+    }
+
+
+
+
+    public bool IsInstant()
+    {
+        return CastingTime == 0f;
+    }
+
+    public bool IsChannel()
+    {
+        return ChannelTime == 0f;
+    }
+
+    public bool HasCooldown()
+    {
+        return CooldownTime > 0f;
+    }
+
+    public bool AnimationStarted()
+    {
+        return AnimationStage != AnimationStageType.initializing;
+    }
+
+    public bool IsOnLastStage()
+    {
+        return Stage == Enum.GetValues(typeof(StageType)).Cast<StageType>().Max();
     }
 }

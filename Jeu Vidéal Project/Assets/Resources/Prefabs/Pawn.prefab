@@ -171,6 +171,7 @@ GameObject:
   - component: {fileID: 1837366921252666521}
   - component: {fileID: 1723047687483886879}
   - component: {fileID: 8162552839827985638}
+  - component: {fileID: 3017677827219653656}
   - component: {fileID: 3394148792027154524}
   - component: {fileID: 1468532837860305613}
   - component: {fileID: 4016223599897275809}
@@ -254,9 +255,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f957a6c38b464f44bb42550fd06539c8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  EventCatcher: []
-  StanceType: 
   HostilesInRange: []
+  Abilities:
+  - {fileID: 11400000, guid: a9b04992e5192fa419105e2238dc241a, type: 2}
+  AggroRange: 5
 --- !u!114 &252642415109149108
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -277,6 +279,7 @@ MonoBehaviour:
   RotationSpeed: 5
   RotationTarget: {fileID: 0}
   RotationTargetOffset: {x: 0, y: 0, z: 0}
+  PositionMagnet: {x: 0, y: 0, z: 0}
   VelocityDirection: {x: 0, y: 0, z: 0}
   PathRenderer: {fileID: 4016223599897275809}
 --- !u!114 &2233957820035231425
@@ -351,6 +354,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   RightHand: {fileID: 7744979005052536650}
   LeftHand: {fileID: 952337738594337591}
+--- !u!114 &3017677827219653656
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1468532837860305609}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 098c1621512f5c04ea86f7f65b530ddf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _Pawn: {fileID: 0}
 --- !u!195 &3394148792027154524
 NavMeshAgent:
   m_ObjectHideFlags: 0

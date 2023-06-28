@@ -5,9 +5,19 @@ using UnityEngine;
 
 public class PawnCombat : MonoBehaviour
 {
-    Pawn _Pawn { get; set; }
-    public List<string> EventCatcher = new();
-    public string StanceType;
+    public Pawn _Pawn { get; set; }
+    public AbilityHolder _AbilityHolder { get; set; }
+    //public List<AbilityClipDTO> EventCatcher = new();
+    //public List<string> EventCatcher = new();
+
+    public enum StanceType
+    {
+        aggressive,
+        defensive,
+        passive
+    }
+
+    public StanceType Stance = StanceType.aggressive;
     public List<Pawn> HostilesInRange = new();
     public List<Ability> Abilities = new();
 
@@ -16,8 +26,12 @@ public class PawnCombat : MonoBehaviour
     #nullable enable
     public Pawn? ForcedTarget { get; set; }
     public Pawn? CurrentTarget { get; set; }
-    public Ability? CastAbility { get; set; }
-    #nullable disable
+    //public Ability? CastAbility { get; set; }
+
+    ////
+    //public AbilityTest? newCastAbility { get; set; }
+    ////
+#nullable disable
 
 
 
@@ -26,6 +40,7 @@ public class PawnCombat : MonoBehaviour
     private void Awake()
     {
         _Pawn = GetComponent<Pawn>();
+        _AbilityHolder = GetComponent<AbilityHolder>();
     }
 
 
@@ -34,12 +49,7 @@ public class PawnCombat : MonoBehaviour
 
     private void Start()
     {
-        if(StanceType == "")
-        {
-            StanceType = "aggressive";
-        }
-
-        LoadDefaultAbilities();
+        //LoadDefaultAbilities();
         InvokeRepeating(nameof(GetHostilesInRange), 0, 0.25f);
     }
 
@@ -56,8 +66,8 @@ public class PawnCombat : MonoBehaviour
 
         PurgeHostileList();
         StanceLoop();
-        TriggerAbility();
-        CheckForEvents();
+        //TriggerAbility();
+        //CheckForEvents();
     }
 
 
@@ -67,38 +77,53 @@ public class PawnCombat : MonoBehaviour
 
 
 
-    void LoadDefaultAbilities()
-    {
-        AbilityManager abilityManager = FindObjectOfType<AbilityManager>();
+    //void LoadDefaultAbilities()
+    //{
+    //    Ability autoAttack = Ability.Find("a_auto_attack");
+    //    if(autoAttack != null)
+    //    {
+    //        Abilities.Add(autoAttack);
+    //    }
 
+    //    Ability slash = Ability.Find("a_slash");
+    //    if (slash != null)
+    //    {
+    //        Abilities.Add(slash);
+    //    }
 
-        Ability autoAttack = abilityManager.Abilities.FirstOrDefault(i => i.Id == "a_auto_attack");
-        if(autoAttack != null)
-        {
-            Abilities.Add(autoAttack);
-        }
+    //    Ability block = Ability.Find("a_block");
+    //    if (block != null)
+    //    {
+    //        Abilities.Add(block);
+    //    }
 
-        Ability slash = abilityManager.Abilities.FirstOrDefault(i => i.Id == "a_slash");
-        if (slash != null)
-        {
-            Abilities.Add(slash);
-        }
-    }
+    //    Ability stab = Ability.Find("a_stab");
+    //    if (stab != null)
+    //    {
+    //        Abilities.Add(stab);
+    //    }
+    //}
 
 
 
 
     void StanceLoop()
     {
-        switch(StanceType)
+        // Don't continue if an ability is already being cast
+        if (_Pawn.IsCasting())
         {
-            case "aggressive":
+            return;
+        }
+
+        switch (Stance)
+        {
+            case StanceType.aggressive:
                 AggressiveStance();
                 break;
-            case "defensive":
+            case StanceType.defensive:
                 DefensiveStance();
                 break;
-            case "passive":
+            case StanceType.passive:
                 PassiveStance();
                 break;
         }
@@ -121,7 +146,7 @@ public class PawnCombat : MonoBehaviour
         // If in range for auto attack, then auto attack
         if (InRangeFor(Abilities.First()))
         {
-            _Pawn.Cast(Abilities.First(), CurrentTarget);
+            _Pawn.Cast(Abilities.First());
         }
         // Else, if the pawn isn't already walking, walk to a correct range
         else if(_Pawn._ActionManager.QueueIsEmpty())
@@ -147,7 +172,7 @@ public class PawnCombat : MonoBehaviour
         // If in range for auto attack, then auto attack
         if (InRangeFor(Abilities.First()))
         {
-            _Pawn.Cast(Abilities.First(), CurrentTarget);
+            _Pawn.Cast(Abilities.First());
         }
     }
 
@@ -156,6 +181,11 @@ public class PawnCombat : MonoBehaviour
 
     void PassiveStance()
     {
+        if(_Pawn.IsInCombat())
+        {
+            ClearTargets();
+        }
+
         return;
     }
 
@@ -177,21 +207,12 @@ public class PawnCombat : MonoBehaviour
 
         if(CurrentTarget != null)
         {
-            if (_Pawn.CanAttack(CurrentTarget))
+            if (_Pawn.CanAttack(CurrentTarget) && InAggroRange(CurrentTarget))
             {
-                // If the current target is in range, no need to find another target
-                if(Vector3.Distance(transform.position, CurrentTarget.transform.position) <= AggroRange)
-                {
-                    return;
-                }
+                return;
+            }
 
-                // Else, it's no longer a target
-                SetTarget(null);
-            }
-            else
-            {
-                SetTarget(null);
-            }
+            SetTarget(null);
         }
 
         if(HostilesInRange.Count == 0)
@@ -235,7 +256,7 @@ public class PawnCombat : MonoBehaviour
         //}
         ////
 
-        if(StanceType == "passive")
+        if(Stance == StanceType.passive)
         {
             return;
         }
@@ -290,89 +311,143 @@ public class PawnCombat : MonoBehaviour
 
 
 
-    // Triggers the ability's animation
-    void TriggerAbility()
-    {
-        if(CastAbility == null)
-        {
-            return;
-        }
-
-        if (CastAbility.HasBeenTriggered)
-        {
-            return;
-        }
-
-        if(CastAbility.Target == null)
-        {
-            return;
-        }
-
-        Vector3 currentPosition = _Pawn.transform.position;
-        Vector3 targetPosition = CastAbility.Target.transform.position;
-
-        if (Vector3.Distance(currentPosition, targetPosition) > CastAbility.MaxRange)
-        {
-            return;
-        }
-
-        _Pawn.Animator.SetTrigger(CastAbility.TriggerLabel);
-        CastAbility.HasBeenTriggered = true;
-    }
-
-
-
-    void CheckForEvents()
-    {
-        if(EventCatcher.Count == 0)
-        {
-            return;
-        }
 
 
 
 
 
-        // If the ability's animation started
-        if(HasCaught("begin"))
-        {
 
-        }
+    //// Triggers the ability's animation
+    //void TriggerAbility()
+    //{
+    //    if (CastAbility == null)
+    //    {
+    //        return;
+    //    }
+
+    //    if (CastAbility.HasBeenTriggered)
+    //    {
+    //        return;
+    //    }
+
+    //    if (CastAbility.NeedsTarget)
+    //    {
+    //        if (CastAbility.Target == null)
+    //        {
+    //            return;
+    //        }
+
+    //        Vector3 currentPosition = _Pawn.transform.position;
+    //        Vector3 targetPosition = CastAbility.Target.transform.position;
+
+    //        if (Vector3.Distance(currentPosition, targetPosition) > CastAbility.MaxRange)
+    //        {
+    //            return;
+    //        }
+    //    }
+
+    //    _Pawn.Animator.SetTrigger(CastAbility.TriggerLabel);
+    //    CastAbility.HasBeenTriggered = true;
+    //}
 
 
 
-        // If the ability hit the target
-        if (HasCaught("hit"))
-        {
-            if (CastAbility != null && CastAbility.Target != null)
-            {
-                CastAbility.Target.TakeDamage(CastAbility.Damages);
-            }
-        }
+    //void CheckForEvents()
+    //{
+    //    if(EventCatcher.Count == 0)
+    //    {
+    //        return;
+    //    }
+
+    //    if(CastAbility == null)
+    //    {
+    //        return;
+    //    }
 
 
 
-        // If the ability's animation ended
-        if (HasCaught("end"))
-        {
-            CastAbility.HasBeenTriggered = false;
-            CastAbility = null;
-        }
-    }
+
+
+    //    // If the ability's animation started
+    //    if (HasCaught("begin"))
+    //    {
+    //        AbilityClipDTO status = EventCatcher.FirstOrDefault(i => i._Ability == CastAbility && i.Status == "begin");
 
 
 
-    public bool HasCaught(string eventName)
-    {
-        bool eventHappenned = EventCatcher.Contains(eventName);
+    //        //if (_Pawn.IsPlayable())
+    //        //{
+    //        //    Debug.Log("==================================");
+    //        //    Debug.Log("Animation started for " + foobarAnim.AnimName + " | " + EventCatcher.Count() + " | " + CastAbility?.Id);
+    //        //}
 
-        if(eventHappenned)
-        {
-            EventCatcher.Remove(eventName);
-        }
+    //        //EventCatcher.Remove(foobarAnim);
+    //    }
 
-        return eventHappenned;
-    }
+
+
+    //    // If the ability hit the target
+    //    if (HasCaught("hit"))
+    //    {
+    //        AbilityClipDTO status = EventCatcher.FirstOrDefault(i => i._Ability == CastAbility && i.Status == "hit");
+    //        //AbilityAnimStatus foobarAnim = EventCatcher.FirstOrDefault(i => i.Status == "hit");
+            
+    //        if (CastAbility != null && CastAbility.Target != null)
+    //        {
+    //            //CastAbility.Target.TakeDamage(CastAbility.Damages);
+    //        }
+            
+    //        //EventCatcher.Remove(foobarAnim);
+    //    }
+
+
+
+    //    // If the ability's animation ended
+    //    if (HasCaught("end"))
+    //    {
+    //        AbilityClipDTO status = EventCatcher.FirstOrDefault(i => i._Ability == CastAbility && i.Status == "end");
+    //        //AbilityAnimStatus foobarAnim = EventCatcher.FirstOrDefault(i => i.Status == "end");
+
+    //        //if (_Pawn.IsPlayable())
+    //        //{
+    //        //    Debug.Log("Animation ended for "+ status._Ability.Id + " | " + EventCatcher.Count());
+    //        //}
+
+    //        EventCatcher.Remove(status);
+    //        //CastAbility.HasBeenTriggered = false;
+    //        CastAbility = null;
+    //    }
+    //}
+
+
+
+    //public bool HasCaught(string eventName)
+    //{
+    //    bool eventHappenned = EventCatcher.Any(i => i._Ability == CastAbility && i.Status == eventName);
+
+    //    //if(eventHappenned)
+    //    //{
+    //    //    AbilityAnimStatus caughtEvent = EventCatcher.FirstOrDefault(i => i._Ability == CastAbility && i.Status == eventName);
+    //    //    EventCatcher.Remove(foobarAnim);
+    //    //}
+
+    //    return eventHappenned;
+    //}
+
+
+    //public bool HasCaught(string eventName)
+    //{
+    //    bool eventHappenned = EventCatcher.Contains(eventName);
+
+    //    if (eventHappenned)
+    //    {
+    //        EventCatcher.Remove(eventName);
+    //    }
+
+    //    return eventHappenned;
+    //}
+
+
 
     public bool TooCloseFor(Ability ability)
     {
@@ -393,6 +468,12 @@ public class PawnCombat : MonoBehaviour
     public bool InRangeFor(Ability ability)
     {
         return !TooCloseFor(ability) && !TooFarFor(ability);
+    }
+
+
+    public bool InAggroRange(Pawn target)
+    {
+        return Vector3.Distance(transform.position, target.transform.position) <= AggroRange;
     }
 
 

@@ -53,7 +53,7 @@ public class TargetInfoManager : MonoBehaviour
 
         TargetName.text = targetName;
 
-        ActionLabel.text = Globals.FocusedPawn?._ActionManager.GetCurrentAction()?.Label;
+        ActionLabel.text = Globals.FocusedPawn?._ActionManager.CurrentAction?.Label;
         FactionName.text = Globals.FocusedPawn?.Faction?.Label;
         SettlementName.text = Globals.FocusedPawn?.Settlement?.Label;
     }

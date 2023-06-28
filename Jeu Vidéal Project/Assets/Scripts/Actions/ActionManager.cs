@@ -6,9 +6,21 @@ using UnityEngine;
 public class ActionManager : MonoBehaviour
 {
     public Coroutine OngoingCoroutine { get; set; }
-    private Pawn Pawn { get; set; }
+    private Pawn _Pawn { get; set; }
     public ActionQueue Queue = new();
     public bool IsLoop { get; set; } = false;
+
+    #nullable enable
+    public Action? CurrentAction
+    {
+        get { return Queue.FirstOrDefault(); }
+        set
+        {
+            ClearActionQueue();
+            Queue.Add(value); 
+        }
+    }
+    #nullable disable
 
 
 
@@ -21,7 +33,7 @@ public class ActionManager : MonoBehaviour
 
     private void Awake()
     {
-        Pawn = GetComponent<Pawn>();
+        _Pawn = GetComponent<Pawn>();
     }
 
 
@@ -32,32 +44,85 @@ public class ActionManager : MonoBehaviour
     {
         CheckActionCancellation();
 
-        if(!QueueIsEmpty() && !GetCurrentAction().IsInactive())
+        // There are no actions to play
+        if (QueueIsEmpty())
         {
-            if(GetCurrentAction().IsUnloaded() || GetCurrentAction().IsLoading())
-            {
-                if(!GetCurrentAction().AreConditionsValid())
-                {
-                    CancelCurrentAction();
-                    return;
-                }
-            }
-            
-            
-            if (GetCurrentAction().IsLoading())
-            {
-                OngoingCoroutine = StartCoroutine(InitializeAction());
-            }
-            else if(GetCurrentAction().IsInitialized())
-            {
-                StartAction();
-            }
-            else if(GetCurrentAction().IsRunning() && GetCurrentAction().HasEnded())
-            {
-                OngoingCoroutine = StartCoroutine(StopAction());
-            }
+            return;
         }
+
+        if(CurrentAction.Status == Action.StatusType.inactive)
+        {
+            return;
+        }
+
+
+        // If the action is unloaded or loading but isn't valid, cancel it
+        bool isUnloadedOrLoading = CurrentAction.Status == Action.StatusType.unloaded || CurrentAction.Status == Action.StatusType.loading;
+
+        if (isUnloadedOrLoading && !CurrentAction.IsValid())
+        {
+            CancelCurrentAction();
+            return;
+        }
+
+
+
+        switch(CurrentAction.Status)
+        {
+            case Action.StatusType.loading:
+                OngoingCoroutine = StartCoroutine(InitializeAction());
+                break;
+
+            case Action.StatusType.initialized:
+                CurrentAction.OnStart();
+                CurrentAction.Status = Action.StatusType.running;
+                break;
+
+            case Action.StatusType.running:
+                if (CurrentAction.HasSucceeded())
+                {
+                    OngoingCoroutine = StartCoroutine(StopAction());
+                }
+                break;
+        }
+
+
     }
+
+
+
+
+
+    //private void OldFixedUpdate()
+    //{
+    //    CheckActionCancellation();
+
+    //    if(!QueueIsEmpty() && !CurrentAction.IsInactive())
+    //    {
+    //        if(CurrentAction.IsUnloaded() || CurrentAction.IsLoading())
+    //        {
+    //            if(!CurrentAction.AreConditionsValid())
+    //            {
+    //                CancelCurrentAction();
+    //                return;
+    //            }
+    //        }
+            
+            
+    //        if (CurrentAction.IsLoading())
+    //        {
+    //            OngoingCoroutine = StartCoroutine(InitializeAction());
+    //        }
+    //        else if(CurrentAction.IsInitialized())
+    //        {
+    //            StartAction();
+    //        }
+    //        else if(CurrentAction.IsRunning() && CurrentAction.HasEnded())
+    //        {
+    //            OngoingCoroutine = StartCoroutine(StopAction());
+    //        }
+    //    }
+    //}
 
 
 
@@ -70,11 +135,11 @@ public class ActionManager : MonoBehaviour
             return;
         }
 
-        bool hasReachedDestination = GetCurrentAction().RemainingDistance() <= Pawn.NavMeshAgent.stoppingDistance;
+        bool hasReachedDestination = CurrentAction.RemainingDistance() <= _Pawn.NavMeshAgent.stoppingDistance;
 
-        if (!GetCurrentAction().IsUnloaded() && !hasReachedDestination)
+        if (CurrentAction.Status != Action.StatusType.unloaded && !hasReachedDestination)
         {
-            GetCurrentAction().Unload();
+            CurrentAction.Status = Action.StatusType.unloaded;
         }
     }
 
@@ -89,21 +154,33 @@ public class ActionManager : MonoBehaviour
 
     private IEnumerator InitializeAction()
     {
-        GetCurrentAction().StartInitialization();
-        Task task = GetCurrentAction().PerformStartingScript(); 
+
+        CurrentAction.Status = Action.StatusType.initializing;
+        Task task = CurrentAction.OnStart();
         yield return new WaitUntil(() => task.IsCompleted);
+        CurrentAction.Status = Action.StatusType.initialized;
 
-        GetCurrentAction().CompleteInitialization();
+        //Debug.Log(Pawn.gameObject.name + " : " + CurrentAction?.Label);
+
+
+
+
+        //CurrentAction.StartInitialization();
+        //Task task = CurrentAction.PerformStartingScript(); 
+        //yield return new WaitUntil(() => task.IsCompleted);
+
+        //Debug.Log(Pawn.gameObject.name + " : " + CurrentAction?.Label);
+        //CurrentAction.CompleteInitialization();
     }
 
 
 
 
 
-    private void StartAction()
-    {
-        GetCurrentAction().Start();
-    }
+    //private void StartAction()
+    //{
+    //    CurrentAction.Start();
+    //}
 
 
 
@@ -111,11 +188,18 @@ public class ActionManager : MonoBehaviour
 
     private IEnumerator StopAction()
     {
-        GetCurrentAction().Stop();
-        Task task = GetCurrentAction().PerformSuccessScript();
+        CurrentAction.Status = Action.StatusType.inactive;
+        Task task = CurrentAction.OnSuccess();
         yield return new WaitUntil(() => task.IsCompleted);
-        GetCurrentAction().End();
+        CurrentAction.OnEnd();
         NextAction();
+
+
+        //CurrentAction.Stop();
+        //Task task = CurrentAction.PerformSuccessScript();
+        //yield return new WaitUntil(() => task.IsCompleted);
+        //CurrentAction.End();
+        //NextAction();
     }
 
 
@@ -124,12 +208,12 @@ public class ActionManager : MonoBehaviour
 
     public void NextAction()
     {
-        Action currentAction = GetCurrentAction();
+        Action currentAction = CurrentAction;
         Queue.Remove(currentAction);
 
         if (IsLoop && !currentAction.IsOneShot)
         {
-            currentAction.Unload();
+            currentAction.Status = Action.StatusType.unloaded;
             Queue.Insert(Queue.Count(), currentAction);
         }
     }
@@ -140,7 +224,7 @@ public class ActionManager : MonoBehaviour
 
     public Vector3 GetCurrentDestination()
     {
-        return GetCurrentAction().Destination;
+        return CurrentAction.Destination;
     }
 
 
@@ -150,17 +234,17 @@ public class ActionManager : MonoBehaviour
     #nullable enable
     public Transform? GetCurrentTarget()
     {
-        return GetCurrentAction()?.Target;
+        return CurrentAction?.Target;
     }
 
 
 
 
 
-    public Action? GetCurrentAction()
-    {
-        return Queue.FirstOrDefault();
-    }
+    //public NewAction? CurrentAction
+    //{
+    //    return Queue.FirstOrDefault();
+    //}
     #nullable disable
 
 
@@ -182,7 +266,7 @@ public class ActionManager : MonoBehaviour
 
     public void CancelCurrentAction()
     {
-        if(GetCurrentAction() == null)
+        if(CurrentAction == null)
         {
             return;
         }
@@ -192,7 +276,7 @@ public class ActionManager : MonoBehaviour
             StopCoroutine(OngoingCoroutine);
         }
 
-        GetCurrentAction().End();
+        CurrentAction.OnEnd();
 
         NextAction();
     }
@@ -203,7 +287,7 @@ public class ActionManager : MonoBehaviour
 
     public void ResetCurrentAction()
     {
-        if (GetCurrentAction() == null)
+        if (CurrentAction == null)
         {
             return;
         }
@@ -213,9 +297,9 @@ public class ActionManager : MonoBehaviour
             StopCoroutine(OngoingCoroutine);
         }
 
-        GetCurrentAction().End();
+        CurrentAction.OnEnd();
 
-        GetCurrentAction().Unload();
+        CurrentAction.Status = Action.StatusType.unloaded;
     }
 
 
@@ -235,6 +319,6 @@ public class ActionManager : MonoBehaviour
 
     public bool CurrentActionIsPlaying()
     {
-        return !QueueIsEmpty() && !GetCurrentAction().IsUnloaded();
+        return !QueueIsEmpty() && CurrentAction.Status != Action.StatusType.unloaded;
     }
 }

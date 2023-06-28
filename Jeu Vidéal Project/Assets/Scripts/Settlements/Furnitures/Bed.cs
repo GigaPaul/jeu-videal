@@ -6,44 +6,44 @@ using UnityEngine;
 
 public class Bed : Furniture
 {
-    public override string ActionLabel
-    {
-        get { return "Sleeping"; }
-    }
+    //public override string ActionLabel
+    //{
+    //    get { return "Sleeping"; }
+    //}
 
-    public override Action GetAction(Pawn pawn)
-    {
-        Action use = new()
-        {
-            Label = ActionLabel,
-            Target = transform,
-            SuccessCondition = () => { return !pawn.GetComponent<SmartPawn>().MustSleep(); },
-            ValidityCondition = () => { return !IsBeingUsed(); }
-        };
-
-
-        use.StartingScript = () =>
-        {
-            pawn.Animator.SetBool("IsSitting", true);
-            pawn.Movement.RotationTarget = use.Target;
-            pawn.Movement.RotationTargetOffset = pawn.Movement.RotationTarget.forward;
-            User = pawn;
-            return Task.FromResult(0);
-        };
+    //public override NewAction GetAction(Pawn pawn)
+    //{
+    //    Action use = new()
+    //    {
+    //        Label = ActionLabel,
+    //        Target = transform,
+    //        SuccessCondition = () => { return !pawn.GetComponent<SmartPawn>().MustSleep(); },
+    //        ValidityCondition = () => { return !IsBeingUsed(); }
+    //    };
 
 
-        use.EndingScript = () =>
-        {
-            if (pawn.Movement.RotationTarget == use.Target)
-            {
-                pawn.Movement.RotationTarget = null;
-                pawn.Movement.RotationTargetOffset = Vector3.zero;
-            }
+    //    use.StartingScript = () =>
+    //    {
+    //        pawn.Animator.SetBool("IsSitting", true);
+    //        pawn.Movement.RotationTarget = use.Target;
+    //        pawn.Movement.RotationTargetOffset = pawn.Movement.RotationTarget.forward;
+    //        User = pawn;
+    //        return Task.FromResult(0);
+    //    };
 
-            User = null;
-            pawn.Animator.SetBool("IsSitting", false);
-        };
 
-        return use;
-    }
+    //    use.EndingScript = () =>
+    //    {
+    //        if (pawn.Movement.RotationTarget == use.Target)
+    //        {
+    //            pawn.Movement.RotationTarget = null;
+    //            pawn.Movement.RotationTargetOffset = Vector3.zero;
+    //        }
+
+    //        User = null;
+    //        pawn.Animator.SetBool("IsSitting", false);
+    //    };
+
+    //    return use;
+    //}
 }
