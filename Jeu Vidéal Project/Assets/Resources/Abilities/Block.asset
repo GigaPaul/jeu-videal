@@ -17,10 +17,11 @@ MonoBehaviour:
   Clip: {fileID: 7400000, guid: a1f933f914908394ba1fa0ce75decad6, type: 2}
   AnimationTrigger: Block
   AnimationStage: 0
+  Stage: 0
   NeedsTarget: 1
   CastingTime: 0
   ChannelTime: 0
-  CooldownTime: 0
+  CoolDownTime: 2
   MinRange: 1
   MaxRange: 2
   Damages: 10

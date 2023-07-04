@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +7,7 @@ using UnityEngine;
 
 public class AbilityBar : MonoBehaviour
 {
-    public List<AbilityButton> Abilities { get; set; }
+    public List<AbilityButton> Abilities { get; set; } = new();
 
 
     private void Awake()
@@ -15,14 +16,60 @@ public class AbilityBar : MonoBehaviour
     }
 
 
+    private void Update()
+    {
+        UpdateCoolDowns();
+    }
+
+
+
+    private void UpdateCoolDowns()
+    {
+        if(Globals.FocusedPawn == null)
+        {
+            return;
+        }
+
+        List<AbilityHolder> abilityHolders = Globals.FocusedPawn._PawnCombat.AbilityHolders;
+
+        if (abilityHolders.Count == 0)
+        {
+            return;
+        }
+
+
+        foreach(AbilityButton button in Abilities)
+        {
+            Ability ability = button._Ability;
+            AbilityHolder holder = abilityHolders.FirstOrDefault(i => i.AbilityHeld == ability);
+
+            if(holder == null)
+            {
+                continue;
+            }
+
+            float coolDownProgression = (float)Math.Floor(holder.CoolDown / ability.CoolDownTime * 100) / 100;
+            float maxHeight = button.GetComponent<RectTransform>().rect.height;
+
+            float width = button.CoolDownRect.rect.width;
+            float height = maxHeight * coolDownProgression;
+
+            button.CoolDownRect.sizeDelta = new(width, height);
+        }
+    }
+
+
+
+
     private void InitAbilityButtons()
     {
-        Abilities = GetComponentsInChildren<AbilityButton>().ToList();
+        List<AbilityButton> buttonList = GetComponentsInChildren<AbilityButton>().ToList();
         
-        for(int i = 0; i < Abilities.Count; i++)
+        for(int i = 0; i < buttonList.Count; i++)
         {
-            AbilityButton button = Abilities[i];
+            AbilityButton button = buttonList[i];
             button.ShortCut = (i + 1).ToString();
+            Abilities.Add(button);
         }
     }
 
@@ -33,10 +80,10 @@ public class AbilityBar : MonoBehaviour
         {
             AbilityButton button = Abilities[i];
 
-            if(i < pawn._PawnCombat.Abilities.Count)
+            if(i < pawn._PawnCombat.Spellbook.Count)
             {
                 //Debug.Log("Exists : "+i);
-                button.Load(pawn._PawnCombat.Abilities[i]);
+                button.Load(pawn._PawnCombat.Spellbook[i]);
             }
             else
             {

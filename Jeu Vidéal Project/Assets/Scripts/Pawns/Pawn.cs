@@ -30,15 +30,15 @@ public class Pawn : MonoBehaviour
     public PawnMovement Movement { get; set; }
     public PawnAttachments Attachments { get; set; }
     public PawnCombat _PawnCombat { get; set; }
-    public AbilityHolder _AbilityHolder { get; set; }
+    public AbilityCaster _AbilityCaster { get; set; }
     public FlockAgent _FlockAgent { get; set; }
     public ActionManager _ActionManager { get; set; }
-    public PawnAnimation _PawnAnimation { get; set; }
+    public Puppeteer _Puppeteer { get; set; }
 
     public MultiAimConstraint HeadAim;
     public NavMeshAgent NavMeshAgent;
     public RigBuilder RigBuilder;
-    public Animator Animator;
+    public Animator _Animator;
 
     public Transform RigTarget;
     public Transform FocusElement;
@@ -76,13 +76,14 @@ public class Pawn : MonoBehaviour
         HitPoints = MaxHitPoints;
 
         _PawnCombat = GetComponent<PawnCombat>();
-        _AbilityHolder = GetComponent<AbilityHolder>();
+        _AbilityCaster = GetComponent<AbilityCaster>();
         Attributes = GetComponent<PawnAttributes>();
         Movement = GetComponent<PawnMovement>();
         Attachments = GetComponent<PawnAttachments>();
         _FlockAgent = GetComponent<FlockAgent>();
         _ActionManager = GetComponent<ActionManager>();
-        _PawnAnimation = GetComponent<PawnAnimation>();
+        _Animator = GetComponentInChildren<Animator>();
+        _Puppeteer = GetComponent<Puppeteer>();
         Model = GetComponentInChildren<PawnModel>();
     }
 
@@ -109,7 +110,7 @@ public class Pawn : MonoBehaviour
     private void CheckDeathStatus()
     {
         // If the pawn is still alive or didn't died right now
-        if(IsAlive || Animator.GetBool("IsDead"))
+        if(IsAlive || _Animator.GetBool("IsDead"))
         {
             return;
         }
@@ -466,6 +467,15 @@ public class Pawn : MonoBehaviour
 
     public void Cast(Ability ability)
     {
+        if(ability.HasCooldown() && Knows(ability))
+        {
+            AbilityHolder holder = _PawnCombat.AbilityHolders.FirstOrDefault(i => i.AbilityHeld == ability);
+            if(holder != null && holder.CoolDown > 0)
+            {
+                return;
+            }
+        }
+
         if(ability.NeedsTarget)
         {
             if(!IsInCombat())
@@ -473,23 +483,17 @@ public class Pawn : MonoBehaviour
                 return;
             }
 
-            Cast(ability, _PawnCombat.CurrentTarget);
+            _AbilityCaster.Hold(ability, _PawnCombat.CurrentTarget);
         }
         else
         {
-            Ability abilityClone = Instantiate(ability);
-            abilityClone.Caster = this;
-            _AbilityHolder.Hold(abilityClone);
+            //Ability abilityClone = Instantiate(ability);
+            //abilityClone.Caster = this;
+            _AbilityCaster.Hold(ability);
         }
     }
 
-    public void Cast(Ability ability, Pawn target)
-    {
-        Ability abilityClone = Instantiate(ability);
-        abilityClone.Caster = this;
-        abilityClone.Target = target;
-        _AbilityHolder.Hold(abilityClone);
-    }
+
 
 
 
@@ -544,7 +548,7 @@ public class Pawn : MonoBehaviour
     {
         _PawnCombat.ClearTargets();
         _ActionManager.ClearActionQueue();
-        _PawnAnimation.PlayDeathAnim();
+        _Puppeteer.PlayDeathAnim();
 
         NavMeshAgent.enabled = false;
     }
@@ -573,13 +577,19 @@ public class Pawn : MonoBehaviour
 
     public bool IsCasting()
     {
-        return _AbilityHolder.AbilityHeld != null;
+        return _AbilityCaster.AbilityHeld != null;
         //return _PawnCombat.CastAbility != null;
     }
 
     public bool CanAttack(Pawn target)
     {
         return target != this && target.IsAlive && Faction != target.Faction && Faction.IsAtWarWith(target.Faction);
+    }
+
+
+    public bool Knows(Ability ability)
+    {
+        return _PawnCombat.Spellbook.Contains(ability);
     }
 
 

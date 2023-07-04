@@ -37,7 +37,7 @@ public class AnimationStalker
     {
         foreach(int layer in layers)
         {
-            pawn.Animator.CrossFade(Clip.name, 0.5f, layer);
+            pawn._Animator.CrossFade(Clip.name, 0.5f, layer);
         }
     }
 }

@@ -221,7 +221,7 @@ MonoBehaviour:
   HeadAim: {fileID: 7025033368259940737}
   NavMeshAgent: {fileID: 3394148792027154524}
   RigBuilder: {fileID: 681632752892117393}
-  Animator: {fileID: 6013067969466507376}
+  _Animator: {fileID: 0}
   RigTarget: {fileID: 6626649457308793271}
   FocusElement: {fileID: 7878716994477375766}
   HoverRing: {fileID: 4071536831851718164}
@@ -255,8 +255,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f957a6c38b464f44bb42550fd06539c8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Stance: 0
   HostilesInRange: []
-  Abilities:
+  Spellbook:
   - {fileID: 11400000, guid: a9b04992e5192fa419105e2238dc241a, type: 2}
   AggroRange: 5
 --- !u!114 &252642415109149108
@@ -294,13 +295,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb3f3ee8c4b30d847ad5f5c0d0203f33, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Animator: {fileID: 6013067969466507376}
   _Pawn: {fileID: 1468532837860305611}
-  _PawnMovement: {fileID: 252642415109149108}
-  BaseLayer: 0
-  WalkLayer: 1
-  RightHandLayer: 2
-  LeftHandLayer: 3
 --- !u!114 &9177274016242366817
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -366,7 +361,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 098c1621512f5c04ea86f7f65b530ddf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _Pawn: {fileID: 0}
+  Spellbook: []
 --- !u!195 &3394148792027154524
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -1126,7 +1121,7 @@ Animator:
   m_GameObject: {fileID: 7879667982752760522}
   m_Enabled: 1
   m_Avatar: {fileID: 9000000, guid: 15cdc9d89609a4b47a9fdba7665b0f2f, type: 3}
-  m_Controller: {fileID: 9100000, guid: 9958c3901d5db6f41b9c50b2e419fea3, type: 2}
+  m_Controller: {fileID: 9100000, guid: becf65acaa4604c42889137b9ac59c0f, type: 2}
   m_CullingMode: 1
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -1977,8 +1972,8 @@ BoxCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 23.371832, y: 27.84618, z: 38.197823}
-  m_Center: {x: -11.685908, y: -3.0918922, z: 0.00001335144}
+  m_Size: {x: 31.4, y: 27.84618, z: 38.197823}
+  m_Center: {x: -16.6, y: -3.0918922, z: 0.00001335144}
 --- !u!54 &1610800140477397458
 Rigidbody:
   m_ObjectHideFlags: 0

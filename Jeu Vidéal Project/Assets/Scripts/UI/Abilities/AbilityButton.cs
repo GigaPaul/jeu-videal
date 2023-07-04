@@ -9,6 +9,13 @@ public class AbilityButton : MonoBehaviour
     public string ShortCut { get; set; }
     public Ability _Ability { get; set; }
     public Sprite DefaultSprite;
+    public RectTransform CoolDownRect;
+
+
+    private void Update()
+    {
+        
+    }
 
 
     public void Load(Ability ability)

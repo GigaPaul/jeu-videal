@@ -6,7 +6,7 @@ using UnityEngine;
 public class PawnCombat : MonoBehaviour
 {
     public Pawn _Pawn { get; set; }
-    public AbilityHolder _AbilityHolder { get; set; }
+    public AbilityCaster _AbilityHolder { get; set; }
     //public List<AbilityClipDTO> EventCatcher = new();
     //public List<string> EventCatcher = new();
 
@@ -19,7 +19,8 @@ public class PawnCombat : MonoBehaviour
 
     public StanceType Stance = StanceType.aggressive;
     public List<Pawn> HostilesInRange = new();
-    public List<Ability> Abilities = new();
+    public List<Ability> Spellbook = new();
+    public List<AbilityHolder> AbilityHolders = new();
 
     public float AggroRange = 5;
 
@@ -40,7 +41,8 @@ public class PawnCombat : MonoBehaviour
     private void Awake()
     {
         _Pawn = GetComponent<Pawn>();
-        _AbilityHolder = GetComponent<AbilityHolder>();
+        _AbilityHolder = GetComponent<AbilityCaster>();
+        InitAbilityHolders();
     }
 
 
@@ -51,6 +53,15 @@ public class PawnCombat : MonoBehaviour
     {
         //LoadDefaultAbilities();
         InvokeRepeating(nameof(GetHostilesInRange), 0, 0.25f);
+    }
+
+
+
+
+
+    private void Update()
+    {
+        ProgressAbilityCoolDowns();
     }
 
 
@@ -68,6 +79,45 @@ public class PawnCombat : MonoBehaviour
         StanceLoop();
         //TriggerAbility();
         //CheckForEvents();
+    }
+
+
+
+
+
+    public void InitAbilityHolders()
+    {
+        foreach(Ability ability in Spellbook)
+        {
+            if(AbilityHolders.Any(i => i.AbilityHeld == ability))
+            {
+                continue;
+            }
+
+            AbilityHolder holder = new(ability);
+            AbilityHolders.Add(holder);
+        }
+    }
+
+
+
+
+    public void ProgressAbilityCoolDowns()
+    {
+        foreach(AbilityHolder holder in AbilityHolders)
+        {
+            if(!holder.IsCoolingDown)
+            {
+                continue;
+            }
+
+            holder.CoolDown += Time.deltaTime;
+
+            if(holder.CoolDown >= holder.AbilityHeld.CoolDownTime)
+            {
+                holder.StopCoolDown();
+            }
+        }
     }
 
 
@@ -144,9 +194,9 @@ public class PawnCombat : MonoBehaviour
         }
 
         // If in range for auto attack, then auto attack
-        if (InRangeFor(Abilities.First()))
+        if (InRangeFor(Spellbook.First()))
         {
-            _Pawn.Cast(Abilities.First());
+            _Pawn.Cast(Spellbook.First());
         }
         // Else, if the pawn isn't already walking, walk to a correct range
         else if(_Pawn._ActionManager.QueueIsEmpty())
@@ -170,9 +220,9 @@ public class PawnCombat : MonoBehaviour
         }
 
         // If in range for auto attack, then auto attack
-        if (InRangeFor(Abilities.First()))
+        if (InRangeFor(Spellbook.First()))
         {
-            _Pawn.Cast(Abilities.First());
+            _Pawn.Cast(Spellbook.First());
         }
     }
 

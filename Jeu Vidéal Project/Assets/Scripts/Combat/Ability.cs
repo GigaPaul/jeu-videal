@@ -43,7 +43,7 @@ public class Ability : ScriptableObject
     public bool NeedsTarget = true;
     public float CastingTime;
     public float ChannelTime;
-    public float CooldownTime;
+    public float CoolDownTime;
     public float MinRange = 1;
     public float MaxRange = 2;
     public Pawn Caster { get; set; }
@@ -83,7 +83,7 @@ public class Ability : ScriptableObject
 
     public bool HasCooldown()
     {
-        return CooldownTime > 0f;
+        return CoolDownTime > 0f;
     }
 
     public bool AnimationStarted()

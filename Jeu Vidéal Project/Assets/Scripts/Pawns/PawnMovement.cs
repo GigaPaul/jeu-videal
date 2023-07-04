@@ -319,11 +319,11 @@ public class PawnMovement : MonoBehaviour
 
                 if(_Pawn.IsCasting())
                 {
-                    ability = _Pawn._AbilityHolder.AbilityHeld;
+                    ability = _Pawn._AbilityCaster.AbilityHeld;
                 }
                 else
                 {
-                    ability = _Pawn._PawnCombat.Abilities.First();
+                    ability = _Pawn._PawnCombat.Spellbook.First();
                 }
 
                 // In this case ability should never be null but it's just in case
