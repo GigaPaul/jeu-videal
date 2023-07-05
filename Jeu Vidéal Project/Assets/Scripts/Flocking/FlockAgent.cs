@@ -4,14 +4,14 @@ using UnityEngine;
 
 public class FlockAgent : MonoBehaviour
 {
-    public Pawn _Pawn;
+    public Pawn Master;
     public Vector3 RotationTarget;
     public Vector3 PositionTarget;
 
 
     private void FixedUpdate()
     {
-        if (_Pawn.IsFlocking())
+        if (Master.IsFlocking())
         {
             // If pawn has reached his target, reset and return
             if (HasReachedPosition())
@@ -44,14 +44,14 @@ public class FlockAgent : MonoBehaviour
         //float gSpeed = 0.01f;
 
 
-        foreach (Pawn member in _Pawn.Flock.Members)
+        foreach (Pawn member in Master.Flock.Members)
         {
             // If the iterated member is the steering pawn, skip him
             if (member == this)
                 continue;
 
             float dist = Vector3.Distance(member.transform.position, transform.position);
-            bool isNotTooClose = !(dist <= _Pawn.Flock.MinNeighbourDist);
+            bool isNotTooClose = !(dist <= Master.Flock.MinNeighbourDist);
 
             if (isNotTooClose)
                 continue;
@@ -97,7 +97,7 @@ public class FlockAgent : MonoBehaviour
     {
         float distance = GetDistanceFromTarget();
 
-        bool hasReachedDestination = distance <= _Pawn.NavMeshAgent.stoppingDistance;
+        bool hasReachedDestination = distance <= Master.NavMeshAgent.stoppingDistance;
         //bool commanderIsIdle = _Pawn.Flock.Commander.HasReachedDestination();
 
         //return hasReachedDestination && commanderIsIdle;

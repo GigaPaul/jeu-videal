@@ -6,7 +6,7 @@ using UnityEngine;
 public class ActionManager : MonoBehaviour
 {
     public Coroutine OngoingCoroutine { get; set; }
-    private Pawn _Pawn { get; set; }
+    private Pawn Master { get; set; }
     public ActionQueue Queue = new();
     public bool IsLoop { get; set; } = false;
 
@@ -33,7 +33,7 @@ public class ActionManager : MonoBehaviour
 
     private void Awake()
     {
-        _Pawn = GetComponent<Pawn>();
+        Master = GetComponent<Pawn>();
     }
 
 
@@ -135,7 +135,7 @@ public class ActionManager : MonoBehaviour
             return;
         }
 
-        bool hasReachedDestination = CurrentAction.RemainingDistance() <= _Pawn.NavMeshAgent.stoppingDistance;
+        bool hasReachedDestination = CurrentAction.RemainingDistance() <= Master.NavMeshAgent.stoppingDistance;
 
         if (CurrentAction.Status != Action.StatusType.unloaded && !hasReachedDestination)
         {

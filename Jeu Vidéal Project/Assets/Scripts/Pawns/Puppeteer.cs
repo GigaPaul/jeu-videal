@@ -10,7 +10,7 @@ using UnityEngine;
 public class Puppeteer : MonoBehaviour
 {
     public AnimatorController Controller { get; set; }
-    public Pawn _Pawn;
+    public Pawn Master;
     //public List<AvatarMaskBodyPart> DefaultBodyParts = new();
     //public List<AvatarMaskBodyPart> LowerBodyParts = new();
     //public float LowerLayersWeight = 1;
@@ -43,7 +43,7 @@ public class Puppeteer : MonoBehaviour
 
         //CheckDeath();
 
-        if(!_Pawn.IsAlive)
+        if(!Master.IsAlive)
         {
             return;
         }
@@ -60,7 +60,7 @@ public class Puppeteer : MonoBehaviour
 
     private void GetController()
     {
-        RuntimeAnimatorController runtimeController = _Pawn._Animator.runtimeAnimatorController;
+        RuntimeAnimatorController runtimeController = Master._Animator.runtimeAnimatorController;
         string path = AssetDatabase.GetAssetPath(runtimeController);
         Controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(path);
     }
@@ -80,9 +80,9 @@ public class Puppeteer : MonoBehaviour
 
     public void PlayDeathAnim()
     {
-        if (!_Pawn._Animator.GetBool("IsDead"))
+        if (!Master._Animator.GetBool("IsDead"))
         {
-            _Pawn._Animator.SetBool("IsDead", true);
+            Master._Animator.SetBool("IsDead", true);
         }
     }
 
@@ -91,13 +91,13 @@ public class Puppeteer : MonoBehaviour
 
     private void CheckCombat()
     {
-        if(_Pawn.IsInCombat() && !_Pawn._Animator.GetBool("IsFighting"))
+        if(Master.IsInCombat() && !Master._Animator.GetBool("IsFighting"))
         {
-            _Pawn._Animator.SetBool("IsFighting", true);
+            Master._Animator.SetBool("IsFighting", true);
         }
-        else if(!_Pawn.IsInCombat() && _Pawn._Animator.GetBool("IsFighting"))
+        else if(!Master.IsInCombat() && Master._Animator.GetBool("IsFighting"))
         {
-            _Pawn._Animator.SetBool("IsFighting", false);
+            Master._Animator.SetBool("IsFighting", false);
         }
     }
 
@@ -107,18 +107,18 @@ public class Puppeteer : MonoBehaviour
 
     private void CheckSpeed()
     {
-        if (!_Pawn.IsAlive)
+        if (!Master.IsAlive)
             return;
 
-        float intensity = Vector3.Distance(Vector3.zero, _Pawn.NavMeshAgent.velocity) / _Pawn.Movement.WalkingSpeed;
+        float intensity = Vector3.Distance(Vector3.zero, Master.NavMeshAgent.velocity) / Master.Movement.WalkingSpeed;
 
-        _Pawn._Animator.SetLayerWeight((int)Layer.movement, intensity);
+        Master._Animator.SetLayerWeight((int)Layer.movement, intensity);
 
 
 
-        Vector3 localVelocity = transform.InverseTransformDirection(_Pawn.NavMeshAgent.velocity);
-        _Pawn._Animator.SetFloat("Z Velocity", localVelocity.z / _Pawn.Movement.MaxSpeed);
-        _Pawn._Animator.SetFloat("X Velocity", localVelocity.x / _Pawn.Movement.MaxSpeed);
+        Vector3 localVelocity = transform.InverseTransformDirection(Master.NavMeshAgent.velocity);
+        Master._Animator.SetFloat("Z Velocity", localVelocity.z / Master.Movement.MaxSpeed);
+        Master._Animator.SetFloat("X Velocity", localVelocity.x / Master.Movement.MaxSpeed);
 
 
 
@@ -152,11 +152,11 @@ public class Puppeteer : MonoBehaviour
 
     private void CheckEquipedTools()
     {
-        int rightIntensity = _Pawn.Attachments.RightHand.Item != null ? 1 : 0;
-        int leftIntensity = _Pawn.Attachments.LeftHand.Item != null ? 1 : 0;
+        int rightIntensity = Master.Attachments.RightHand.Item != null ? 1 : 0;
+        int leftIntensity = Master.Attachments.LeftHand.Item != null ? 1 : 0;
 
-        _Pawn._Animator.SetLayerWeight((int)Layer.rightHand, rightIntensity);
-        _Pawn._Animator.SetLayerWeight((int)Layer.leftHand, leftIntensity);
+        Master._Animator.SetLayerWeight((int)Layer.rightHand, rightIntensity);
+        Master._Animator.SetLayerWeight((int)Layer.leftHand, leftIntensity);
     }
 
 
@@ -168,14 +168,14 @@ public class Puppeteer : MonoBehaviour
         int stateId = Animator.StringToHash(clip.name);
         int layerId = (int)Layer.animations;
 
-        if (!_Pawn._Animator.HasState(layerId, stateId))
+        if (!Master._Animator.HasState(layerId, stateId))
         {
             return;
         }
 
 
         float transitionDuration = clip.length * 0.2f;
-        _Pawn._Animator.CrossFade(clip.name, transitionDuration, layerId);
+        Master._Animator.CrossFade(clip.name, transitionDuration, layerId);
     }
 
 
@@ -286,13 +286,13 @@ public class Puppeteer : MonoBehaviour
 
     public void SetBodyPartWeight(AvatarMaskBodyPart bodypart, float weight)
     {
-        int layerIndex = _Pawn._Animator.GetLayerIndex(bodypart.ToString());
+        int layerIndex = Master._Animator.GetLayerIndex(bodypart.ToString());
 
         if(layerIndex == -1)
         {
             return;
         }
 
-        _Pawn._Animator.SetLayerWeight(layerIndex, weight);
+        Master._Animator.SetLayerWeight(layerIndex, weight);
     }
 }

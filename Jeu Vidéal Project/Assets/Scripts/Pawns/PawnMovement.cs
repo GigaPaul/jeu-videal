@@ -5,7 +5,7 @@ using UnityEngine.AI;
 [RequireComponent(typeof(Pawn))]
 public class PawnMovement : MonoBehaviour
 {
-    public Pawn _Pawn;
+    public Pawn Master;
     public NavMeshAgent _NavMeshAgent;
     public FlockAgent _FlockAgent;
     public ActionManager _ActionManager;
@@ -74,7 +74,7 @@ public class PawnMovement : MonoBehaviour
     {
         PathRenderer.positionCount = 0;
 
-        if (_Pawn.IsFocused() && _Pawn.NavMeshAgent.hasPath)
+        if (Master.IsFocused() && Master.NavMeshAgent.hasPath)
         {
             DrawPath();
         }
@@ -86,7 +86,7 @@ public class PawnMovement : MonoBehaviour
 
     private void Rotate()
     {
-        if (!_Pawn.IsAlive)
+        if (!Master.IsAlive)
             return;
 
         Vector3 target = Vector3.zero;
@@ -97,12 +97,12 @@ public class PawnMovement : MonoBehaviour
             target = RotationTarget.position + RotationTargetOffset;
         }
         // If the pawn is part of a flock
-        else if (_Pawn.IsFlocking())
+        else if (Master.IsFlocking())
         {
             // If the pawn is still
             if (_FlockAgent.HasReachedPosition())
             {
-                Vector3 flockForward = _Pawn.Flock.transform.forward;
+                Vector3 flockForward = Master.Flock.transform.forward;
                 target = transform.position + flockForward;
             }
             else
@@ -144,7 +144,7 @@ public class PawnMovement : MonoBehaviour
 
     private void Move()
     {
-        if (!_Pawn.IsAlive)
+        if (!Master.IsAlive)
             return;
 
         if(PositionMagnet == Vector3.zero)
@@ -161,7 +161,7 @@ public class PawnMovement : MonoBehaviour
     public void FindPositionMagnet()
     {
         // If the pawn is in a flock, magnetize him to go to his target
-        if (_Pawn.IsFlocking())
+        if (Master.IsFlocking())
         {
             // If the flock has a target
             if (_FlockAgent.PositionTarget != Vector3.zero)
@@ -191,15 +191,15 @@ public class PawnMovement : MonoBehaviour
 
     public void DrawPath()
     {
-        PathRenderer.positionCount = _Pawn.NavMeshAgent.path.corners.Length;
+        PathRenderer.positionCount = Master.NavMeshAgent.path.corners.Length;
         PathRenderer.SetPosition(0, transform.position);
 
-        if (_Pawn.NavMeshAgent.path.corners.Length < 2)
+        if (Master.NavMeshAgent.path.corners.Length < 2)
         {
             return;
         }
 
-        NavMeshPath path = _Pawn.NavMeshAgent.path;
+        NavMeshPath path = Master.NavMeshAgent.path;
         for (int i = 0; i < path.corners.Length; i++)
         {
             Vector3 corner = path.corners[i];
@@ -264,7 +264,7 @@ public class PawnMovement : MonoBehaviour
 
     public void Pathfind()
     {
-        if(!_Pawn.IsAlive)
+        if(!Master.IsAlive)
         {
             return;
         }
@@ -272,21 +272,21 @@ public class PawnMovement : MonoBehaviour
 
         if (_ActionManager.QueueIsEmpty())
         {
-            _Pawn.NavMeshAgent.ResetPath();
+            Master.NavMeshAgent.ResetPath();
             return;
         }
 
 
         if (_ActionManager.CurrentAction.Status != Action.StatusType.unloaded)
         {
-            _Pawn.NavMeshAgent.ResetPath();
+            Master.NavMeshAgent.ResetPath();
             return;
         }
 
 
-        if (_Pawn.IsFlocking() || _Pawn.HasReachedDestination())
+        if (Master.IsFlocking() || Master.HasReachedDestination())
         {
-            _Pawn.NavMeshAgent.ResetPath();
+            Master.NavMeshAgent.ResetPath();
             return;
         }
 
@@ -313,27 +313,27 @@ public class PawnMovement : MonoBehaviour
             Transform target = _ActionManager.GetCurrentTarget();
             float radius = _NavMeshAgent.stoppingDistance;
 
-            if(_Pawn.IsInCombat())
+            if(Master.IsInCombat())
             {
                 Ability ability;
 
-                if(_Pawn.IsCasting())
+                if(Master.IsCasting())
                 {
-                    ability = _Pawn._AbilityCaster.AbilityHeld;
+                    ability = Master._AbilityCaster.AbilityHeld;
                 }
                 else
                 {
-                    ability = _Pawn._PawnCombat.Spellbook.First();
+                    ability = Master._PawnCombat.Spellbook.First();
                 }
 
                 // In this case ability should never be null but it's just in case
                 if(ability != null)
                 {
-                    if (_Pawn._PawnCombat.TooFarFor(ability))
+                    if (Master._PawnCombat.TooFarFor(ability))
                     {
                         radius = ability.MaxRange;
                     }
-                    else if (_Pawn._PawnCombat.TooCloseFor(ability))
+                    else if (Master._PawnCombat.TooCloseFor(ability))
                     {
                         radius = ability.MinRange;
                     }
@@ -398,7 +398,7 @@ public class PawnMovement : MonoBehaviour
 
     private void CalculateSpeedQuotient()
     {
-        if (!_Pawn.IsFlocking())
+        if (!Master.IsFlocking())
         {
             return;
         }

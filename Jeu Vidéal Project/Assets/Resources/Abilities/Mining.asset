@@ -14,14 +14,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: Mining
   _Sprite: {fileID: 0}
-  Clip: {fileID: 7400000, guid: 79eeb5a17d1ee5a4b8ffdb9a3fe16dce, type: 2}
-  AnimationTrigger: 
+  FireClip: {fileID: 0}
+  CastClip: {fileID: 7400000, guid: 49f0d85b18961d54e904e4a097beb7bb, type: 2}
+  ChannelClip: {fileID: 0}
   AnimationStage: 0
   Stage: 0
   NeedsTarget: 1
   CastingTime: 10
   ChannelTime: 0
-  CooldownTime: 0
+  CoolDownTime: 0
   MinRange: 1
   MaxRange: 2
   Damages: 0

@@ -24,13 +24,13 @@ public class SmartWorker : SmartPawn
         UnityEngine.Object PickaxeObject = Resources.Load("Prefabs/Tools/Pickaxe");
         GameObject Pickaxe = Instantiate(PickaxeObject) as GameObject;
 
-        _Pawn.Attachments.RightHand.Attach(Pickaxe.transform);
+        Master.Attachments.RightHand.Attach(Pickaxe.transform);
     }
 
 
     protected override void Work()
     {
-        Transform randomWorkingStation = _Pawn.Settlement.WorkingStations[UnityEngine.Random.Range(0, _Pawn.Settlement.WorkingStations.Count)];
+        Transform randomWorkingStation = Master.Settlement.WorkingStations[UnityEngine.Random.Range(0, Master.Settlement.WorkingStations.Count)];
 
 
 
@@ -73,18 +73,18 @@ public class SmartWorker : SmartPawn
         Action working = Action.Find("act_move");
         working.Target = randomWorkingStation;
 
-        _Pawn.Do(working);
+        Master.Do(working);
         //
 
 
         // Return resources
         Action returnResources = Action.Find("act_move");
-        returnResources.Target = _Pawn.Settlement.Storage;
+        returnResources.Target = Master.Settlement.Storage;
 
 
 
 
-        _Pawn.Do(working);
-        _Pawn.Do(returnResources, false, true);
+        Master.Do(working);
+        Master.Do(returnResources, false, true);
     }
 }

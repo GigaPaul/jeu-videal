@@ -7,7 +7,7 @@ using UnityEngine;
 [RequireComponent(typeof(Pawn))]
 public class PawnAttributes : MonoBehaviour
 {
-    public Pawn _Pawn;
+    public Pawn Master;
     public Culture _Culture;
     public string FirstName;
     public string LastName;
@@ -34,9 +34,9 @@ public class PawnAttributes : MonoBehaviour
     {
         if(_Culture == null)
         {
-            if(_Pawn.Settlement != null)
+            if(Master.Settlement != null)
             {
-                _Culture = _Pawn.Settlement._Culture;
+                _Culture = Master.Settlement._Culture;
             }
             //else if(_Pawn.Faction != null)
             //{

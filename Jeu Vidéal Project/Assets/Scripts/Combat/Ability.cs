@@ -13,8 +13,9 @@ public class Ability : ScriptableObject
     [Header("Animation")]
 
     //
-    public AnimationClip Clip;
-    public string AnimationTrigger;
+    public AnimationClip FireClip;
+    public AnimationClip CastClip;
+    public AnimationClip ChannelClip;
     public enum AnimationStageType
     {
         initializing,

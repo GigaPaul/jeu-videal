@@ -23,7 +23,7 @@ public class SmartGuard : SmartPawn
         UnityEngine.Object SwordObject = Resources.Load("Prefabs/Tools/Sword");
         GameObject Sword = Instantiate(SwordObject) as GameObject;
 
-        _Pawn.Attachments.RightHand.Attach(Sword.transform);
+        Master.Attachments.RightHand.Attach(Sword.transform);
     }
 
 
@@ -32,17 +32,17 @@ public class SmartGuard : SmartPawn
 
     protected override void Work()
     {
-        if (_Pawn.Flock.Commander != _Pawn)
+        if (Master.Flock.Commander != Master)
         {
             return;
         }
 
 
-        _Pawn._ActionManager.IsLoop = true;
+        Master._ActionManager.IsLoop = true;
 
-        foreach (Transform waypoint in _Pawn.Settlement.Patrol)
+        foreach (Transform waypoint in Master.Settlement.Patrol)
         {
-            _Pawn.GoTo(waypoint.position, true);
+            Master.GoTo(waypoint.position, true);
         }
     }
 }

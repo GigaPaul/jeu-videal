@@ -5,8 +5,13 @@ using UnityEngine;
 
 public class AbilityCaster : MonoBehaviour
 {
-    public Pawn _Pawn { get; set; }
+    public Pawn Master { get; set; }
     public Ability AbilityHeld { get; set; }
+
+    #nullable enable
+    public AnimationStalker? CurrentStalker { get; set; }
+    #nullable disable
+
     float AnimationTime;
     float AbilityTime;
     bool StartEventHappened = false;
@@ -15,7 +20,7 @@ public class AbilityCaster : MonoBehaviour
 
     private void Awake()
     {
-        _Pawn = GetComponent<Pawn>();
+        Master = GetComponent<Pawn>();
     }
 
 
@@ -54,7 +59,7 @@ public class AbilityCaster : MonoBehaviour
             AbilityHeld.AnimationStage = Ability.AnimationStageType.initialized;
         }
 
-        foreach (AnimationEvent thisEvent in AbilityHeld.Clip.events)
+        foreach (AnimationEvent thisEvent in AbilityHeld.FireClip.events)
         {
             if (AnimationTime < thisEvent.time)
             {
@@ -98,43 +103,36 @@ public class AbilityCaster : MonoBehaviour
             return;
         }
 
-        List<AnimationStalker> stalkers = new();
+        AnimationClip clip = null;
 
         switch(AbilityHeld.Stage)
         {
             case Ability.StageType.casting:
-                stalkers = AbilityHeld.CastingAnimations;
+                clip = AbilityHeld.CastClip;
                 break;
 
             case Ability.StageType.channeling:
-                stalkers = AbilityHeld.ChannelAnimations;
+                clip = AbilityHeld.ChannelClip;
                 break;
 
             case Ability.StageType.fire:
-                stalkers = AbilityHeld.FireAnimations;
+                clip = AbilityHeld.FireClip;
                 break;
         }
 
-        // If there are no animations to play
-        if (stalkers.Count() == 0)
+        if(clip == null)
         {
             return;
-            //if(AbilityHeld.IsOnLastStage())
-            //{
-            //    // Ability is finished here
-            //}
-            //else
-            //{
-            //    // Go to the next stage (Cast -> Chanel -> Fire)
-            //    AbilityHeld.Stage++;
-            //    return;
-            //}
         }
 
-        if(!stalkers.Any(i => i.Stage == AnimationStalker.StageType.initializing))
+        if(CurrentStalker == null)
         {
-            
+            AnimationStalker stalker = new(clip);
+            CurrentStalker = stalker;
+            Master._Puppeteer.Play(CurrentStalker.Clip);
         }
+
+
     }
 
 
@@ -143,7 +141,7 @@ public class AbilityCaster : MonoBehaviour
     public void Hold(Ability ability, Pawn target = null)
     {
         Ability abilityClone = Instantiate(ability);
-        abilityClone.Caster = _Pawn;
+        abilityClone.Caster = Master;
 
         if(target != null)
         {
@@ -154,9 +152,9 @@ public class AbilityCaster : MonoBehaviour
         AbilityHeld = abilityClone;
 
         // If the ability has a cooldown, start it
-        if (ability.HasCooldown() && _Pawn.Knows(ability))
+        if (ability.HasCooldown() && Master.Knows(ability))
         {
-            AbilityHolder holder = _Pawn._PawnCombat.AbilityHolders.FirstOrDefault(i => i.AbilityHeld == ability);
+            AbilityHolder holder = Master._PawnCombat.AbilityHolders.FirstOrDefault(i => i.AbilityHeld == ability);
 
             if (holder != null)
             {
@@ -177,12 +175,12 @@ public class AbilityCaster : MonoBehaviour
             return;
         }
 
-        if(AbilityHeld.AnimationTrigger == "")
+        if(AbilityHeld.FireClip == null)
         {
             return;
         }
 
-        _Pawn._Puppeteer.Play(AbilityHeld.Clip);
+        Master._Puppeteer.Play(AbilityHeld.FireClip);
         //_Pawn._Animator.SetTrigger(AbilityHeld.AnimationTrigger);
     }
 

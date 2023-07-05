@@ -14,8 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: Auto attack
   _Sprite: {fileID: 21300000, guid: 1bbd8211ad8d934469998ae9e9a19f20, type: 3}
-  Clip: {fileID: 7400000, guid: 12e8257dbd612f54d9dc0d5556b15c07, type: 2}
-  AnimationTrigger: Punch
+  FireClip: {fileID: 7400000, guid: 12e8257dbd612f54d9dc0d5556b15c07, type: 2}
+  CastClip: {fileID: 0}
+  ChannelClip: {fileID: 0}
   AnimationStage: 0
   Stage: 0
   NeedsTarget: 1

@@ -54,7 +54,7 @@ public class GroupUIManager : MonoBehaviour
 
         GameObject newButtonGO = Instantiate(ButtonPrefab);
         GroupMemberButton newButton = newButtonGO.GetComponent<GroupMemberButton>();
-        newButton._Pawn = pawn;
+        newButton.Master = pawn;
 
         newButtonGO.transform.SetParent(transform, false);
     }
@@ -67,7 +67,7 @@ public class GroupUIManager : MonoBehaviour
     {
         ControlledPawns.Remove(pawn);
 
-        GroupMemberButton toDelete = GetComponentsInChildren<GroupMemberButton>().FirstOrDefault(i => i._Pawn == pawn);
+        GroupMemberButton toDelete = GetComponentsInChildren<GroupMemberButton>().FirstOrDefault(i => i.Master == pawn);
 
         if(toDelete == null)
         {

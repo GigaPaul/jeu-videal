@@ -23,6 +23,11 @@ public class AnimationStalker
 
     public StageType Stage = StageType.initializing;
 
+    public AnimationStalker(AnimationClip clip)
+    {
+        Clip = clip;
+    }
+
     public void Reset()
     {
         Stage = StageType.initializing;
@@ -31,13 +36,5 @@ public class AnimationStalker
     public bool IsOnLastStage()
     {
         return Stage == Enum.GetValues(typeof(StageType)).Cast<StageType>().Max();
-    }
-
-    public void PlayAnimation(Pawn pawn, List<int> layers)
-    {
-        foreach(int layer in layers)
-        {
-            pawn._Animator.CrossFade(Clip.name, 0.5f, layer);
-        }
     }
 }

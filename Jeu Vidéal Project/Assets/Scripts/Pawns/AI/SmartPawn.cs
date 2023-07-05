@@ -8,7 +8,7 @@ using UnityEngine;
 public abstract class SmartPawn : MonoBehaviour
 {
     [HideInInspector]
-    public Pawn _Pawn;
+    public Pawn Master;
     public List<TimeInterval> WorkingHours = new();
     public TimeManager _TimeManager;
     public bool IsDiurnal = true;
@@ -25,7 +25,7 @@ public abstract class SmartPawn : MonoBehaviour
     // Start is called before the first frame update
     protected virtual void Start()
     {
-        _Pawn = GetComponent<Pawn>();
+        Master = GetComponent<Pawn>();
         _TimeManager = FindObjectOfType<TimeManager>();
         InvokeRepeating(nameof(RoutineController), 0, 1);
     }
@@ -41,31 +41,31 @@ public abstract class SmartPawn : MonoBehaviour
         ///////////////////////////////////////////////////
 
         // The pawn is dead
-        if (!_Pawn.IsAlive)
+        if (!Master.IsAlive)
         {
             return;
         }
 
         // The pawn is in combat
-        if(_Pawn.IsInCombat())
+        if(Master.IsInCombat())
         {
             return;
         }
 
         // The pawn is moving
-        if (_Pawn.IsMoving())
+        if (Master.IsMoving())
         {
             return;
         }
 
         // The pawn has tasks to do
-        if (!_Pawn._ActionManager.QueueIsEmpty())
+        if (!Master._ActionManager.QueueIsEmpty())
         {
             return;
         }
 
         // The spawn is playable
-        if (_Pawn.IsPlayable())
+        if (Master.IsPlayable())
         {
             return;
         }
@@ -111,17 +111,17 @@ public abstract class SmartPawn : MonoBehaviour
 
     protected virtual void FreeTime()
     {
-        if (_Pawn.Settlement == null)
+        if (Master.Settlement == null)
         {
             return;
         }
 
-        Vector3 wanderPoint = _Pawn.Settlement.GetRandomPoint();
+        Vector3 wanderPoint = Master.Settlement.GetRandomPoint();
 
         Action wander = Action.Find("act_wander");
         wander.Destination = wanderPoint;
 
-        _Pawn.Do(wander);
+        Master.Do(wander);
     }
 
 
@@ -130,12 +130,12 @@ public abstract class SmartPawn : MonoBehaviour
 
     protected virtual void Sleep()
     {
-        if(_Pawn.Settlement == null)
+        if(Master.Settlement == null)
         {
             return;
         }
 
-        List<Bed> beds = _Pawn.Settlement.GetBeds();
+        List<Bed> beds = Master.Settlement.GetBeds();
         beds = beds.Where(i => !i.IsBeingUsed()).ToList();
 
         if (beds.Count == 0)
@@ -153,7 +153,7 @@ public abstract class SmartPawn : MonoBehaviour
         Action sleep = Action.Find("act_move");
         sleep.Destination = bed.transform.position;
 
-        _Pawn.Do(sleep);
+        Master.Do(sleep);
         //
     }
 

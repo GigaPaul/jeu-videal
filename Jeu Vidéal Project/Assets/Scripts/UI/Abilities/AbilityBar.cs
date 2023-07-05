@@ -7,7 +7,7 @@ using UnityEngine;
 
 public class AbilityBar : MonoBehaviour
 {
-    public List<AbilityButton> Abilities { get; set; } = new();
+    public List<AbilityButton> Slots { get; set; } = new();
 
 
     private void Awake()
@@ -30,32 +30,16 @@ public class AbilityBar : MonoBehaviour
             return;
         }
 
-        List<AbilityHolder> abilityHolders = Globals.FocusedPawn._PawnCombat.AbilityHolders;
+        //List<AbilityHolder> abilityHolders = Globals.FocusedPawn._PawnCombat.AbilityHolders;
 
-        if (abilityHolders.Count == 0)
-        {
-            return;
-        }
+        //if (abilityHolders.Count == 0)
+        //{
+        //    return;
+        //}
 
-
-        foreach (AbilityButton button in Abilities)
+        foreach (AbilityButton button in Slots)
         {
             button.UpdateCooldown();
-            //Ability ability = button._Ability;
-            //AbilityHolder holder = abilityHolders.FirstOrDefault(i => i.AbilityHeld == ability);
-
-            //if (holder == null)
-            //{
-            //    continue;
-            //}
-
-            //float coolDownProgression = (float)Math.Floor(holder.CoolDown / ability.CoolDownTime * 100) / 100;
-            //float maxHeight = button.GetComponent<RectTransform>().rect.height;
-
-            //float width = button.CoolDownRect.rect.width;
-            //float height = maxHeight * coolDownProgression;
-
-            //button.CoolDownRect.sizeDelta = new(width, height);
         }
     }
 
@@ -70,25 +54,23 @@ public class AbilityBar : MonoBehaviour
         {
             AbilityButton button = buttonList[i];
             button.ShortCut = (i + 1).ToString();
-            Abilities.Add(button);
+            Slots.Add(button);
         }
     }
 
     public void LoadAbilitiesOf(Pawn pawn)
     {
         //Debug.Log(Abilities.Count);
-        for (int i = 0; i < Abilities.Count; i++)
+        for (int i = 0; i < Slots.Count; i++)
         {
-            AbilityButton button = Abilities[i];
+            AbilityButton button = Slots[i];
 
             if(i < pawn._PawnCombat.AbilityHolders.Count)
             {
-                //Debug.Log("Exists : "+i);
                 button.Load(pawn._PawnCombat.AbilityHolders[i]);
             }
             else
             {
-                //Debug.Log("Doesn't exist : " + i);
                 button.Unload();
             }
         }
@@ -98,7 +80,7 @@ public class AbilityBar : MonoBehaviour
 
     public void UnloadAbilities()
     {
-        foreach(AbilityButton button in Abilities)
+        foreach(AbilityButton button in Slots)
         {
             button.Unload();
         }

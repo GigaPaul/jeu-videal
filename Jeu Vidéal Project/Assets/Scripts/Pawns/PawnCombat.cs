@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class PawnCombat : MonoBehaviour
 {
-    public Pawn _Pawn { get; set; }
+    public Pawn Master { get; set; }
     public AbilityCaster _AbilityHolder { get; set; }
     //public List<AbilityClipDTO> EventCatcher = new();
     //public List<string> EventCatcher = new();
@@ -35,7 +35,7 @@ public class PawnCombat : MonoBehaviour
 
     private void Awake()
     {
-        _Pawn = GetComponent<Pawn>();
+        Master = GetComponent<Pawn>();
         _AbilityHolder = GetComponent<AbilityCaster>();
         InitAbilityHolders();
     }
@@ -64,7 +64,7 @@ public class PawnCombat : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if(!_Pawn.IsAlive)
+        if(!Master.IsAlive)
         {
             return;
         }
@@ -118,7 +118,7 @@ public class PawnCombat : MonoBehaviour
     void StanceLoop()
     {
         // Don't continue if an ability is already being cast
-        if (_Pawn.IsCasting())
+        if (Master.IsCasting())
         {
             return;
         }
@@ -154,12 +154,12 @@ public class PawnCombat : MonoBehaviour
         // If in range for auto attack, then auto attack
         if (InRangeFor(Spellbook.First()))
         {
-            _Pawn.Cast(Spellbook.First());
+            Master.Cast(Spellbook.First());
         }
         // Else, if the pawn isn't already walking, walk to a correct range
-        else if(_Pawn._ActionManager.QueueIsEmpty())
+        else if(Master._ActionManager.QueueIsEmpty())
         {
-            _Pawn.GoTo(CurrentTarget.transform);
+            Master.GoTo(CurrentTarget.transform);
         }
     }
 
@@ -180,7 +180,7 @@ public class PawnCombat : MonoBehaviour
         // If in range for auto attack, then auto attack
         if (InRangeFor(Spellbook.First()))
         {
-            _Pawn.Cast(Spellbook.First());
+            Master.Cast(Spellbook.First());
         }
     }
 
@@ -189,7 +189,7 @@ public class PawnCombat : MonoBehaviour
 
     void PassiveStance()
     {
-        if(_Pawn.IsInCombat())
+        if(Master.IsInCombat())
         {
             ClearTargets();
         }
@@ -201,7 +201,7 @@ public class PawnCombat : MonoBehaviour
 
     void ChoseTarget()
     {
-        if(ForcedTarget != null && _Pawn.CanAttack(ForcedTarget))
+        if(ForcedTarget != null && Master.CanAttack(ForcedTarget))
         {
             SetTarget(ForcedTarget);
             return;
@@ -215,7 +215,7 @@ public class PawnCombat : MonoBehaviour
 
         if(CurrentTarget != null)
         {
-            if (_Pawn.CanAttack(CurrentTarget) && InAggroRange(CurrentTarget))
+            if (Master.CanAttack(CurrentTarget) && InAggroRange(CurrentTarget))
             {
                 return;
             }
@@ -243,7 +243,7 @@ public class PawnCombat : MonoBehaviour
 
         foreach (Pawn hostile in hostilesToCheck)
         {
-            if(!_Pawn.CanAttack(hostile))
+            if(!Master.CanAttack(hostile))
             {
                 HostilesInRange.Remove(hostile);
             }
@@ -266,8 +266,8 @@ public class PawnCombat : MonoBehaviour
         List<Collider> hitColliders = Physics.OverlapSphere(transform.position, AggroRange, Globals.FocusableMask)
             .Where(i => 
                 i.GetComponentInParent<Pawn>() != null &&
-                i.GetComponentInParent<Pawn>().Faction != _Pawn.Faction &&
-                _Pawn.CanAttack(i.GetComponentInParent<Pawn>()))
+                i.GetComponentInParent<Pawn>().Faction != Master.Faction &&
+                Master.CanAttack(i.GetComponentInParent<Pawn>()))
             .ToList();
 
         List<Pawn> hitPawns = new();
@@ -294,7 +294,7 @@ public class PawnCombat : MonoBehaviour
 
         foreach (Pawn hostile in HostilesInRange)
         {
-            float thisDist = Vector3.Distance(_Pawn.transform.position, hostile.transform.position);
+            float thisDist = Vector3.Distance(Master.transform.position, hostile.transform.position);
 
             if (thisDist >= dist)
             {
@@ -350,9 +350,9 @@ public class PawnCombat : MonoBehaviour
     {
         if(target == null)
         {
-            if (_Pawn.Movement.RotationTarget == CurrentTarget.transform)
+            if (Master.Movement.RotationTarget == CurrentTarget.transform)
             {
-                _Pawn.Movement.RotationTarget = null;
+                Master.Movement.RotationTarget = null;
             }
 
             if(TargetIsForced())
@@ -362,12 +362,12 @@ public class PawnCombat : MonoBehaviour
         }
         else
         {
-            if (!_Pawn.CanAttack(target))
+            if (!Master.CanAttack(target))
             {
                 return;
             }
 
-            _Pawn.Movement.RotationTarget = target.transform;
+            Master.Movement.RotationTarget = target.transform;
         }
 
         // Combat begins here
@@ -385,7 +385,7 @@ public class PawnCombat : MonoBehaviour
     public void ForceTarget(Pawn target)
     {
 
-        if (target != null && !_Pawn.CanAttack(target))
+        if (target != null && !Master.CanAttack(target))
         {
             return;
         }

@@ -56,9 +56,9 @@ public class SmartInnkeeper : SmartPawn
 
         //
         Action bartending = Action.Find("act_move");
-        bartending.Destination = _Pawn.Settlement.Inn.position;
+        bartending.Destination = Master.Settlement.Inn.position;
 
-        _Pawn.Do(bartending);
+        Master.Do(bartending);
         //
     }
 }

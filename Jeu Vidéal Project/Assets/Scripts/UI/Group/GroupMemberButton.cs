@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class GroupMemberButton : MonoBehaviour
 {
-    public Pawn _Pawn { get; set; }
+    public Pawn Master { get; set; }
 
 
 
@@ -13,12 +13,12 @@ public class GroupMemberButton : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (_Pawn == null)
+        if (Master == null)
         {
             return;
         }
 
-        GetComponentInChildren<TextMeshProUGUI>().text = _Pawn.Attributes.GetFullName();
+        GetComponentInChildren<TextMeshProUGUI>().text = Master.Attributes.GetFullName();
     }
 
 
@@ -27,11 +27,11 @@ public class GroupMemberButton : MonoBehaviour
 
     public void FocusPawn()
     {
-        if(_Pawn == null)
+        if(Master == null)
         {
             return;
         }
 
-        _Pawn.Focus();
+        Master.Focus();
     }
 }

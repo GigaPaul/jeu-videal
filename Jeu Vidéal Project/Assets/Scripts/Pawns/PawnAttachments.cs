@@ -5,13 +5,13 @@ using UnityEngine;
 [RequireComponent(typeof(Pawn))]
 public class PawnAttachments : MonoBehaviour
 {
-    public Pawn _Pawn { get; set; }
+    public Pawn Master { get; set; }
     public Attachment RightHand;
     public Attachment LeftHand;
 
 
     private void Start()
     {
-        _Pawn = GetComponent<Pawn>();
+        Master = GetComponent<Pawn>();
     }
 }

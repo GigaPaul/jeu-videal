@@ -5,10 +5,10 @@ using UnityEngine;
 public class PawnModel : MonoBehaviour
 {
     public List<Renderer> Renderers = new();
-    Pawn _Pawn;
+    Pawn Master;
 
     private void Awake()
     {
-        _Pawn = GetComponentInParent<Pawn>();
+        Master = GetComponentInParent<Pawn>();
     }
 }

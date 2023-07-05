@@ -4,11 +4,11 @@ using UnityEngine;
 
 public class HostileCatcher : MonoBehaviour
 {
-    Pawn _Pawn { get; set; }
+    Pawn Master { get; set; }
 
     private void Awake()
     {
-        _Pawn = GetComponentInParent<Pawn>();
+        Master = GetComponentInParent<Pawn>();
     }
 
     //private void OnCollisionEnter(Collision collision)

@@ -20,7 +20,7 @@ public class SmartTrader : SmartPawn
     {
         base.Start();
 
-        if (_Pawn.Faction.Label == "Wanderers")
+        if (Master.Faction.Label == "Wanderers")
         {
             return;
         }
@@ -49,7 +49,7 @@ public class SmartTrader : SmartPawn
 
     protected override void Work()
     {
-        if (_Pawn.Faction.Label == "Wanderers")
+        if (Master.Faction.Label == "Wanderers")
         {
             WanderingTraderRoutine();
             return;
@@ -150,11 +150,11 @@ public class SmartTrader : SmartPawn
 
     private void LocalTraderRoutine()
     {
-        Vector3 wanderPoint = _Pawn.Settlement.GetRandomPoint();
+        Vector3 wanderPoint = Master.Settlement.GetRandomPoint();
 
         Action wander = Action.Find("act_wander");
         wander.Destination = wanderPoint;
 
-        _Pawn.Do(wander);
+        Master.Do(wander);
     }
 }
