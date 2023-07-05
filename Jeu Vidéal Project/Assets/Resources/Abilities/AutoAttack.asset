@@ -23,5 +23,5 @@ MonoBehaviour:
   ChannelTime: 0
   CoolDownTime: 2
   MinRange: 1
-  MaxRange: 2
+  MaxRange: 1.25
   Damages: 10

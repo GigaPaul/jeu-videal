@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -7,34 +8,22 @@ using UnityEngine.UI;
 public class AbilityButton : MonoBehaviour
 {
     public string ShortCut { get; set; }
-    public Ability _Ability { get; set; }
+    public AbilityHolder Holder { get; set; }
     public Sprite DefaultSprite;
     public RectTransform CoolDownRect;
 
 
-    private void Update()
+
+
+
+    public void Load(AbilityHolder holder)
     {
-        
-    }
-
-
-    public void Load(Ability ability)
-    {
-        _Ability = ability;
-        //GetComponentInChildren<TextMeshProUGUI>().text = ability.Id;
-
-        //if(ability.SpriteName == "")
-        //{
-        //    return;
-        //}
-
-        //Sprite sprite = Resources.Load<Sprite>("Images/" + ability.SpriteName);
+        Holder = holder;
         Image image = GetComponent<Image>();
 
-
-        if (ability._Sprite != null)
+        if (holder.AbilityHeld._Sprite != null)
         {
-            image.sprite = ability._Sprite;
+            image.sprite = holder.AbilityHeld._Sprite;
         }
         else
         {
@@ -43,27 +32,58 @@ public class AbilityButton : MonoBehaviour
     }
 
 
+
+
+
     public void Unload()
     {
-        _Ability = null;
-        //GetComponentInChildren<TextMeshProUGUI>().text = "Empty";
+        Holder = null;
         Image image = GetComponent<Image>();
         image.sprite = DefaultSprite;
+        CoolDownRect.sizeDelta = new(CoolDownRect.rect.width, 0);
     }
+
+
+
 
 
     public void Cast()
     {
-        if(_Ability == null)
+        if (Globals.FocusedPawn == null)
         {
             return;
         }
 
-        if(Globals.FocusedPawn == null)
+        if(Holder == null)
         {
             return;
         }
 
-        Globals.FocusedPawn.Cast(_Ability);
+        Globals.FocusedPawn.Cast(Holder.AbilityHeld);
+    }
+
+
+
+
+
+    public void UpdateCooldown()
+    {
+        if (Holder == null)
+        {
+            return;
+        }
+
+        float width = CoolDownRect.rect.width;
+        float height = 0f;
+
+        if (Holder.IsCoolingDown && Holder.AbilityHeld.HasCooldown())
+        {
+            float coolDownProgression = 1 - (float)Math.Floor(Holder.CoolDown / Holder.AbilityHeld.CoolDownTime * 100) / 100;
+            float maxHeight = GetComponent<RectTransform>().rect.height;
+
+            height = maxHeight * coolDownProgression;
+        }
+
+        CoolDownRect.sizeDelta = new(width, height);
     }
 }

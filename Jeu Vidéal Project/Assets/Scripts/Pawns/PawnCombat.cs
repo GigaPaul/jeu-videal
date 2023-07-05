@@ -27,11 +27,6 @@ public class PawnCombat : MonoBehaviour
     #nullable enable
     public Pawn? ForcedTarget { get; set; }
     public Pawn? CurrentTarget { get; set; }
-    //public Ability? CastAbility { get; set; }
-
-    ////
-    //public AbilityTest? newCastAbility { get; set; }
-    ////
 #nullable disable
 
 
@@ -51,7 +46,6 @@ public class PawnCombat : MonoBehaviour
 
     private void Start()
     {
-        //LoadDefaultAbilities();
         InvokeRepeating(nameof(GetHostilesInRange), 0, 0.25f);
     }
 
@@ -77,8 +71,6 @@ public class PawnCombat : MonoBehaviour
 
         PurgeHostileList();
         StanceLoop();
-        //TriggerAbility();
-        //CheckForEvents();
     }
 
 
@@ -119,40 +111,6 @@ public class PawnCombat : MonoBehaviour
             }
         }
     }
-
-
-
-
-
-
-
-
-    //void LoadDefaultAbilities()
-    //{
-    //    Ability autoAttack = Ability.Find("a_auto_attack");
-    //    if(autoAttack != null)
-    //    {
-    //        Abilities.Add(autoAttack);
-    //    }
-
-    //    Ability slash = Ability.Find("a_slash");
-    //    if (slash != null)
-    //    {
-    //        Abilities.Add(slash);
-    //    }
-
-    //    Ability block = Ability.Find("a_block");
-    //    if (block != null)
-    //    {
-    //        Abilities.Add(block);
-    //    }
-
-    //    Ability stab = Ability.Find("a_stab");
-    //    if (stab != null)
-    //    {
-    //        Abilities.Add(stab);
-    //    }
-    //}
 
 
 
@@ -299,13 +257,6 @@ public class PawnCombat : MonoBehaviour
     {
         HostilesInRange.Clear();
 
-        ////
-        //if (_Pawn.Faction.Id != "g_player")
-        //{
-        //    return;
-        //}
-        ////
-
         if(Stance == StanceType.passive)
         {
             return;
@@ -356,146 +307,6 @@ public class PawnCombat : MonoBehaviour
 
         return closestHostile;
     }
-
-
-
-
-
-
-
-
-
-
-
-    //// Triggers the ability's animation
-    //void TriggerAbility()
-    //{
-    //    if (CastAbility == null)
-    //    {
-    //        return;
-    //    }
-
-    //    if (CastAbility.HasBeenTriggered)
-    //    {
-    //        return;
-    //    }
-
-    //    if (CastAbility.NeedsTarget)
-    //    {
-    //        if (CastAbility.Target == null)
-    //        {
-    //            return;
-    //        }
-
-    //        Vector3 currentPosition = _Pawn.transform.position;
-    //        Vector3 targetPosition = CastAbility.Target.transform.position;
-
-    //        if (Vector3.Distance(currentPosition, targetPosition) > CastAbility.MaxRange)
-    //        {
-    //            return;
-    //        }
-    //    }
-
-    //    _Pawn.Animator.SetTrigger(CastAbility.TriggerLabel);
-    //    CastAbility.HasBeenTriggered = true;
-    //}
-
-
-
-    //void CheckForEvents()
-    //{
-    //    if(EventCatcher.Count == 0)
-    //    {
-    //        return;
-    //    }
-
-    //    if(CastAbility == null)
-    //    {
-    //        return;
-    //    }
-
-
-
-
-
-    //    // If the ability's animation started
-    //    if (HasCaught("begin"))
-    //    {
-    //        AbilityClipDTO status = EventCatcher.FirstOrDefault(i => i._Ability == CastAbility && i.Status == "begin");
-
-
-
-    //        //if (_Pawn.IsPlayable())
-    //        //{
-    //        //    Debug.Log("==================================");
-    //        //    Debug.Log("Animation started for " + foobarAnim.AnimName + " | " + EventCatcher.Count() + " | " + CastAbility?.Id);
-    //        //}
-
-    //        //EventCatcher.Remove(foobarAnim);
-    //    }
-
-
-
-    //    // If the ability hit the target
-    //    if (HasCaught("hit"))
-    //    {
-    //        AbilityClipDTO status = EventCatcher.FirstOrDefault(i => i._Ability == CastAbility && i.Status == "hit");
-    //        //AbilityAnimStatus foobarAnim = EventCatcher.FirstOrDefault(i => i.Status == "hit");
-            
-    //        if (CastAbility != null && CastAbility.Target != null)
-    //        {
-    //            //CastAbility.Target.TakeDamage(CastAbility.Damages);
-    //        }
-            
-    //        //EventCatcher.Remove(foobarAnim);
-    //    }
-
-
-
-    //    // If the ability's animation ended
-    //    if (HasCaught("end"))
-    //    {
-    //        AbilityClipDTO status = EventCatcher.FirstOrDefault(i => i._Ability == CastAbility && i.Status == "end");
-    //        //AbilityAnimStatus foobarAnim = EventCatcher.FirstOrDefault(i => i.Status == "end");
-
-    //        //if (_Pawn.IsPlayable())
-    //        //{
-    //        //    Debug.Log("Animation ended for "+ status._Ability.Id + " | " + EventCatcher.Count());
-    //        //}
-
-    //        EventCatcher.Remove(status);
-    //        //CastAbility.HasBeenTriggered = false;
-    //        CastAbility = null;
-    //    }
-    //}
-
-
-
-    //public bool HasCaught(string eventName)
-    //{
-    //    bool eventHappenned = EventCatcher.Any(i => i._Ability == CastAbility && i.Status == eventName);
-
-    //    //if(eventHappenned)
-    //    //{
-    //    //    AbilityAnimStatus caughtEvent = EventCatcher.FirstOrDefault(i => i._Ability == CastAbility && i.Status == eventName);
-    //    //    EventCatcher.Remove(foobarAnim);
-    //    //}
-
-    //    return eventHappenned;
-    //}
-
-
-    //public bool HasCaught(string eventName)
-    //{
-    //    bool eventHappenned = EventCatcher.Contains(eventName);
-
-    //    if (eventHappenned)
-    //    {
-    //        EventCatcher.Remove(eventName);
-    //    }
-
-    //    return eventHappenned;
-    //}
 
 
 

@@ -38,23 +38,24 @@ public class AbilityBar : MonoBehaviour
         }
 
 
-        foreach(AbilityButton button in Abilities)
+        foreach (AbilityButton button in Abilities)
         {
-            Ability ability = button._Ability;
-            AbilityHolder holder = abilityHolders.FirstOrDefault(i => i.AbilityHeld == ability);
+            button.UpdateCooldown();
+            //Ability ability = button._Ability;
+            //AbilityHolder holder = abilityHolders.FirstOrDefault(i => i.AbilityHeld == ability);
 
-            if(holder == null)
-            {
-                continue;
-            }
+            //if (holder == null)
+            //{
+            //    continue;
+            //}
 
-            float coolDownProgression = (float)Math.Floor(holder.CoolDown / ability.CoolDownTime * 100) / 100;
-            float maxHeight = button.GetComponent<RectTransform>().rect.height;
+            //float coolDownProgression = (float)Math.Floor(holder.CoolDown / ability.CoolDownTime * 100) / 100;
+            //float maxHeight = button.GetComponent<RectTransform>().rect.height;
 
-            float width = button.CoolDownRect.rect.width;
-            float height = maxHeight * coolDownProgression;
+            //float width = button.CoolDownRect.rect.width;
+            //float height = maxHeight * coolDownProgression;
 
-            button.CoolDownRect.sizeDelta = new(width, height);
+            //button.CoolDownRect.sizeDelta = new(width, height);
         }
     }
 
@@ -80,10 +81,10 @@ public class AbilityBar : MonoBehaviour
         {
             AbilityButton button = Abilities[i];
 
-            if(i < pawn._PawnCombat.Spellbook.Count)
+            if(i < pawn._PawnCombat.AbilityHolders.Count)
             {
                 //Debug.Log("Exists : "+i);
-                button.Load(pawn._PawnCombat.Spellbook[i]);
+                button.Load(pawn._PawnCombat.AbilityHolders[i]);
             }
             else
             {
