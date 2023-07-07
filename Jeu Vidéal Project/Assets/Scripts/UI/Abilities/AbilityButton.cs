@@ -59,7 +59,7 @@ public class AbilityButton : MonoBehaviour
             return;
         }
 
-        Globals.FocusedPawn.Cast(Holder.AbilityHeld);
+        Globals.FocusedPawn.Cast(Holder);
     }
 
 

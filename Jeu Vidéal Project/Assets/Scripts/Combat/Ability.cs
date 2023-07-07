@@ -13,9 +13,9 @@ public class Ability : ScriptableObject
     [Header("Animation")]
 
     //
-    public AnimationClip FireClip;
     public AnimationClip CastClip;
     public AnimationClip ChannelClip;
+    public AnimationClip FireClip;
     public enum AnimationStageType
     {
         initializing,
@@ -25,6 +25,8 @@ public class Ability : ScriptableObject
         end
     }
     public AnimationStageType AnimationStage = AnimationStageType.initializing;
+
+    public Dictionary<StageType, AnimationClip> StageClips = new();
     //
 
     public List<AnimationStalker> CastingAnimations { get; set; } = new();
@@ -33,12 +35,12 @@ public class Ability : ScriptableObject
 
     public enum StageType
     {
-        active,
+        //active,
         casting,
         channeling,
         fire
     }
-    public StageType Stage = StageType.active;
+    public StageType Stage = StageType.casting;
 
     [Header("Stats")]
     public bool NeedsTarget = true;
@@ -51,14 +53,39 @@ public class Ability : ScriptableObject
     public Pawn Target { get; set; }
 
 
-    public virtual void Activate() { }
 
-    public virtual void BeginCoolDown()
+
+
+    private void Awake()
+    {
+        InitStageClips();
+    }
+
+
+
+
+
+    public virtual void Activate() { }
+    public virtual void Start() { }
+    public virtual void Hit() { }
+    public virtual void End() { }
+    public virtual void StartCoolDown()
     { 
         if(!HasCooldown())
         {
             return;
         }
+    }
+
+
+
+
+
+    private void InitStageClips()
+    {
+        StageClips.Add(StageType.casting, CastClip);
+        StageClips.Add(StageType.channeling, ChannelClip);
+        StageClips.Add(StageType.fire, FireClip);
     }
 
     public static void ResetAnimations(List<AnimationStalker> stalkers)
@@ -72,6 +99,66 @@ public class Ability : ScriptableObject
 
 
 
+    //public void NextStage()
+    //{
+    //    if(!IsOnLastStage())
+    //    {
+    //        Stage += 1;
+    //    }
+    //}
+
+
+
+
+    public void NextStage()
+    {
+        while(!IsOnLastStage())
+        {
+            Stage += 1;
+
+            if(MustPassThrough(Stage))
+            {
+                break;
+            }
+        }
+    }
+
+
+
+
+
+    public StageType GetEarliestValidStage()
+    {
+        if (MustPassThrough(Stage))
+        {
+            return Stage;
+        }
+
+        foreach (StageType stageType in (StageType[]) Enum.GetValues(typeof(StageType)))
+        {
+            if(stageType == Stage)
+            {
+                continue;
+            }
+
+            if (MustPassThrough(stageType) && stageType > Stage)
+            {
+                return stageType;
+            }
+        }
+
+        return StageType.fire;
+    }
+
+
+
+
+
+    public bool StageHasAnimations(StageType stageType)
+    {
+        return StageClips[stageType] != null;
+    }
+
     public bool IsInstant()
     {
         return CastingTime == 0f;
@@ -79,7 +166,7 @@ public class Ability : ScriptableObject
 
     public bool IsChannel()
     {
-        return ChannelTime == 0f;
+        return ChannelTime > 0f;
     }
 
     public bool HasCooldown()
@@ -95,5 +182,16 @@ public class Ability : ScriptableObject
     public bool IsOnLastStage()
     {
         return Stage == Enum.GetValues(typeof(StageType)).Cast<StageType>().Max();
+    }
+
+    public bool MustPassThrough(StageType stageType)
+    {
+        return stageType switch
+        {
+            StageType.casting => !IsInstant(),
+            StageType.channeling => IsChannel(),
+            StageType.fire => StageHasAnimations(StageType.fire),
+            _ => true,
+        };
     }
 }

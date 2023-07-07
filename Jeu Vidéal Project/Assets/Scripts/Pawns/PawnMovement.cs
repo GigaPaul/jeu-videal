@@ -5,8 +5,8 @@ using UnityEngine.AI;
 [RequireComponent(typeof(Pawn))]
 public class PawnMovement : MonoBehaviour
 {
-    public Pawn Master;
-    public NavMeshAgent _NavMeshAgent;
+    public Pawn Master { get; set; }
+    //public NavMeshAgent _NavMeshAgent;
     public FlockAgent _FlockAgent;
     public ActionManager _ActionManager;
 
@@ -31,9 +31,10 @@ public class PawnMovement : MonoBehaviour
     // Start is called before the first frame update
     void Awake()
     {
+        Master = GetComponent<Pawn>();
         SpeedQuotient = 1;
         WalkingSpeed = MaxSpeed / 2;
-        _NavMeshAgent.speed = WalkingSpeed;
+        Master.NavMeshAgent.speed = WalkingSpeed;
     }
 
 
@@ -115,7 +116,7 @@ public class PawnMovement : MonoBehaviour
             // If the pawn must rally the destination of an ongoing action
             if (!_ActionManager.QueueIsEmpty() && _ActionManager.CurrentAction.Status != Action.StatusType.inactive)
             {
-                target = transform.position + _NavMeshAgent.velocity.normalized;
+                target = transform.position + Master.NavMeshAgent.velocity.normalized;
             }
         }
 
@@ -235,7 +236,7 @@ public class PawnMovement : MonoBehaviour
             // Normalized vector poiting to the direction starting from the current velocity
             Vector3 velocityDir = (direction - VelocityDirection).normalized;
 
-            Vector3 velocityMovement = distVelocityToTarget * Time.deltaTime * _NavMeshAgent.speed * velocityDir;
+            Vector3 velocityMovement = distVelocityToTarget * Time.deltaTime * Master.NavMeshAgent.speed * velocityDir;
             VelocityDirection += velocityMovement;
 
 
@@ -255,7 +256,7 @@ public class PawnMovement : MonoBehaviour
 
 
 
-        _NavMeshAgent.velocity = _NavMeshAgent.speed * SpeedQuotient * VelocityDirection;
+        Master.NavMeshAgent.velocity = Master.NavMeshAgent.speed * SpeedQuotient * VelocityDirection;
     }
 
 
@@ -311,7 +312,7 @@ public class PawnMovement : MonoBehaviour
         else
         {
             Transform target = _ActionManager.GetCurrentTarget();
-            float radius = _NavMeshAgent.stoppingDistance;
+            float radius = Master.NavMeshAgent.stoppingDistance;
 
             if(Master.IsInCombat())
             {
@@ -319,7 +320,7 @@ public class PawnMovement : MonoBehaviour
 
                 if(Master.IsCasting())
                 {
-                    ability = Master._AbilityCaster.AbilityHeld;
+                    ability = Master._AbilityCaster.AbilityCast;
                 }
                 else
                 {
@@ -358,7 +359,7 @@ public class PawnMovement : MonoBehaviour
 
 
         NavMeshPath path = new();
-        //bool canBeReached = _NavMeshAgent.CalculatePath(_ActionManager.GetCurrentDestination(), path);
+        //bool canBeReached = Master.NavMeshAgent.CalculatePath(_ActionManager.GetCurrentDestination(), path);
         bool canBeReached = NavMesh.CalculatePath(transform.position, destination, NavMesh.AllAreas, path);
 
 
@@ -389,7 +390,7 @@ public class PawnMovement : MonoBehaviour
             _ActionManager.CurrentAction.Destination = navHit.position;
         }
 
-        _NavMeshAgent.SetDestination(_ActionManager.GetCurrentDestination());
+        Master.NavMeshAgent.SetDestination(_ActionManager.GetCurrentDestination());
     }
 
 

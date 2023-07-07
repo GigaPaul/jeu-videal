@@ -4000,7 +4000,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1468532837860305611, guid: 83b07df143bbef246a9fd92eaf69ffd5, type: 3}
       propertyPath: IsBeingDebugged
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1468532837860305613, guid: 83b07df143bbef246a9fd92eaf69ffd5, type: 3}
       propertyPath: sceneId
@@ -8850,7 +8850,7 @@ PrefabInstance:
     - target: {fileID: 4379401742074630599, guid: 83b07df143bbef246a9fd92eaf69ffd5, type: 3}
       propertyPath: Spellbook.Array.data[3]
       value: 
-      objectReference: {fileID: 11400000, guid: a81ecf55b3295b049a4aea1f88110b9c, type: 2}
+      objectReference: {fileID: 11400000, guid: 88d50be31c579a446bb45665a0a5d6c1, type: 2}
     - target: {fileID: 6013067969466507376, guid: 83b07df143bbef246a9fd92eaf69ffd5, type: 3}
       propertyPath: m_Controller
       value: 
@@ -13367,7 +13367,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e0a356d22c767624c9045260a5c8bead, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _Pawn: {fileID: 0}
+  Master: {fileID: 0}
   _TimeManager: {fileID: 0}
   IsDiurnal: 1
 --- !u!1001 &1996044382

@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: Mining
   _Sprite: {fileID: 0}
-  FireClip: {fileID: 0}
   CastClip: {fileID: 7400000, guid: 49f0d85b18961d54e904e4a097beb7bb, type: 2}
-  ChannelClip: {fileID: 0}
+  ChannelClip: {fileID: 7400000, guid: a1f933f914908394ba1fa0ce75decad6, type: 2}
+  FireClip: {fileID: 7400000, guid: dd9bdd03cf9926241a4c8616eeb33a95, type: 2}
   AnimationStage: 0
   Stage: 0
   NeedsTarget: 1

@@ -465,32 +465,9 @@ public class Pawn : MonoBehaviour
     }
 
 
-    public void Cast(Ability ability)
+    public void Cast(AbilityHolder holder)
     {
-        if(ability.HasCooldown() && Knows(ability))
-        {
-            AbilityHolder holder = _PawnCombat.AbilityHolders.FirstOrDefault(i => i.AbilityHeld == ability);
-            if(holder != null && holder.CoolDown > 0)
-            {
-                return;
-            }
-        }
-
-        if(ability.NeedsTarget)
-        {
-            if(!IsInCombat())
-            {
-                return;
-            }
-
-            _AbilityCaster.Hold(ability, _PawnCombat.CurrentTarget);
-        }
-        else
-        {
-            //Ability abilityClone = Instantiate(ability);
-            //abilityClone.Caster = this;
-            _AbilityCaster.Hold(ability);
-        }
+        _PawnCombat.Cast(holder);
     }
 
 
@@ -577,7 +554,7 @@ public class Pawn : MonoBehaviour
 
     public bool IsCasting()
     {
-        return _AbilityCaster.AbilityHeld != null;
+        return _AbilityCaster.AbilityCast != null;
         //return _PawnCombat.CastAbility != null;
     }
 

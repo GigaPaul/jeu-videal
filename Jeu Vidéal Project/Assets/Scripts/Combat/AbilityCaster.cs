@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,189 +7,272 @@ using UnityEngine;
 public class AbilityCaster : MonoBehaviour
 {
     public Pawn Master { get; set; }
-    public Ability AbilityHeld { get; set; }
+    public Ability AbilityCast { get; set; }
 
     #nullable enable
     public AnimationStalker? CurrentStalker { get; set; }
     #nullable disable
 
-    float AnimationTime;
-    float AbilityTime;
-    bool StartEventHappened = false;
-    bool HitEventHappened = false;
+    float AnimationTimer;
+    float AbilityTimer;
+    List<Ability.StageType> TimedStages;
+
+
+
 
 
     private void Awake()
     {
         Master = GetComponent<Pawn>();
+        TimedStages = new()
+        {
+            Ability.StageType.casting,
+            Ability.StageType.channeling
+        };
     }
+
+
+
 
 
     private void Update()
     {
-        if(AbilityHeld == null)
-        {
-            return;
-        }
-
-        if(AbilityHeld.AnimationStarted())
-        {
-            AnimationTime += Time.deltaTime;
-            AbilityTime += Time.deltaTime;
-        }
+        HandleTimers();
     }
+
+
+
 
 
     private void FixedUpdate()
     {
-        if(AbilityHeld == null)
+        if(AbilityCast == null)
         {
             return;
         }
 
-        HandleAnimation();
-    }
-
-
-
-    void HandleAnimation()
-    {
-        if(AbilityHeld.AnimationStage == Ability.AnimationStageType.initializing)
-        {
-            TriggerAnimation();
-            AbilityHeld.AnimationStage = Ability.AnimationStageType.initialized;
-        }
-
-        foreach (AnimationEvent thisEvent in AbilityHeld.FireClip.events)
-        {
-            if (AnimationTime < thisEvent.time)
-            {
-                continue;
-            }
-
-            switch(thisEvent.stringParameter)
-            {
-                case "start":
-                    if(!StartEventHappened)
-                    {
-                        StartEventHappened = true;
-                    }
-                    break;
-
-
-
-                case "hit":
-                    if (!HitEventHappened)
-                    {
-                        Debug.Log("hit");
-                        HitEventHappened = true;
-                    }
-                    break;
-
-
-
-                case "end":
-                    ResetHolder();
-                    break;
-            }
-        }
-    }
-
-
-
-    public void NewHandleAnimation()
-    {
-        if(AbilityHeld == null)
-        {
-            return;
-        }
-
-        AnimationClip clip = null;
-
-        switch(AbilityHeld.Stage)
-        {
-            case Ability.StageType.casting:
-                clip = AbilityHeld.CastClip;
-                break;
-
-            case Ability.StageType.channeling:
-                clip = AbilityHeld.ChannelClip;
-                break;
-
-            case Ability.StageType.fire:
-                clip = AbilityHeld.FireClip;
-                break;
-        }
-
-        if(clip == null)
-        {
-            return;
-        }
-
-        if(CurrentStalker == null)
-        {
-            AnimationStalker stalker = new(clip);
-            CurrentStalker = stalker;
-            Master._Puppeteer.Play(CurrentStalker.Clip);
-        }
-
-
+        HandleAnimations();
+        TriggerAnimationEvents();
+        CheckForStageSuccess();
     }
 
 
 
 
-    public void Hold(Ability ability, Pawn target = null)
+
+    public void Cast(AbilityHolder holder, Pawn target = null)
     {
-        Ability abilityClone = Instantiate(ability);
+        _ = holder ?? throw new ArgumentNullException(nameof(holder));
+
+        if (!Master.Knows(holder.AbilityHeld))
+        {
+            return;
+        }
+
+
+        // Set ability
+        Ability abilityClone = Instantiate(holder.AbilityHeld);
         abilityClone.Caster = Master;
 
-        if(target != null)
+        if (target != null)
         {
             abilityClone.Target = target;
         }
 
-        ResetHolder();
-        AbilityHeld = abilityClone;
+
+        // Set correct stage
+        abilityClone.Stage = abilityClone.GetEarliestValidStage();
+
+        // Cast the ability
+        ResetCaster();
+        AbilityCast = abilityClone;
 
         // If the ability has a cooldown, start it
-        if (ability.HasCooldown() && Master.Knows(ability))
+        if (abilityClone.HasCooldown())
         {
-            AbilityHolder holder = Master._PawnCombat.AbilityHolders.FirstOrDefault(i => i.AbilityHeld == ability);
+            holder.StartCoolDown();
+        }
 
-            if (holder != null)
+    }
+
+
+
+
+
+    private void HandleAnimations()
+    {
+        // Only continue if an animation is not already playing
+        if(CurrentStalker != null)
+        {
+            return;
+        }
+
+        // Get the animation
+        AnimationClip clip = AbilityCast.StageClips[AbilityCast.Stage];
+
+        if (clip == null)
+        {
+            return;
+        }
+
+        // Triggers animations
+        AnimationStalker stalker = new(clip);
+        CurrentStalker = stalker;
+        AnimationTimer = 0;
+        Master._Puppeteer.Play(CurrentStalker.Clip);
+    }
+
+
+
+
+
+    private void HandleTimers()
+    {
+        if(AbilityCast == null)
+        {
+            return;
+        }
+
+        // Update animation timer if an animation is currently playing
+        if(CurrentStalker != null)
+        {
+            AnimationTimer += Time.deltaTime;
+        }
+
+        // Update ability timer if at Cast or Channel stage
+        if(TimedStages.Contains(AbilityCast.Stage))
+        {
+            AbilityTimer += Time.deltaTime;
+        }
+    }
+
+
+
+
+
+    private void TriggerAnimationEvents()
+    {
+        if(CurrentStalker == null)
+        {
+            return;
+        }
+
+        // If there are no events to check don't even bother
+        if(CurrentStalker.Clip.events.Length == 0)
+        {
+            return;
+        }
+
+        // Check for animation timer and triggers ability events if necessary
+        // Start, Hit, End
+        foreach (AnimationEvent thisEvent in CurrentStalker.Clip.events)
+        {
+            if (AnimationTimer < thisEvent.time)
             {
-                holder.StartCoolDown();
+                continue;
+            }
+
+            switch (thisEvent.stringParameter)
+            {
+                // When the animation begins
+                case "start":
+                    if (CurrentStalker.Stage < AnimationStalker.StageType.start)
+                    {
+                        CurrentStalker.Stage = AnimationStalker.StageType.start;
+                        // Trigger start events here
+                        AbilityCast.Start();
+                    }
+                    break;
+
+
+
+                // When the animation looks like it hits its target
+                case "hit":
+                    if (CurrentStalker.Stage < AnimationStalker.StageType.hit)
+                    {
+                        CurrentStalker.Stage = AnimationStalker.StageType.hit;
+                        // Trigger hit events here
+                        AbilityCast.Hit();
+                    }
+                    break;
+
+
+
+                // When the animation ends
+                case "end":
+                    if (CurrentStalker.Stage < AnimationStalker.StageType.end)
+                    {
+                        CurrentStalker.Stage = AnimationStalker.StageType.end;
+                        // Trigger end events here
+                        AbilityCast.End();
+                    }
+                    break;
             }
         }
     }
 
 
 
-    public void TriggerAnimation()
+
+
+    private void CheckForStageSuccess()
     {
-        // Trigger animation here
-        AnimationTime = 0;
+        bool abilityEnded = false;
 
-        if(AbilityHeld == null)
+        // If timer is up for Cast or Channel
+        if(TimedStages.Contains(AbilityCast.Stage))
         {
-            return;
+            if(AbilityCast.Stage == Ability.StageType.casting)
+            {
+                abilityEnded = AbilityTimer >= AbilityCast.CastingTime;
+            }
+            else if(AbilityCast.Stage == Ability.StageType.channeling)
+            {
+                abilityEnded = AbilityTimer >= AbilityCast.ChannelTime;
+            }
+        }
+        // If animation ended for Fire
+        else
+        {
+            abilityEnded = CurrentStalker == null || AnimationTimer >= CurrentStalker.Clip.length;
         }
 
-        if(AbilityHeld.FireClip == null)
-        {
-            return;
-        }
 
-        Master._Puppeteer.Play(AbilityHeld.FireClip);
-        //_Pawn._Animator.SetTrigger(AbilityHeld.AnimationTrigger);
+
+        // Go to ability next stage or end
+        if(abilityEnded)
+        {
+            if (!AbilityCast.IsOnLastStage())
+            {
+                CancelCurrentAnimation();
+                AbilityCast.NextStage();
+            }
+            else
+            {
+                ResetCaster();
+            }
+        }
     }
 
-    public void ResetHolder()
+
+
+
+
+    private void ResetCaster()
     {
-        AbilityHeld = null;
-        AnimationTime = 0;
-        StartEventHappened = false;
-        HitEventHappened = false;
+        ResetAbility();
+        CancelCurrentAnimation();
+    }
+
+    private void ResetAbility()
+    {
+        AbilityCast = null;
+        AbilityTimer = 0;
+    }
+
+    private void CancelCurrentAnimation()
+    {
+        CurrentStalker = null;
+        AnimationTimer = 0;
     }
 }

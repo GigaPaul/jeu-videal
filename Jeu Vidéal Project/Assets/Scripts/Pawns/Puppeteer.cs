@@ -10,7 +10,7 @@ using UnityEngine;
 public class Puppeteer : MonoBehaviour
 {
     public AnimatorController Controller { get; set; }
-    public Pawn Master;
+    public Pawn Master { get; set; }
     //public List<AvatarMaskBodyPart> DefaultBodyParts = new();
     //public List<AvatarMaskBodyPart> LowerBodyParts = new();
     //public float LowerLayersWeight = 1;
@@ -27,9 +27,17 @@ public class Puppeteer : MonoBehaviour
 
 
 
+    private void Awake()
+    {
+        Master = GetComponent<Pawn>();
+    }
+
+
+
+
     private void Start()
     {
-        //GetController();
+        GetController();
         //GetBodyParts();
     }
 
@@ -173,9 +181,29 @@ public class Puppeteer : MonoBehaviour
             return;
         }
 
+        // We look if the state has a transition condition
+        AnimatorControllerLayer layer = Controller.layers[layerId];
+        List<AnimatorState> states = layer.stateMachine.states.Select(i => i.state).ToList();
+        AnimatorState thisState = states.FirstOrDefault(i => i.nameHash == stateId);
+        AnimatorStateTransition entryTransition = layer.stateMachine.anyStateTransitions.FirstOrDefault(i => i.destinationState == thisState);
 
-        float transitionDuration = clip.length * 0.2f;
-        Master._Animator.CrossFade(clip.name, transitionDuration, layerId);
+        // If it's the case, we use the Animator transition
+        if (entryTransition != null && entryTransition.conditions.Length > 0)
+        {
+            string triggerName = entryTransition.conditions.First().parameter;
+
+            if (!Master._Animator.GetBool(triggerName))
+            {
+                Master._Animator.SetBool(triggerName, true);
+            }
+        }
+        // Otherwise, we use CrossFade
+        else
+        {
+            Debug.Log("Crossfade");
+            float transitionDuration = clip.length * 0.2f;
+            Master._Animator.CrossFade(clip.name, transitionDuration, layerId);
+        }
     }
 
 
@@ -284,15 +312,15 @@ public class Puppeteer : MonoBehaviour
 
 
 
-    public void SetBodyPartWeight(AvatarMaskBodyPart bodypart, float weight)
-    {
-        int layerIndex = Master._Animator.GetLayerIndex(bodypart.ToString());
+    //public void SetBodyPartWeight(AvatarMaskBodyPart bodypart, float weight)
+    //{
+    //    int layerIndex = Master._Animator.GetLayerIndex(bodypart.ToString());
 
-        if(layerIndex == -1)
-        {
-            return;
-        }
+    //    if(layerIndex == -1)
+    //    {
+    //        return;
+    //    }
 
-        Master._Animator.SetLayerWeight(layerIndex, weight);
-    }
+    //    Master._Animator.SetLayerWeight(layerIndex, weight);
+    //}
 }

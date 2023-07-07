@@ -7,31 +7,39 @@ using UnityEngine;
 public class AnimationStalker
 {
     public AnimationClip Clip;
-
-    public string Trigger;
-
     public bool IsLoop = false;
 
     public enum StageType
     {
-        initializing,
         initialized,
         start,
         hit,
         end
     }
 
-    public StageType Stage = StageType.initializing;
+    public StageType Stage = StageType.initialized;
+
+
+
+
 
     public AnimationStalker(AnimationClip clip)
     {
         Clip = clip;
     }
 
+
+
+
+
     public void Reset()
     {
-        Stage = StageType.initializing;
+        Stage = StageType.initialized;
     }
+
+
+
+
 
     public bool IsOnLastStage()
     {

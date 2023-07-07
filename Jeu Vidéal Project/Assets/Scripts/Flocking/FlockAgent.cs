@@ -4,9 +4,20 @@ using UnityEngine;
 
 public class FlockAgent : MonoBehaviour
 {
-    public Pawn Master;
+    public Pawn Master { get; set; }
     public Vector3 RotationTarget;
     public Vector3 PositionTarget;
+
+
+
+
+    private void Awake()
+    {
+        Master = GetComponent<Pawn>();
+    }
+
+
+
 
 
     private void FixedUpdate()

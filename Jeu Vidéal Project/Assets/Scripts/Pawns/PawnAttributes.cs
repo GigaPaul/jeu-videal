@@ -7,14 +7,23 @@ using UnityEngine;
 [RequireComponent(typeof(Pawn))]
 public class PawnAttributes : MonoBehaviour
 {
-    public Pawn Master;
+    public Pawn Master { get; set; }
     public Culture _Culture;
     public string FirstName;
     public string LastName;
 
     #nullable enable
     public Title? _Title;
-    #nullable disable
+#nullable disable
+
+
+
+
+
+    private void Awake()
+    {
+        Master = GetComponent<Pawn>();
+    }
 
 
 

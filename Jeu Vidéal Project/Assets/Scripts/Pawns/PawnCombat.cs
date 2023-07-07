@@ -6,9 +6,16 @@ using UnityEngine;
 public class PawnCombat : MonoBehaviour
 {
     public Pawn Master { get; set; }
-    public AbilityCaster _AbilityHolder { get; set; }
-    //public List<AbilityClipDTO> EventCatcher = new();
-    //public List<string> EventCatcher = new();
+    public AbilityCaster _AbilityCaster { get; set; }
+    public List<Ability> Spellbook = new();
+    public List<AbilityHolder> AbilityHolders = new();
+    public List<Pawn> HostilesInRange = new();
+    public float AggroRange = 5;
+
+    #nullable enable
+    public Pawn? ForcedTarget { get; set; }
+    public Pawn? CurrentTarget { get; set; }
+    #nullable disable
 
     public enum StanceType
     {
@@ -18,16 +25,6 @@ public class PawnCombat : MonoBehaviour
     }
 
     public StanceType Stance = StanceType.aggressive;
-    public List<Pawn> HostilesInRange = new();
-    public List<Ability> Spellbook = new();
-    public List<AbilityHolder> AbilityHolders = new();
-
-    public float AggroRange = 5;
-
-    #nullable enable
-    public Pawn? ForcedTarget { get; set; }
-    public Pawn? CurrentTarget { get; set; }
-#nullable disable
 
 
 
@@ -36,7 +33,7 @@ public class PawnCombat : MonoBehaviour
     private void Awake()
     {
         Master = GetComponent<Pawn>();
-        _AbilityHolder = GetComponent<AbilityCaster>();
+        _AbilityCaster = GetComponent<AbilityCaster>();
         InitAbilityHolders();
     }
 
@@ -152,9 +149,9 @@ public class PawnCombat : MonoBehaviour
         }
 
         // If in range for auto attack, then auto attack
-        if (InRangeFor(Spellbook.First()))
+        if (InRangeFor(AbilityHolders.First().AbilityHeld))
         {
-            Master.Cast(Spellbook.First());
+            Cast(AbilityHolders.First());
         }
         // Else, if the pawn isn't already walking, walk to a correct range
         else if(Master._ActionManager.QueueIsEmpty())
@@ -178,9 +175,9 @@ public class PawnCombat : MonoBehaviour
         }
 
         // If in range for auto attack, then auto attack
-        if (InRangeFor(Spellbook.First()))
+        if (InRangeFor(AbilityHolders.First().AbilityHeld))
         {
-            Master.Cast(Spellbook.First());
+            Cast(AbilityHolders.First());
         }
     }
 
@@ -247,6 +244,61 @@ public class PawnCombat : MonoBehaviour
             {
                 HostilesInRange.Remove(hostile);
             }
+        }
+    }
+
+
+
+
+
+    //public void Cast(Ability ability)
+    //{
+    //    if (ability.HasCooldown() && Spellbook.Contains(ability))
+    //    {
+    //        AbilityHolder holder = AbilityHolders.FirstOrDefault(i => i.AbilityHeld == ability);
+    //        if (holder != null && holder.CoolDown > 0)
+    //        {
+    //            return;
+    //        }
+    //    }
+
+    //    if (ability.NeedsTarget)
+    //    {
+    //        if (!Master.IsInCombat())
+    //        {
+    //            return;
+    //        }
+
+    //        _AbilityCaster.Cast(ability, CurrentTarget);
+    //    }
+    //    else
+    //    {
+    //        _AbilityCaster.Cast(ability);
+    //    }
+    //}
+
+
+
+    public void Cast(AbilityHolder holder)
+    {
+        // Check
+        if (holder.IsCoolingDown)
+        {
+            return;
+        }
+
+        if (holder.AbilityHeld.NeedsTarget)
+        {
+            if (!Master.IsInCombat())
+            {
+                return;
+            }
+
+            _AbilityCaster.Cast(holder, CurrentTarget);
+        }
+        else
+        {
+            _AbilityCaster.Cast(holder);
         }
     }
 
