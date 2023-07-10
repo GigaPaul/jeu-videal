@@ -119,7 +119,9 @@ public class AbilityCaster : MonoBehaviour
         AnimationStalker stalker = new(clip);
         CurrentStalker = stalker;
         AnimationTimer = 0;
-        Master._Puppeteer.Play(CurrentStalker.Clip);
+
+        bool withExitTime = !TimedStages.Contains(AbilityCast.Stage);
+        Master._Puppeteer.Play(CurrentStalker.Clip, withExitTime);
     }
 
 
@@ -220,7 +222,7 @@ public class AbilityCaster : MonoBehaviour
         bool abilityEnded = false;
 
         // If timer is up for Cast or Channel
-        if(TimedStages.Contains(AbilityCast.Stage))
+        if (TimedStages.Contains(AbilityCast.Stage))
         {
             if(AbilityCast.Stage == Ability.StageType.casting)
             {
@@ -234,14 +236,19 @@ public class AbilityCaster : MonoBehaviour
         // If animation ended for Fire
         else
         {
-            abilityEnded = CurrentStalker == null || AnimationTimer >= CurrentStalker.Clip.length;
+            abilityEnded = CurrentStalker == null || AnimationTimer >= CurrentStalker.Clip.length * 0.95;
         }
 
 
 
         // Go to ability next stage or end
-        if(abilityEnded)
+        if (abilityEnded)
         {
+            if(TimedStages.Contains(AbilityCast.Stage))
+            {
+                Master._Puppeteer.CancelCurrentClip();
+            }
+
             if (!AbilityCast.IsOnLastStage())
             {
                 CancelCurrentAnimation();
@@ -249,6 +256,7 @@ public class AbilityCaster : MonoBehaviour
             }
             else
             {
+                //Master._Puppeteer.CancelCurrentClip();
                 ResetCaster();
             }
         }
@@ -274,5 +282,6 @@ public class AbilityCaster : MonoBehaviour
     {
         CurrentStalker = null;
         AnimationTimer = 0;
+        //Master._Puppeteer.CancelCurrentClip();
     }
 }

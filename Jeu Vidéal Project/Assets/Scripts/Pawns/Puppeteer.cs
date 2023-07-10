@@ -171,39 +171,63 @@ public class Puppeteer : MonoBehaviour
 
 
 
-    public void Play(AnimationClip clip)
+    public void Play(AnimationClip clip, bool withExitTime = true)
     {
-        int stateId = Animator.StringToHash(clip.name);
-        int layerId = (int)Layer.animations;
+        //int stateId = Animator.StringToHash(clip.name);
+        //int layerId = (int)Layer.animations;
 
-        if (!Master._Animator.HasState(layerId, stateId))
+        //if (!Master._Animator.HasState(layerId, stateId))
+        //{
+        //    Debug.Log("Has not state");
+        //    return;
+        //}
+
+
+        Master._Animator.SetTrigger("Start");
+        Master._Animator.SetTrigger(clip.name);
+
+        if(withExitTime)
         {
-            return;
+            Master._Animator.SetTrigger("StopWET");
         }
 
-        // We look if the state has a transition condition
-        AnimatorControllerLayer layer = Controller.layers[layerId];
-        List<AnimatorState> states = layer.stateMachine.states.Select(i => i.state).ToList();
-        AnimatorState thisState = states.FirstOrDefault(i => i.nameHash == stateId);
-        AnimatorStateTransition entryTransition = layer.stateMachine.anyStateTransitions.FirstOrDefault(i => i.destinationState == thisState);
 
-        // If it's the case, we use the Animator transition
-        if (entryTransition != null && entryTransition.conditions.Length > 0)
-        {
-            string triggerName = entryTransition.conditions.First().parameter;
+        //// We look if the state has a transition condition
+        //AnimatorControllerLayer layer = Controller.layers[layerId];
+        //List<AnimatorState> states = layer.stateMachine.states.Select(i => i.state).ToList();
+        //AnimatorState thisState = states.FirstOrDefault(i => i.nameHash == stateId);
+        //Debug.Log(thisState);
+        //AnimatorStateTransition entryTransition = layer.stateMachine.anyStateTransitions.FirstOrDefault(i => i.destinationState == thisState);
 
-            if (!Master._Animator.GetBool(triggerName))
-            {
-                Master._Animator.SetBool(triggerName, true);
-            }
-        }
-        // Otherwise, we use CrossFade
-        else
-        {
-            Debug.Log("Crossfade");
-            float transitionDuration = clip.length * 0.2f;
-            Master._Animator.CrossFade(clip.name, transitionDuration, layerId);
-        }
+        //// If it's the case, we use the Animator transition
+        //if (entryTransition != null && entryTransition.conditions.Length > 0)
+        //{
+        //    Debug.Log("Transition found");
+        //    string triggerName = entryTransition.conditions.First().parameter;
+
+        //    Master._Animator.SetTrigger("Start");
+        //    Master._Animator.SetTrigger(triggerName);
+        //    Debug.Log(triggerName);
+        //    //if (!Master._Animator.GetBool(triggerName))
+        //    //{
+        //    //    Master._Animator.SetBool(triggerName, true);
+        //    //}
+        //}
+        //// Otherwise, we use CrossFade
+        //else
+        //{
+        //    Debug.Log("Transition NOT found");
+        //    float transitionDuration = clip.length * 0.2f;
+        //    Master._Animator.CrossFade(clip.name, transitionDuration, layerId);
+        //}
+    }
+
+
+
+
+    public void CancelCurrentClip()
+    {
+        Master._Animator.SetTrigger("StopInstant");
     }
 
 

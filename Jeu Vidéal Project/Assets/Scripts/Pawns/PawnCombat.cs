@@ -151,7 +151,7 @@ public class PawnCombat : MonoBehaviour
         // If in range for auto attack, then auto attack
         if (InRangeFor(AbilityHolders.First().AbilityHeld))
         {
-            Cast(AbilityHolders.First());
+            //Cast(AbilityHolders.First());
         }
         // Else, if the pawn isn't already walking, walk to a correct range
         else if(Master._ActionManager.QueueIsEmpty())
