@@ -15,7 +15,7 @@ MonoBehaviour:
   Name: Block
   _Sprite: {fileID: 21300000, guid: 099330604e2a4df4ba882132007ca607, type: 3}
   CastClip: {fileID: 0}
-  ChannelClip: {fileID: 7400000, guid: dd9bdd03cf9926241a4c8616eeb33a95, type: 2}
+  ChannelClip: {fileID: 7400000, guid: 64e810aa34df84c4aaf096b5e7ac101f, type: 2}
   FireClip: {fileID: 0}
   AnimationStage: 0
   Stage: 0

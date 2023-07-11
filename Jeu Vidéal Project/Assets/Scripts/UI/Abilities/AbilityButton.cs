@@ -49,7 +49,7 @@ public class AbilityButton : MonoBehaviour
 
     public void Cast()
     {
-        if (Globals.FocusedPawn == null)
+        if (Globals.FocusedInteractive == null)
         {
             return;
         }
@@ -59,7 +59,10 @@ public class AbilityButton : MonoBehaviour
             return;
         }
 
-        Globals.FocusedPawn.Cast(Holder);
+        if(Globals.FocusedInteractive.IsPawn(out Pawn focusedPawn))
+        {
+            focusedPawn.Cast(Holder);
+        }
     }
 
 

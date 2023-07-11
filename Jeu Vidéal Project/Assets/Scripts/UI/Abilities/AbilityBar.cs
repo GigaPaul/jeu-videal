@@ -25,7 +25,7 @@ public class AbilityBar : MonoBehaviour
 
     private void UpdateCoolDowns()
     {
-        if(Globals.FocusedPawn == null)
+        if(Globals.FocusedInteractive == null)
         {
             return;
         }

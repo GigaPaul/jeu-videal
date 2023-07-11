@@ -13,14 +13,14 @@ MonoBehaviour:
   m_Name: Mining
   m_EditorClassIdentifier: 
   Name: Mining
-  _Sprite: {fileID: 0}
+  _Sprite: {fileID: 21300000, guid: c32cfe5db2fd5114bb6492d62ba72068, type: 3}
   CastClip: {fileID: 7400000, guid: 49f0d85b18961d54e904e4a097beb7bb, type: 2}
-  ChannelClip: {fileID: 7400000, guid: a1f933f914908394ba1fa0ce75decad6, type: 2}
-  FireClip: {fileID: 7400000, guid: dd9bdd03cf9926241a4c8616eeb33a95, type: 2}
+  ChannelClip: {fileID: 0}
+  FireClip: {fileID: 0}
   AnimationStage: 0
   Stage: 0
-  NeedsTarget: 1
-  CastingTime: 10
+  NeedsTarget: 0
+  CastingTime: 5
   ChannelTime: 0
   CoolDownTime: 0
   MinRange: 1

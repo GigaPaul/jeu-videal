@@ -19,7 +19,7 @@ public class InputManager : MonoBehaviour
     public bool CursorOverUI = false;
 
     #nullable enable
-    Pawn? FocusedObject { get; set; }
+    Interactive? FocusedObject { get; set; }
     #nullable disable
 
     private void Awake()
@@ -109,17 +109,17 @@ public class InputManager : MonoBehaviour
             case 1:
                 LeftClickIsHeld = true;
                 Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
-                Pawn hitPawn = null;
+                Interactive hitInteractive = null;
                 SelectionArea.position = Mouse.current.position.ReadValue();
 
 
                 if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, Globals.FocusableMask))
                 {
-                    hitPawn = hit.transform.GetComponentInParent<Pawn>();
-                    FocusedObject = hitPawn;
+                    hitInteractive = hit.transform.GetComponentInParent<Interactive>();
+                    FocusedObject = hitInteractive;
                 }
 
-                if (hitPawn == null)
+                if (hitInteractive == null)
                 {
                     //SelectionArea.gameObject.SetActive(true);
                     //GenerateSelection();
@@ -154,67 +154,113 @@ public class InputManager : MonoBehaviour
 
     private void CancelActions(InputAction.CallbackContext context)
     {
-        if (LeftClickIsHeld)
+        CancelLeftClickActions();
+        CancelRightClickActions();
+    }
+
+
+
+
+
+    private void CancelLeftClickActions()
+    {
+        if (!LeftClickIsHeld)
         {
-            if(!CursorOverUI)
+            return;
+        }
+
+        if(!CursorOverUI)
+        {
+            if(Globals.FocusedInteractive != null && Globals.FocusedInteractive != FocusedObject)
             {
-                if (FocusedObject != null)
-                {
-                    FocusedObject.Focus();
-                }
-                else if(Globals.FocusedPawn != null)
-                {
-                    Globals.FocusedPawn.Unfocus();
-                }
+                Globals.FocusedInteractive.Unfocus();
             }
 
-            LeftClickIsHeld = false;
-            SelectionArea.gameObject.SetActive(false);
-            FocusedObject = null;
+
+            if (FocusedObject != null)
+            {
+                FocusedObject.Focus();
+            }
+        }
+
+        LeftClickIsHeld = false;
+        SelectionArea.gameObject.SetActive(false);
+        FocusedObject = null;
+    }
+
+
+
+
+
+    private void CancelRightClickActions()
+    {
+        if (!RightClickIsHeld)
+        {
+            return;
         }
 
 
+        // So it executes only once
+        RightClickIsHeld = false;
 
+        Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
+        //RaycastHit rightClickHit;
 
-        if(RightClickIsHeld)
+        // Right click on focusable object
+        if (Physics.Raycast(ray, out RaycastHit focusableHit, Mathf.Infinity, Globals.FocusableMask))
         {
-            Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
-            RaycastHit rightClickHit;
-
-            // Right click on focusable object
-            if (Physics.Raycast(ray, out rightClickHit, Mathf.Infinity, Globals.FocusableMask))
+            // The right click needs to be on a Pawn
+            if (focusableHit.transform.GetComponentInParent<Pawn>() == null)
             {
-                if(rightClickHit.transform.GetComponentInParent<Pawn>())
-                {
-                    if(Globals.FocusedPawn != null)
-                    {
-                        Pawn interactedPawn = rightClickHit.transform.GetComponentInParent<Pawn>();
-
-                        if(Globals.FocusedPawn.CanAttack(interactedPawn))
-                        {
-                            Globals.FocusedPawn._PawnCombat.ForceTarget(interactedPawn);
-                        }
-                    }
-
-                }
-            }
-            // Right click on ground
-            else if (Physics.Raycast(ray, out rightClickHit, Mathf.Infinity, Globals.GroundMask))
-            {
-                if (Globals.FocusedPawn != null && Globals.FocusedPawn.IsPlayable())
-                {
-                    // Untargets the current target if there is one
-                    if(Globals.FocusedPawn._PawnCombat.CurrentTarget != null || Globals.FocusedPawn._PawnCombat.ForcedTarget != null)
-                    {
-                        Globals.FocusedPawn._PawnCombat.ForceTarget(null);
-                    }
-
-                    // Go to the location
-                    Globals.FocusedPawn.GoTo(rightClickHit.point, Player.IsQueueing);
-                }
+                return;
             }
 
-            RightClickIsHeld = false;
+            // We need an Interactive to be focused to perform actions
+            if (Globals.FocusedInteractive == null)
+            {
+                return;
+            }
+
+
+            // If the focused interactive is a pawn and can attack the right clicked pawn, make them attack
+            if (Globals.FocusedInteractive.IsPawn(out Pawn focusedPawn))
+            {
+                Pawn interactedPawn = focusableHit.transform.GetComponentInParent<Pawn>();
+
+                if (!focusedPawn.CanAttack(interactedPawn))
+                {
+                    return;
+                }
+
+                focusedPawn._PawnCombat.ForceTarget(interactedPawn);
+            }
+        }
+        // Right click on ground
+        else if (Physics.Raycast(ray, out RaycastHit groundHit, Mathf.Infinity, Globals.GroundMask))
+        {
+            // We need a interactive to be focused for it to move
+            if (Globals.FocusedInteractive == null)
+            {
+                return;
+            }
+
+            // If the interactive is a pawn and playable, order them to move
+            if (Globals.FocusedInteractive.IsPawn(out Pawn focusedPawn))
+            {
+                if (!focusedPawn.IsPlayable())
+                {
+                    return;
+                }
+
+                // Untargets the current target if there is one
+                if (focusedPawn._PawnCombat.CurrentTarget != null || focusedPawn._PawnCombat.ForcedTarget != null)
+                {
+                    focusedPawn._PawnCombat.ForceTarget(null);
+                }
+
+                // Go to the location
+                focusedPawn.GoTo(groundHit.point, Player.IsQueueing);
+            }
         }
     }
 

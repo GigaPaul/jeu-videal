@@ -18,7 +18,7 @@ public class TargetInfoManager : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if(Globals.FocusedPawn == null)
+        if(Globals.FocusedInteractive == null)
         {
             ActivePawnName.text = "";
             JobName.text = "";
@@ -29,15 +29,15 @@ public class TargetInfoManager : MonoBehaviour
             return;
         }
 
-        PawnAttributes attributes = Globals.FocusedPawn.GetComponent<PawnAttributes>();
+        PawnAttributes attributes = Globals.FocusedInteractive.GetComponent<PawnAttributes>();
         ActivePawnName.text = attributes.GetFullName();
 
 
         string jobName = "";
 
-        if(Globals.FocusedPawn.GetComponent<SmartPawn>() != null)
+        if(Globals.FocusedInteractive.GetComponent<SmartPawn>() != null)
         {
-            jobName = Globals.FocusedPawn.GetComponent<SmartPawn>().Label;
+            jobName = Globals.FocusedInteractive.GetComponent<SmartPawn>().Label;
         }   
 
         JobName.text = jobName;
@@ -45,16 +45,19 @@ public class TargetInfoManager : MonoBehaviour
 
         string targetName = "";
 
-        if(Globals.FocusedPawn.StareTarget != null)
+        if(Globals.FocusedInteractive.IsPawn(out Pawn focusedPawn))
         {
-            PawnAttributes targetAttributes = Globals.FocusedPawn.StareTarget.GetComponentInParent<PawnAttributes>();
-            targetName = targetAttributes.GetFullName();
+            if(focusedPawn.StareTarget != null)
+            {
+                PawnAttributes targetAttributes = focusedPawn.StareTarget.GetComponentInParent<PawnAttributes>();
+                targetName = targetAttributes.GetFullName();
+            }
+
+            TargetName.text = targetName;
+
+            ActionLabel.text = focusedPawn._ActionManager.CurrentAction?.Label;
+            FactionName.text = focusedPawn.Faction?.Label;
+            SettlementName.text = focusedPawn.Settlement?.Label;
         }
-
-        TargetName.text = targetName;
-
-        ActionLabel.text = Globals.FocusedPawn?._ActionManager.CurrentAction?.Label;
-        FactionName.text = Globals.FocusedPawn?.Faction?.Label;
-        SettlementName.text = Globals.FocusedPawn?.Settlement?.Label;
     }
 }

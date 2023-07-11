@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Animations.Rigging;
 
-public class Pawn : MonoBehaviour
+public class Pawn : Interactive
 {
     [Header("Alignment")]
     public Faction Faction;
@@ -42,10 +42,7 @@ public class Pawn : MonoBehaviour
 
     public Transform RigTarget;
     public Transform FocusElement;
-    //public Transform Model;
     public PawnModel Model { get; set; }
-    public GameObject HoverRing;
-    public GameObject FocusRing;
 
     #nullable enable
     public Transform? Target;
@@ -58,8 +55,12 @@ public class Pawn : MonoBehaviour
 
 
 
-    private void Awake()
+
+
+    protected override void Awake()
     {
+        base.Awake();
+
         // If the pawn is meant to be playable from the start, apply the player faction. Otherwise, apply the wanderer faction
         if (Faction == null)
         {
@@ -98,11 +99,20 @@ public class Pawn : MonoBehaviour
         InvokeRepeating(nameof(ManageActions), 0, 0.25f);
     }
 
+
+
+
+
     void FixedUpdate()
     {
-        ManageRings();
         CheckDeathStatus();
     }
+
+
+
+
+
+
 
 
 
@@ -142,9 +152,9 @@ public class Pawn : MonoBehaviour
 
 
 
-    public void Focus()
+    public override void Focus()
     {
-        Globals.FocusedPawn = this;
+        base.Focus();
 
         AbilityBar bar = FindObjectOfType<AbilityBar>();
 
@@ -160,9 +170,12 @@ public class Pawn : MonoBehaviour
 
 
 
-    public void Unfocus()
+
+
+    public override void Unfocus()
     {
-        Globals.FocusedPawn = null;
+        base.Unfocus();
+
         AbilityBar bar = FindObjectOfType<AbilityBar>();
         bar.UnloadAbilities();
     }
@@ -171,55 +184,22 @@ public class Pawn : MonoBehaviour
 
 
 
-    private void ManageRings()
-    {
-        // Focus
-        if(IsFocused() && !FocusRing.activeInHierarchy)
-        {
-            FocusRing.SetActive(true);
-        }
-        else if(!IsFocused() && FocusRing.activeInHierarchy)
-        {
-            FocusRing.SetActive(false);
-        }
-
-        // Hover
-        if (IsHovered() && !HoverRing.activeInHierarchy)
-        {
-            HoverRing.SetActive(true);
-        }
-        else if (!IsHovered() && HoverRing.activeInHierarchy)
-        {
-            HoverRing.SetActive(false);
-        }
-    }
-
-
-
-
-
-    public bool IsFocused()
-    {
-        return Globals.FocusedPawn == this;
-    }
-
-
-    public bool IsHovered()
-    {
-        return Globals.HoveredPawn == this;
-    }
-
-
     public bool IsPlayable()
     {
         return Faction != null && Faction.IsPlayable();
     }
 
 
+
+
+
     public bool IsEnemyWith(Pawn pawn)
     {
         return Faction.IsAtWarWith(pawn.Faction);
     }
+
+
+
 
 
     public bool HasReachedDestination()
@@ -243,6 +223,10 @@ public class Pawn : MonoBehaviour
         return actionIsUnloaded && hasReachedDestination;
     }
 
+
+
+
+
     public bool IsMoving()
     {
         bool IsCalculatingPath = NavMeshAgent.pathPending;
@@ -253,12 +237,13 @@ public class Pawn : MonoBehaviour
     }
 
 
+
+
+
     public bool IsFlocking()
     {
         return Flock != null && Flock.Commander != this;
     }
-
-
 
 
 
@@ -272,6 +257,9 @@ public class Pawn : MonoBehaviour
 
         Do(walk, false, isQueueing);
     }
+
+
+
 
 
     public void GoTo(Transform target, bool isQueueing = false)
@@ -305,49 +293,6 @@ public class Pawn : MonoBehaviour
 
 
 
-    //public void Punch(Pawn target)
-    //{
-
-    //    Ability punchAbility = new("Punch")
-    //    {
-    //        Range = 2,
-    //        Target = target
-    //    };
-
-    //    Cast(punchAbility);
-
-    //    Action punch = new()
-    //    {
-    //        Label = "Punching",
-    //        Target = target.transform
-    //    };
-
-
-
-
-    //    punch.StartingScript = () =>
-    //    {
-    //        //Movement.RotationTarget = punch.Target;
-
-    //        return Task.FromResult(0);
-    //    };
-
-    //    //punch.EndingScript = () =>
-    //    //{
-    //    //    //if (Movement.RotationTarget == punch.Target)
-    //    //    //{
-    //    //    //    Movement.RotationTarget = null;
-    //    //    //}
-    //    //};
-
-
-
-    //    Do(punch);
-    //}
-
-
-
-
 #nullable enable
     public void LookAt(Transform? target)
     {
@@ -360,6 +305,8 @@ public class Pawn : MonoBehaviour
         }
     }
     #nullable disable
+
+
 
 
 
@@ -465,13 +412,13 @@ public class Pawn : MonoBehaviour
     }
 
 
+
+
+
     public void Cast(AbilityHolder holder)
     {
         _PawnCombat.Cast(holder);
     }
-
-
-
 
 
 
@@ -506,6 +453,10 @@ public class Pawn : MonoBehaviour
         ChatBubble.GetComponentInChildren<TextMeshProUGUI>().text = text;
     }
 
+
+
+
+
     public void AssignTo(Type type)
     {
         //Occupation = occupation
@@ -521,6 +472,9 @@ public class Pawn : MonoBehaviour
     }
 
 
+
+
+
     public void Die()
     {
         _PawnCombat.ClearTargets();
@@ -529,6 +483,9 @@ public class Pawn : MonoBehaviour
 
         NavMeshAgent.enabled = false;
     }
+
+
+
 
 
     public bool HasInSights(Transform target)
@@ -547,10 +504,15 @@ public class Pawn : MonoBehaviour
 
 
 
+
     public bool IsInCombat()
     {
         return _PawnCombat.CurrentTarget != null;
     }
+
+
+
+
 
     public bool IsCasting()
     {
@@ -558,20 +520,21 @@ public class Pawn : MonoBehaviour
         //return _PawnCombat.CastAbility != null;
     }
 
+
+
+
+
     public bool CanAttack(Pawn target)
     {
         return target != this && target.IsAlive && Faction != target.Faction && Faction.IsAtWarWith(target.Faction);
     }
 
 
+
+
+
     public bool Knows(Ability ability)
     {
         return _PawnCombat.Spellbook.Contains(ability);
     }
-
-
-    //public bool CanBeAttacked()
-    //{
-    //    return IsAlive && Faction.Id == "g_bandits";
-    //}
 }

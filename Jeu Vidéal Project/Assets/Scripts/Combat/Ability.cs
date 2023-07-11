@@ -6,13 +6,13 @@ using UnityEngine;
 
 public class Ability : ScriptableObject
 {
+    [Header("Customization")]
     public string Name;
     public Sprite _Sprite;
 
 
     [Header("Animation")]
 
-    //
     public AnimationClip CastClip;
     public AnimationClip ChannelClip;
     public AnimationClip FireClip;
@@ -24,10 +24,11 @@ public class Ability : ScriptableObject
         hit,
         end
     }
+
+    [HideInInspector]
     public AnimationStageType AnimationStage = AnimationStageType.initializing;
 
     public Dictionary<StageType, AnimationClip> StageClips = new();
-    //
 
     public List<AnimationStalker> CastingAnimations { get; set; } = new();
     public List<AnimationStalker> ChannelAnimations { get; set; } = new();
@@ -40,6 +41,8 @@ public class Ability : ScriptableObject
         channeling,
         fire
     }
+
+    [HideInInspector]
     public StageType Stage = StageType.casting;
 
     [Header("Stats")]

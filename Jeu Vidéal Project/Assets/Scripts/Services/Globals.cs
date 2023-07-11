@@ -3,8 +3,8 @@ using UnityEngine;
 
 public class Globals
 {
-    public static Pawn FocusedPawn { get; set; }
-    public static Pawn HoveredPawn { get; set; }
+    public static Interactive FocusedInteractive { get; set; }
+    public static Interactive HoveredInteractive { get; set; }
     public static int FocusableMask { get; set; } = LayerMask.GetMask("Focusable");
     public static int InteractiveMask { get; set; } = LayerMask.GetMask("Interactive");
     public static int GroundMask { get; set; } = LayerMask.GetMask("Ground");

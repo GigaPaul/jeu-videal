@@ -114,17 +114,39 @@ public class Player : NetworkBehaviour
 
     private void CheckHover()
     {
-        RaycastHit hover;
-        Ray rayHover = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
-        if (Physics.Raycast(rayHover, out hover, Mathf.Infinity, Globals.FocusableMask))
+        Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
+
+
+        if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, Globals.FocusableMask))
         {
-            Pawn hoveredPawn = hover.transform.GetComponentInParent<Pawn>();
-            Globals.HoveredPawn = hoveredPawn;
+            Interactive hitInteractive = hit.transform.GetComponentInParent<Interactive>();
+
+            if(Globals.HoveredInteractive != null && Globals.HoveredInteractive != hitInteractive)
+            {
+                Globals.HoveredInteractive.HoverOut();
+            }
+
+            hitInteractive.HoverIn();
         }
-        else
+        else if(Globals.HoveredInteractive != null)
         {
-            Globals.HoveredPawn = null;
-            //Globals.HoveredInteractive = null;
+            Globals.HoveredInteractive.HoverOut();
         }
+
+
+
+
+        //RaycastHit hover;
+        //Ray rayHover = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
+        //if (Physics.Raycast(rayHover, out hover, Mathf.Infinity, Globals.FocusableMask))
+        //{
+        //    Pawn hoveredPawn = hover.transform.GetComponentInParent<Pawn>();
+        //    Globals.HoveredInteractive = hoveredPawn;
+        //}
+        //else
+        //{
+        //    Globals.HoveredInteractive = null;
+        //    //Globals.HoveredInteractive = null;
+        //}
     }
 }
