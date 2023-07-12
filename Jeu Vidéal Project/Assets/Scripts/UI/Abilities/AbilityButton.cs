@@ -59,6 +59,12 @@ public class AbilityButton : MonoBehaviour
             return;
         }
 
+        if(Holder.IsCoolingDown)
+        {
+            GameLogger.LogError("This ability isn't ready yet.");
+            return;
+        }
+
         if(Globals.FocusedInteractive.IsPawn(out Pawn focusedPawn))
         {
             focusedPawn.Cast(Holder);

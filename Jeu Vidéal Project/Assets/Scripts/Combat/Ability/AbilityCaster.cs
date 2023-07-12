@@ -66,6 +66,7 @@ public class AbilityCaster : MonoBehaviour
 
         if (!Master.Knows(holder.AbilityHeld))
         {
+            GameLogger.LogError($"{Master.Attributes.GetFullName()} doesn't know this ability.");
             return;
         }
 

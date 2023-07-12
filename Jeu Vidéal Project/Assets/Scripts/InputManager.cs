@@ -227,8 +227,14 @@ public class InputManager : MonoBehaviour
             {
                 Pawn interactedPawn = focusableHit.transform.GetComponentInParent<Pawn>();
 
+                if(focusedPawn == interactedPawn)
+                {
+                    return;
+                }
+
                 if (!focusedPawn.CanAttack(interactedPawn))
                 {
+                    GameLogger.LogError($"{focusedPawn.Attributes.GetFullName()} can't attack {interactedPawn.Attributes.GetFullName()}");
                     return;
                 }
 

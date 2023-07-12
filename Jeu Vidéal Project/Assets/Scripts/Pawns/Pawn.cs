@@ -184,71 +184,6 @@ public class Pawn : Interactive
 
 
 
-    public bool IsPlayable()
-    {
-        return Faction != null && Faction.IsPlayable();
-    }
-
-
-
-
-
-    public bool IsEnemyWith(Pawn pawn)
-    {
-        return Faction.IsAtWarWith(pawn.Faction);
-    }
-
-
-
-
-
-    public bool HasReachedDestination()
-    {
-        if (_ActionManager.QueueIsEmpty())
-        {
-            return true;
-        }
-
-        bool actionIsUnloaded = _ActionManager.CurrentAction.Status == Action.StatusType.unloaded;
-
-        float remainingDistance = _ActionManager.CurrentAction.RemainingDistance();
-
-        if (_ActionManager.CurrentAction.IsWaypoint)
-        {
-            remainingDistance = Mathf.Floor(remainingDistance * 100) / 100;
-        }
-
-        bool hasReachedDestination = remainingDistance <= NavMeshAgent.stoppingDistance;
-
-        return actionIsUnloaded && hasReachedDestination;
-    }
-
-
-
-
-
-    public bool IsMoving()
-    {
-        bool IsCalculatingPath = NavMeshAgent.pathPending;
-        bool HasNotReachedDestination = Mathf.Floor(NavMeshAgent.remainingDistance) > NavMeshAgent.stoppingDistance;
-        bool IsTraveling = NavMeshAgent.hasPath && NavMeshAgent.velocity.sqrMagnitude > 0f;
-
-        return IsCalculatingPath || HasNotReachedDestination || IsTraveling;
-    }
-
-
-
-
-
-    public bool IsFlocking()
-    {
-        return Flock != null && Flock.Commander != this;
-    }
-
-
-
-
-
     // Pre-scripted actions
     public void GoTo(Vector3 destination, bool isQueueing = false)
     {
@@ -482,6 +417,77 @@ public class Pawn : Interactive
         _Puppeteer.PlayDeathAnim();
 
         NavMeshAgent.enabled = false;
+    }
+
+
+
+
+
+    ////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////
+    ///////////////////////// BOOLEANS /////////////////////////
+    ////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////
+
+    public bool IsPlayable()
+    {
+        return Faction != null && Faction.IsPlayable();
+    }
+
+
+
+
+
+    public bool IsEnemyWith(Pawn pawn)
+    {
+        return Faction.IsAtWarWith(pawn.Faction);
+    }
+
+
+
+
+
+    public bool HasReachedDestination()
+    {
+        if (_ActionManager.QueueIsEmpty())
+        {
+            return true;
+        }
+
+        bool actionIsUnloaded = _ActionManager.CurrentAction.Status == Action.StatusType.unloaded;
+
+        float remainingDistance = _ActionManager.CurrentAction.RemainingDistance();
+
+        if (_ActionManager.CurrentAction.IsWaypoint)
+        {
+            remainingDistance = Mathf.Floor(remainingDistance * 100) / 100;
+        }
+
+        bool hasReachedDestination = remainingDistance <= NavMeshAgent.stoppingDistance;
+
+        return actionIsUnloaded && hasReachedDestination;
+    }
+
+
+
+
+
+    public bool IsMoving()
+    {
+        bool IsCalculatingPath = NavMeshAgent.pathPending;
+        bool HasNotReachedDestination = Mathf.Floor(NavMeshAgent.remainingDistance) > NavMeshAgent.stoppingDistance;
+        bool IsTraveling = NavMeshAgent.hasPath && NavMeshAgent.velocity.sqrMagnitude > 0f;
+
+        return IsCalculatingPath || HasNotReachedDestination || IsTraveling;
+    }
+
+
+
+
+
+    public bool IsFlocking()
+    {
+        return Flock != null && Flock.Commander != this;
     }
 
 
